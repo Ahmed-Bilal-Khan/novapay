@@ -174,20 +174,6 @@ check('Reporting a payroll delay: offered once late, only when salary didn\'t ar
   assert.equal(SA.getStatus(repaid, '2026-08-02').can_report_payroll_delay, false);
 });
 
-check('Notice before default sent: from 20 Aug while late, reported or not; no report offered after it', () => {
-  const st = (s) => SA.getStatus(s.advance, s.today);
-  assert.equal(st(SA.scenario('S11')).default_notice_sent, false);
-  assert.equal(st(SA.scenario('S12')).default_notice_sent, false);
-  assert.equal(st(SA.scenario('S13')).default_notice_sent, true);
-  assert.equal(st(SA.scenario('S13', { payroll_delay: true })).default_notice_sent, true); // never paused
-  assert.equal(SA.getStatus(SA.scenario('S13').advance, '2026-08-19').default_notice_sent, false);
-  assert.equal(SA.getStatus(SA.scenario('S13').advance, '2026-08-26').default_notice_sent, true);
-  // The report is dated 2 Aug (MR), so it isn't offered once this notice has gone out.
-  assert.equal(st(SA.scenario('S13')).can_report_payroll_delay, false);
-  const repaid = notCollected(accept(), { salary_landed: true, salary_amount: 68000, balance: 70000 });
-  assert.equal(SA.getStatus(repaid, '2026-08-20').default_notice_sent, false);
-});
-
 check('Not collected on payday: 0 days late on 28 Jul, the event is recorded', () => {
   const s = SA.getStatus(notCollected(accept()), '2026-07-28');
   assert.equal(s.phase, 'not_collected');

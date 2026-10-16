@@ -263,23 +263,6 @@
 - **Shared wording in `advanceParts.jsx`:** `LateLabel` and `LateStatus`, plus `RetryLine`, now shared with S11.
 - **Checked in the app:** both variants; focus after the tap, and none when the screen opens already reported; the reviewer checkbox and Now showing follow the tap; S10 and S11 unchanged. Measured: the status card ends at 316px (two buttons) and 390px (reported), inside 450/506px at 360×640 and 654/710px at 390×844.
 
-### Chat 5, continued: S13, notice before default (20 Aug)
-
-- **Alignment pass first.** Dropped or changed:
-  - "talk to someone" (no Assumption names a route),
-  - "My salary is late" on 20 Aug (it would be recorded as 2 Aug),
-  - "the amount stays Rs 10,300" (a promise about after default, while no late fees is still pending finance),
-  - "your wallet keeps working" (now "We won't freeze your wallet."),
-  - the label "Default on 27 Aug" (now "Default date: 27 Aug", a fact rather than a forecast),
-  - a separate "permission ends" line (S11's retry line already says it).
-  
-  Draft copy was measured in the live screen before building.
-- **Home:** the attention card with "Your salary advance" · "Default date: 27 Aug", then "If it's still unpaid on 27 Aug, the advance is in default. That's in 7 days.", what's owed today, payday's cause line, the retry line, and See details.
-- **Details:** the same, plus "Then new advances are paused and automatic collection stops. We won't freeze your wallet." and the late link. Reported variant: "You told us your salary is late, so the other reminders are paused. This notice is always sent, because it's about the date your advance goes into default." The only action is the pay stub.
-- **Module:** `getStatus().default_notice_sent` (the never-paused notice has gone out and the advance is late). `can_report_payroll_delay` is now false once it's sent. The check failed first (45 checks now).
-- **Shared wording in `advanceParts.jsx`:** `DefaultDateLabel` and `DefaultNoticeStatus`.
-- **Checked in the app:** both variants; S10, S11 and S12 unchanged, and S12 still offers "My salary is late". Measured: the status card ends at 350px (not reported) and 446px (reported), inside 506px at 360×640 and 710px at 390×844. Home's "See details" ends at 410px of 582px.
-
 ## Decisions
 
 ### Chat 1: project setup
@@ -432,10 +415,6 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
-**S13:**
-- Build as structured, with `default_notice_sent` and its check.
-- Items 1–6 noted.
-
 **S12:**
 - Build as structured.
 - 27 Aug stays after a report: whether a payroll delay moves the default date is still an open question in my read, and the screen shows the module's current date.
@@ -526,16 +505,9 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The danger card's `role="alert"` is there when the screen opens**, so it re-announces on every visit (the cost of audit 6.10).
   - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
-- *From S13, noted, not fixed:*
-  - **Not reported on 20 Aug, the only control is the pay stub.** A real person could report a delay then; the prototype can't, because my report date is 2 Aug.
-  - **After a report, the screen still names 27 Aug as the default date**, while my open question stands.
-  - **"Nothing you need to do" sits near "the advance is in default".**
-  - **The default and wallet lines repeat the late sheet.**
-  - **Days late (23) isn't shown on S13.**
-  - **21–26 Aug would also show S13**, which is correct, but those dates aren't in the reviewer.
 - *From S12, noted, not fixed:*
   - **After a report, the details still say "if it's still unpaid on 27 Aug…"**, which treats an open question in my read as answered (my choice to keep it).
-  - ~~**20 Aug shows S12's card ("23 days late") until S13 is built.**~~ *Resolved with S13.* Tapping "My salary is late" there would record 2 Aug, and the confirmation's "we'll still send you a notice on 20 Aug" would be in the wrong tense.
+  - **20 Aug shows S12's card ("23 days late") until S13 is built.** Tapping "My salary is late" there would record 2 Aug, and the confirmation's "we'll still send you a notice on 20 Aug" would be in the wrong tense.
   - **"Nothing you need to do" sits next to the optional "My salary is late".**
   - **The default line repeats the late sheet's last bullet.**
   - **"5 days late" is 4.71:1**, an AA pass by 0.21.
@@ -704,7 +676,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). The late path is built: S10 (reminder), S11 (not collected), S12 (late, with "My salary is late") and S13 (notice before default). Next: the lock-screen previews (5.4), with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
+S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (reminder), S11 (not collected) and S12 (late, with "My salary is late") are built. Next: S13, the notice before default on 20 Aug, which also fixes 20 Aug reusing S12, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
