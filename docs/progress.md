@@ -164,7 +164,7 @@
 
 - **Decided first, as lettered options:** 1B (the module gives a balance on every reviewer date), 2A with 2i (the module owns recent activity; a failed collection isn't a row), 3B with 3i (the offer card states what it is and what it costs, under a plain "Salary advance").
 - **Module:** sample activity rows in `salaryAdvance.js`, with `getActivity` (latest 4, newest first) and `getWallet` adding the rows to the 4,250 on 7 Jul. The balance is 14,250 on 7 Jul after accepting and 1,800 on 25 Jul. On payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause, carried to 2 Aug and 20 Aug. `scenario()` reads its 6pm balance from the same rows, and the cause comes from the advance's failed attempt. Seven new checks failed first (38 now).
-- **Home:** activity reads `getActivity`, with dates only (S9's "Today, 2:14pm" is now "Today"). The offer card reads "Salary advance" / "A short-term loan with a 3% fee, charged once. We take it from your NovaPay wallet on 28 Jul, once your salary arrives."
+- **Home:** activity reads `getActivity`, with dates only (S9's "Today, 2:14pm" is now "Today"). The offer card reads "Salary advance" / "A short-term loan with a 3% fee, charged once. We take it from your NovaPay wallet on 28 Jul, once your salary arrives." *(Later in chat 5: now S3's wording, "…If you accept, we take the full amount from your NovaPay wallet automatically at 6pm on 28 Jul, once your salary arrives.")*
 - **Checked:** S1 and S9 in the app; every later date and cause through a temporary probe (removed); the offer card at 360×640.
 
 ### Chat 5, continued: the reviewer control (`70d22f3`)
@@ -216,7 +216,14 @@
   - item 5: when Home's card becomes the reminder is now decided in the module. `getStatus` returns `before_due_reminder_sent`, Home reads it, and a new check failed first (43 checks now),
   - items 7–9: stale lines in the audit's R and I17 rows and in `progress.md`,
   - items 11–13: recorded below.
-- **Left for me to decide:** items 2, 3, 4, 6 and 10 (see Open questions, Added in chat 5).
+- **Decided by me:**
+  - 2: S10 stays as it is,
+  - 3: Scope updated (the late path is shown for "salary didn't arrive"; the other three causes are in the data only),
+  - 4: principle 5 reworded ("on the day it's paid out"),
+  - 6: the S1 offer card now uses S3's wording,
+  - 10: "With more time" updated.
+  
+  The S1 card is checked at 390 and 360px: 4 lines, and the button stays above the fold.
 
 ## Decisions
 
@@ -438,11 +445,11 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The reviewer control has no URL state, notes or narrow-screen drawer** (planned for chat 6). At narrow widths it hangs off the right of the phone.
 - **At `w-80` the panel needs a window about 1,060px wide.** At 1,024px its right edge is at 1,043px, so the page scrolls sideways a little. The narrow-screen drawer (chat 6) is the fix.
 - *From the re-verification, mine to decide:*
-  - **2. S10 says "nothing you need to do"**, but my read says this reminder is the one chance to prevent money being spent before collection. Should it say anything about payday before 6pm?
-  - **3. My Scope lists four causes of "Not collected on payday"**, but the reviewer now shows only "salary didn't arrive".
-  - **4. Principle 5 says the balance says how much came from the advance**, but "Includes…" shows only on the payout day.
-  - **6. The S1 offer card says "We take it… on 28 Jul"**, which can read as the loan being taken. It also lacks "If you accept" and "at 6pm", which S3 has.
-  - **10. "With more time: Modelling spending"** in my read. Spending now exists as sample rows, but not how much of the balance is borrowed.
+  - ~~**2. S10 says "nothing you need to do"**~~ *Decided: leave as is.*, but my read says this reminder is the one chance to prevent money being spent before collection. Should it say anything about payday before 6pm?
+  - ~~**3. My Scope lists four causes~~ *Decided: Scope updated.* of "Not collected on payday"**, but the reviewer now shows only "salary didn't arrive".
+  - ~~**4. Principle 5 says the balance says~~ *Decided: reworded.* how much came from the advance**, but "Includes…" shows only on the payout day.
+  - ~~**6. The S1 offer card says~~ *Decided: S3's wording, word for word.* "We take it… on 28 Jul"**, which can read as the loan being taken. It also lacks "If you accept" and "at 6pm", which S3 has.
+  - ~~**10. "With more time: Modelling spending"**~~ *Decided: updated.* in my read. Spending now exists as sample rows, but not how much of the balance is borrowed.
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).

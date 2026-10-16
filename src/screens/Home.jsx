@@ -78,9 +78,11 @@ export default function Home({
         <Card className="space-y-3">
           <div>
             <h2 className="text-title text-neutral-900">Salary advance</h2>
+            {/* The same wording as S3's card (principle 1). */}
             <p className="text-body text-neutral-700 mt-1">
-              A short-term loan with a {FEE_PERCENT}% fee, charged once. We take it from your NovaPay wallet on{" "}
-              {formatDate(offer.due_date)}, once your salary arrives.
+              A short-term loan with a {FEE_PERCENT}% fee, charged once. If you accept, we take the full amount from
+              your NovaPay wallet automatically at {formatTime(offer.collection_time)} on {formatDate(offer.due_date)},
+              once your salary arrives.
             </p>
           </div>
           <Button onClick={onStartAdvance}>See amounts and costs</Button>

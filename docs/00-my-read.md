@@ -90,7 +90,7 @@ The first two aren't the user's fault, and that's why the late experience should
    - Never sent to anyone but the borrower.
    - Red only on the event that failed (e.g. "We couldn't collect on 28 Jul"), never on the person's status card or the late screen. Their status uses the attention colour.
    - Attention colour: the amber ramp, now named `attention`, only as a soft background with dark text (body text neutral-900 on attention-50; attention-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons.
-5. **Their wallet stays theirs.** Borrowed money is never mistaken for their own: the balance says how much of it came from the advance, and the advance (what's owed and when) has its own card. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
+5. **Their wallet stays theirs.** Borrowed money is never mistaken for their own: on the day it's paid out, the balance says how much of it came from the advance (once money is spent, that can't be said truthfully), and the advance (what's owed and when) has its own card. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
 
 ## A moment that shouldn't exist
 **"Declined: income unverified."**
@@ -112,7 +112,7 @@ Built as separate states the reviewer can jump to, so the depth goes into two pl
 **In depth: the late path (my one bad-news path)**
 Reminder before the due date → Not collected on payday → late → notice before default.
 
-Causes of "Not collected on payday": salary didn't arrive, salary arrived short of Rs 10,300, balance dropped below Rs 10,300 before 6pm, or salary moved to a bank account.
+Causes of "Not collected on payday": salary didn't arrive, salary arrived short of Rs 10,300, balance dropped below Rs 10,300 before 6pm, or salary moved to a bank account. The prototype shows the late path for one of them: salary didn't arrive. The other three are worked out in the data (each has its own balance and activity), but the reviewer can't choose them.
 
 **Thin**
 The home card: eligible vs needs verification (the second persona's home-card state). The rest of the "shouldn't exist" case is argued here in writing.
@@ -120,7 +120,7 @@ The home card: eligible vs needs verification (the second persona's home-card st
 Home after accepting: the balance first, saying how much of it came from the advance ("Includes Rs 10,000 from your advance"), and the advance in its own card with what's owed and when. This is where the receipt's Done goes, and it makes principle 5 testable. The advance's details open from that card.
 
 **With more time**
-Credit-history decline, the default screen itself, successful repayment, early repayment. (Viewing the advance later is now built as its details, from the home card.) Modelling spending, so the balance always shows how much of it is borrowed.
+Credit-history decline, the default screen itself, successful repayment, early repayment. (Viewing the advance later is now built as its details, from the home card.) Modelling real spending, so the balance always shows how much of it is borrowed. (The prototype's later balances come from sample activity rows, which explain the balance but can't say how much of it is borrowed.)
 
 ## First impressions of NovaKit
 - Card and Panel are the same component; only the border differs, and Card's border is a hardcoded colour.
