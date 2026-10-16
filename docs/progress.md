@@ -167,6 +167,20 @@
 - **Home:** activity reads `getActivity`, with dates only (S9's "Today, 2:14pm" is now "Today"). The offer card reads "Salary advance" / "A short-term loan with a 3% fee, charged once. We take it from your NovaPay wallet on 28 Jul, once your salary arrives."
 - **Checked:** S1 and S9 in the app; every later date and cause through a temporary probe (removed); the offer card at 360×640.
 
+### Chat 5, continued: the reviewer control (`70d22f3`)
+
+- **`src/review/ReviewerState.jsx`, "Reviewer: who and when"**, above "after Accept". It sets data, not screens: persona A or B, the date (7 Jul, 25 Jul, 28 Jul, 2 Aug, 20 Aug), the not-collected cause (from 28 Jul) and "Payroll delay reported" (from 2 Aug, only when the salary didn't arrive).
+- **Module:** `REVIEW_DATES` (built from the scenario dates), `scenarioOptions` (which choices apply), and `scenario(id, { reason, payroll_delay })`, which reports the delay on 2 Aug (`PAYROLL_DELAY_REPORTED_ON`) and ignores it where it doesn't apply. Four new checks: three failed first, and the fourth was shown failing on a deliberate mutation (42 now).
+- **App:** persona, today and the advance come from `scenario()`. 7 Jul with persona A is the live flow, with the reviewer's own advance. Later dates use the scenario's Rs 10,000 advance.
+- **Checked in the app:**
+  - every date, cause and the delay,
+  - hidden choices keep their selection,
+  - a change from the details screen returns to Home with focus left in the control,
+  - persona B shows no date, and "after Accept" is hidden,
+  - Start again goes back to 7 Jul and persona A,
+  - a live Rs 5,000 advance survives a trip to 25 Jul and back,
+  - arrow keys and Tab work in the control.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -302,6 +316,22 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The two "nothing was sent or charged" promises stay as they are** without new Assumptions.
 - **S4's Accept button is one line: "Accept Rs 10,000".** "Your advance" already shows "You repay on 28 Jul" and Rs 10,300 without scrolling, so a second line would only repeat it. Exceptions like this are allowed when the rest of the screen gives enough context. The rule is updated in `CLAUDE.md`, principle 1 and Scope in my read, and the audit's S4 and 6.5 rows. Button's `subLabel` stays: S3's "Review terms" still uses "Nothing is borrowed yet".
 
+### Chat 5: Home on later dates, and the reviewer control
+
+- **Home on later dates (1B, 2A with 2i, 3B with 3i):** the module gives a balance on every reviewer date, built from sample activity rows I chose: 1,800 on 25 Jul; July spending of groceries 6,200, electricity 3,750, Ahmed K. 2,500; salary short adds a 1,200 top-up; balance dropped adds rent 45,000 and Ahmed K. 18,300. A failed collection is not an activity row. Activity shows dates only, no times. The offer card is "Salary advance" with what it is and what it costs, without the maximum.
+- **Reviewer control (C1a–C7a):**
+  - later dates use the scenario's Rs 10,000 advance,
+  - a change returns to Home and focus stays in the control,
+  - choices that don't apply are hidden and keep their selection,
+  - B is 7 Jul only,
+  - the payroll delay is reported on 2 Aug, only for "salary didn't arrive",
+  - "after Accept" shows only on 7 Jul with persona A, and Start again resets to 7 Jul, persona A, nothing accepted.
+
+**Calls the AI made during the build, flagged and not overruled**
+- **The cause on Home comes from the advance's own failed attempt,** not a separate parameter, so screens can't show a cause the advance doesn't have.
+- **"Start again" moved into the new control,** because "after Accept" is hidden on later dates and Start again has to be reachable from any date.
+- **The control's date names** ("Offer and accept (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
@@ -347,7 +377,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **Persona B's home now shows no advance card at all** (`getOffer` returns `needs_verification`, and S2 isn't built). This supersedes the "See amounts and costs would send them nowhere" entry above: nothing dead is shown, but B has no next step yet.
   - **S7's Accept is one line too,** but the `CLAUDE.md` exception names only S4. I chose to leave the rule as it is; S7's rows show the repayment and date above the button.
   - **The advance card has only its "before due" state.** On later dates it would still say "to repay on 28 Jul", and after repayment "Rs 0 to repay". It needs late, not-collected and repaid states before the reviewer switcher shows Home on those dates.
-  - **Two reviewer controls to reconcile:** the "after Accept" control (audit R2) exists, and the planned state switcher (R) driven by `scenario()` doesn't yet.
+  - ~~**Two reviewer controls to reconcile.**~~ *Resolved in chat 5: "who and when" (R) sets the data from `scenario()`, and "after Accept" (R2) shows only where Accept can be reached.*
   - **S6's "Nothing was sent to your wallet and nothing was charged" and S7's "Nothing has been sent or charged"** rest on things I said in chat (a network failure always returns an error; the payout lands only at accept). The second is now an Assumption; the first isn't. I chose to leave it.
   - **Home's sample rows** ("Sent to Ahmed K.", "Paid for mobile top-up", and the dates "Today, 2:14pm", "28 Jun", "27 Jun") are still fixed sample data, not module data.
   - **Not checked in a real screen reader yet:** how the − sign (U+2212), "Rs" and "Jul" are read, and the BottomSheet's focus handling.
@@ -357,7 +387,10 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **My Assumptions don't have Home's later-date data yet** (`00-my-read.md` is mine to edit). Lines to add: the balance on 25 Jul is Rs 1,800; on payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause; nothing moves after payday, so later dates carry it forward; the July spending and the payday rows by cause are sample data.
 - **The advance card is still the "before due" card on later dates.** On 2 Aug it says "to repay on 28 Jul… once your salary arrives".
 - **Only the modelled stories have rows.** A collection that works on payday (repaid) adds no salary or repayment row; that's out of scope.
-- **Persona B's balance carries 4,250 to every date,** because nothing is modelled for B after 7 Jul.
+- **Persona B's balance carries 4,250 to every date,** because nothing is modelled for B after 7 Jul. *(The reviewer control keeps B on 7 Jul, so this isn't shown.)*
+- **Nothing on screen reads the payroll delay yet.** It changes the advance (`payroll_delay_reported_on`, reminders paused), and the late screens will show it.
+- **The reviewer control has no URL state, notes or narrow-screen drawer** (planned for chat 6). At narrow widths it hangs off the right of the phone.
+- **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
@@ -387,6 +420,10 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - The payout lands in the NovaPay wallet the moment the advance is accepted (added in chat 4).
   - One advance at a time: no new offer while one is open (added in chat 4).
   - The record of the agreement lives in the app, in the advance's details from the home screen; whether a copy is also sent is still a question (added in chat 4).
+- *To add in chat 5 (not in `00-my-read.md` yet; it's mine to edit):*
+  - The balance on 25 Jul is Rs 1,800. On payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause, and nothing moves after payday.
+  - The July spending and the payday rows by cause are sample data.
+  - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
 
 ### What I'd want to know
 
@@ -488,6 +525,12 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI argued for signs on every activity row** after I first said only the advance row. I agreed: + and − make direction clear for everyone, not just the advance.
   - **A third review agent found policy hiding in a screen.** Home quietly decided "one advance at a time", which nothing backed and the module didn't know. It's now an Assumption and a module rule with checks. It also caught the receipt pointing to "this" when "See details" opens something else, and the screens deciding "Today" and "now" themselves.
   - **Repeated review agents kept finding real issues** after each build (three rounds in this chat). Reviewing against every doc after each screen is worth keeping.
+- *Added in chat 5:*
+  - **Decisions before code, as lettered options with a recommendation each.** Home's later dates (1–3) and the reviewer control (C1–C7) were each settled in one reply.
+  - **The AI found that my numbers didn't add up before building.** A 25 Jul balance plus the payday balances meant money going out with no rows to explain it, in two causes and in July. I chose the rows. The balance is now added up from those rows, so the two can't disagree.
+  - **The AI corrected its own earlier claim.** It had said the 28 Jun salary row would show on later dates. With a 4-row cap it doesn't, and it said so before building.
+  - **Policy questions stayed questions.** Whether a short salary or a move to a bank counts as a payroll delay isn't written, so the delay applies only when the salary didn't arrive (C6a).
+  - **A check that already passed was shown failing on purpose.** "A delay is ignored where it doesn't apply" passed before the code existed, so the AI removed the guard to prove the check catches it.
 
 ### Deferred from the S3 critique
 
@@ -507,7 +550,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date (chat 5). The reviewer control (planned in chat 5) and the late path come next.
+S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). Next: the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" on 2 Aug), then the late path screens.
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
