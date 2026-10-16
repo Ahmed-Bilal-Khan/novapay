@@ -1,5 +1,5 @@
 import { AppBar, Card, ListRow, Button, AmountText } from "../novakit";
-import { formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
+import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
 
 /**
  * Home. Before an advance (S1): the balance and the card that starts one.
@@ -8,11 +8,11 @@ import { formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
  * person's own (principle 5).
  *
  * Money and dates come from the module: `offer` (getOffer: no new offer while an advance
- * is open), `wallet` (getWallet), `status` (getStatus) and `advance`. A missing balance
- * says so, never "Rs 0". The salary row reads the persona; the other activity rows are
- * sample data. Every row says its direction in words and with a sign: + in, − out.
+ * is open), `wallet` (getWallet), `activity` (getActivity: sample rows, the balance adds
+ * up from them), `status` (getStatus) and `advance`. A missing balance says so, never
+ * "Rs 0". Every activity row says its direction in words and with a sign: + in, − out.
  */
-export default function Home({ Frame, today, persona, offer, wallet, advance, status, onStartAdvance, onSeeAdvance }) {
+export default function Home({ Frame, today, offer, wallet, activity, advance, status, onStartAdvance, onSeeAdvance }) {
   return (
     <Frame title="NovaPay" appBar={<AppBar title="NovaPay" />}>
       <Card>
@@ -50,45 +50,30 @@ export default function Home({ Frame, today, persona, offer, wallet, advance, st
       ) : offer.eligibility === "eligible" ? (
         <Card className="space-y-3">
           <div>
-            <h2 className="text-title text-neutral-900">Need cash before payday?</h2>
-            <p className="text-body text-neutral-700 mt-1">You may qualify for a NovaPay salary advance.</p>
+            <h2 className="text-title text-neutral-900">Salary advance</h2>
+            <p className="text-body text-neutral-700 mt-1">
+              A short-term loan with a {FEE_PERCENT}% fee, charged once. We take it from your NovaPay wallet on{" "}
+              {formatDate(offer.due_date)}, once your salary arrives.
+            </p>
           </div>
           <Button onClick={onStartAdvance}>See amounts and costs</Button>
         </Card>
       ) : null}
 
-      <Card>
-        <h2 className="text-caption text-neutral-700 mb-1">Recent activity</h2>
-        {advance ? (
-          <ListRow
-            icon="↓"
-            title="Advance received"
-            subtitle={formatDay(advance.received_on, today)}
-            trailing={<AmountText amount={advance.disbursed_amount} size="body" sign="+" />}
-          />
-        ) : null}
-        <ListRow
-          icon="↑"
-          title="Sent to Ahmed K."
-          subtitle="Today, 2:14pm"
-          trailing={<AmountText amount={1500} size="body" sign="-" />}
-        />
-        {/* Only when the salary is paid into NovaPay (persona B's goes to a bank). */}
-        {persona.salary_amount != null && persona.salary_destination === "novapay" ? (
-          <ListRow
-            icon="↓"
-            title="Salary credited"
-            subtitle="28 Jun"
-            trailing={<AmountText amount={persona.salary_amount} size="body" sign="+" />}
-          />
-        ) : null}
-        <ListRow
-          icon="↑"
-          title="Paid for mobile top-up"
-          subtitle="27 Jun"
-          trailing={<AmountText amount={500} size="body" sign="-" />}
-        />
-      </Card>
+      {activity.length ? (
+        <Card>
+          <h2 className="text-caption text-neutral-700 mb-1">Recent activity</h2>
+          {activity.map((row) => (
+            <ListRow
+              key={row.id}
+              icon={row.direction === "in" ? "↓" : "↑"}
+              title={row.title}
+              subtitle={formatDay(row.date, today)}
+              trailing={<AmountText amount={row.amount} size="body" sign={row.direction === "in" ? "+" : "-"} />}
+            />
+          ))}
+        </Card>
+      ) : null}
     </Frame>
   );
 }
