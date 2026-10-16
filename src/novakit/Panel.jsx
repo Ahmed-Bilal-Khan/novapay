@@ -1,15 +1,6 @@
 /**
  * Panel — NovaKit Lite
- * A surface container for grouping content.
+ * Deprecated: an alias of Card (the same component, the same props).
+ * It duplicated Card apart from its border. Use Card in new work.
  */
-export default function Panel({ children, className = "" }) {
-  return (
-    <div
-      className={
-        "bg-white rounded-lg border border-neutral-300 shadow-card p-4 " + className
-      }
-    >
-      {children}
-    </div>
-  );
-}
+export { default } from "./Card.jsx";
