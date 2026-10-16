@@ -6,6 +6,7 @@ import Home from "./screens/Home";
 import AdvanceDetails from "./screens/AdvanceDetails";
 import PayYourselfPlaceholder from "./screens/PayYourselfPlaceholder";
 import ReviewerState from "./review/ReviewerState";
+import { REVIEW_STATES, START_STATE, currentReviewState } from "./review/reviewStates";
 import {
   acceptTerms,
   getActivity,
@@ -16,7 +17,6 @@ import {
   getWallet,
   reducePayout,
   scenario,
-  scenarioOptions,
 } from "./advance/salaryAdvance";
 
 const PROCESSING_MS = 1500; // simulated time to confirm an acceptance
@@ -36,7 +36,7 @@ const PROCESSING_MS = 1500; // simulated time to confirm an acceptance
 // Every screen gets the same arrival: the page title becomes `title`, and after a screen
 // change focus moves to the screen's <h1>, so a screen reader announces where you are.
 // The first screen on page load keeps the browser's own focus.
-// A reviewer change also goes home, but quietly: focus stays in the reviewer control.
+// A reviewer jump arrives quietly: focus stays on the reviewer entry that was chosen.
 let hasChangedScreen = false; // set by App's navigation, never during render
 let quietArrival = false; // set by a reviewer change; any other navigation clears it
 
@@ -70,7 +70,9 @@ function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = nul
   );
 }
 
-const START_REVIEW = { persona: "A", scenario: "S1", reason: "salary_not_arrived", payroll_delay: false };
+// The reviewer's data: which module scenario the phone reads, and whether a payroll delay
+// was reported. Set by the reviewer index (src/review/reviewStates.js) and "My salary is late".
+const START_REVIEW = { data: "S1", payroll_delay: false };
 
 export default function App() {
   const [review, setReview] = useState(START_REVIEW);
@@ -84,15 +86,13 @@ export default function App() {
   // Everything the screens see comes from the module's scenario(): persona B is S2 (7 Jul
   // only); persona A on 7 Jul is the live flow, with whatever the reviewer accepted; later
   // dates use the scenario's Rs 10,000 advance, because each cause's balances are built
-  // around Rs 10,300 owed.
-  const reviewId = review.persona === "B" ? "S2" : review.scenario;
-  const reviewOptions = scenarioOptions(reviewId, { reason: review.reason });
+  // around Rs 10,300 owed. The not-collected cause is the scenario default (salary didn't arrive).
   const scene = useMemo(
-    () => scenario(reviewId, { reason: review.reason, payroll_delay: review.payroll_delay }),
-    [reviewId, review.reason, review.payroll_delay]
+    () => scenario(review.data, { payroll_delay: review.payroll_delay }),
+    [review.data, review.payroll_delay]
   );
   const { persona, today } = scene;
-  const isLive = reviewId === "S1";
+  const isLive = review.data === "S1";
   const advance = isLive ? liveAdvance : scene.advance;
   // The offer knows about the open advance: one advance at a time (module rule).
   const offer = getOffer(persona, today, advance);
@@ -127,23 +127,22 @@ export default function App() {
     go("home");
   }
 
-  // Reviewer only: new data starts from home, and focus stays in the reviewer control.
-  function changeReview(next) {
-    leaveToHome();
-    quietArrival = true;
-    setReview(next);
-  }
-
-  // Reviewer only: back to 7 Jul, persona A, nothing accepted, to run the flow again.
-  function startAgain() {
-    setLiveAdvance(null);
+  // Reviewer only: open a state from the index, set up from the module's scenario(). Every
+  // jump starts clean: the outcome, the payroll delay, a hidden notice and the live advance
+  // are all set by the state, and a first attempt fails again. Focus stays in the panel.
+  function jump(id) {
+    const target = REVIEW_STATES[id] ?? REVIEW_STATES[START_STATE];
+    const source = target.source ? scenario(target.source) : null;
+    setAmount(target.screen === "terms" ? source.terms.applied_amount : null);
+    setReducedTerms(null);
+    setLiveAdvance(source?.advance ?? null);
+    setOutcome(target.outcome ?? "works");
     setHiddenNotice(null);
-    changeReview({ ...review, persona: "A", scenario: "S1" });
-  }
-
-  function changeOutcome(next) {
-    failedOnce.current.clear(); // a new choice starts from a first attempt again
-    setOutcome(next);
+    failedOnce.current.clear();
+    setReview({ data: target.data, payroll_delay: target.payroll_delay === true });
+    hasChangedScreen = true;
+    quietArrival = true;
+    setScreen(target.screen);
   }
 
   // Simulates sending the acceptance. Resolves to "failed" (the screen shows the failure and
@@ -259,16 +258,19 @@ export default function App() {
           <PayYourselfPlaceholder Frame={PhoneFrame} onBack={() => go("advanceDetails")} />
         ) : null}
 
-        <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">
+        {/* top-0 bottom-0: the panel is exactly as tall as the phone, so nothing in it sits
+            below the phone; its index scrolls inside. */}
+        <aside aria-labelledby="reviewer-controls-title" className="absolute left-full top-0 bottom-0 ml-6">
           <ReviewerState
-            value={review}
-            options={reviewOptions}
-            onChange={changeReview}
-            onStartAgain={startAgain}
-            // Accept can only be reached on 7 Jul with persona A.
-            showOutcome={isLive}
+            current={currentReviewState({
+              data: review.data,
+              payroll_delay: review.payroll_delay,
+              screen: current,
+              hasAdvance: advance != null,
+              outcome,
+            })}
             outcome={outcome}
-            onOutcomeChange={changeOutcome}
+            onJump={jump}
           />
         </aside>
       </div>

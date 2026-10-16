@@ -7,7 +7,8 @@ import { useId } from "react";
  * target. Only the chosen option's description is shown, under the segments, and each
  * radio is described by it.
  *
- * options: [{ id, label, description? }]. `value` is the chosen id; there's always one.
+ * options: [{ id, label, description? }]. `value` is the chosen id, or null for none
+ * (the reviewer index uses none when the phone isn't on the state the choices open).
  * Labels may wrap onto two lines inside their segment.
  */
 export default function SegmentedControl({ legend, name, options, value, onChange }) {
