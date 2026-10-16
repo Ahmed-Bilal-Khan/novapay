@@ -291,6 +291,24 @@ check('The advance card has what it needs: received, when, what to repay, by whe
   assert.equal(SA.formatDate(adv.received_on), '7 Jul');
 });
 
+check('One advance at a time: no new offer while one is open, and the offer comes back once repaid', () => {
+  const open = accept();
+  const o = SA.getOffer(A, TODAY, open);
+  assert.equal(o.eligibility, 'has_advance');
+  assert.equal(o.limit, null);
+  assert.equal(o.tiers, null);
+  assert.equal(SA.getTerms(A, 5000, TODAY, open), null);
+  const repaid = notCollected(open, { salary_landed: true, salary_amount: 68000, balance: 70000 });
+  assert.equal(SA.getOffer(A, '2026-07-29', repaid).eligibility, 'eligible');
+  assert.equal(SA.getOffer(A, TODAY).eligibility, 'eligible'); // no advance given: unchanged
+});
+
+check('Day labels: "Today" for today, otherwise the date', () => {
+  assert.equal(SA.formatDay('2026-07-07', TODAY), 'Today');
+  assert.equal(SA.formatDay('2026-06-28', TODAY), '28 Jun');
+  assert.equal(SA.formatDay(null, TODAY), null);
+});
+
 check('The receipt has what was agreed: collection time and source, and when the permission ends', () => {
   const adv = accept();
   assert.deepEqual(adv.collection, { date: '2026-07-28', time: '18:00', from: 'novapay_wallet' });

@@ -122,16 +122,16 @@ function failedAttemptOn(advance, date, today) {
 
 // ---- Offer, terms, accept --------------------------------------------------
 
-export function getOffer(persona, today) {
+const NO_OFFER = { limit: null, due_date: null, days_until_due: null, collection_time: null, tiers: null };
+
+// `advance` is the person's current advance, if any. MR: one advance at a time, so while
+// one is open (not yet repaid) there's no new offer.
+export function getOffer(persona, today, advance = null) {
   if (!persona.income_verified || persona.limit == null || persona.payday == null) {
-    return {
-      eligibility: "needs_verification",
-      limit: null,
-      due_date: null,
-      days_until_due: null,
-      collection_time: null,
-      tiers: null,
-    };
+    return { eligibility: "needs_verification", ...NO_OFFER };
+  }
+  if (advance && repaidOn(advance, today) == null) {
+    return { eligibility: "has_advance", ...NO_OFFER };
   }
   const due_date = nextPayday(persona.payday, today);
   return {
@@ -169,9 +169,10 @@ function buildTerms({ persona_id, offered_on, applied_amount, disbursed_amount, 
   };
 }
 
-// Null if the amount isn't a tier, is over the limit, or the persona isn't eligible.
-export function getTerms(persona, applied_amount, today) {
-  const offer = getOffer(persona, today);
+// Null if the amount isn't a tier, is over the limit, the persona isn't eligible, or an
+// advance is already open.
+export function getTerms(persona, applied_amount, today, advance = null) {
+  const offer = getOffer(persona, today, advance);
   const tier = offer.tiers?.find((t) => t.amount === applied_amount);
   if (!tier || !tier.available) return null;
   return buildTerms({
@@ -381,6 +382,12 @@ export function formatDate(date) {
   if (date == null) return null;
   const [, m, d] = date.split("-").map(Number);
   return `${d} ${MONTHS[m - 1]}`;
+}
+
+// "Today" when the date is today, otherwise the date ("28 Jun").
+export function formatDay(date, today) {
+  if (date == null) return null;
+  return date === today ? "Today" : formatDate(date);
 }
 
 export function formatTime(time) {
