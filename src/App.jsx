@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ChooseAmount from "./screens/ChooseAmount";
 import ReviewAccept from "./screens/ReviewAccept";
 import Receipt from "./screens/Receipt";
 import Home from "./screens/Home";
 import AdvanceDetails from "./screens/AdvanceDetails";
 import AcceptOutcome from "./review/AcceptOutcome";
+import ReviewerState from "./review/ReviewerState";
 import {
-  PERSONAS,
-  PROTOTYPE_TODAY,
   acceptTerms,
   getActivity,
   getOffer,
@@ -15,6 +14,8 @@ import {
   getTerms,
   getWallet,
   reducePayout,
+  scenario,
+  scenarioOptions,
 } from "./advance/salaryAdvance";
 
 const PROCESSING_MS = 1500; // simulated time to confirm an acceptance
@@ -34,14 +35,16 @@ const PROCESSING_MS = 1500; // simulated time to confirm an acceptance
 // Every screen gets the same arrival: the page title becomes `title`, and after a screen
 // change focus moves to the screen's <h1>, so a screen reader announces where you are.
 // The first screen on page load keeps the browser's own focus.
+// A reviewer change also goes home, but quietly: focus stays in the reviewer control.
 let hasChangedScreen = false; // set by App's navigation, never during render
+let quietArrival = false; // set by a reviewer change; any other navigation clears it
 
 function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = null, children }) {
   const frameRef = useRef(null);
 
   useEffect(() => {
     document.title = title;
-    if (hasChangedScreen) frameRef.current?.querySelector("h1")?.focus();
+    if (hasChangedScreen && !quietArrival) frameRef.current?.querySelector("h1")?.focus();
   }, [title]);
 
   return (
@@ -66,16 +69,30 @@ function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = nul
   );
 }
 
-export default function App() {
-  const persona = PERSONAS.A;
-  const today = PROTOTYPE_TODAY;
+const START_REVIEW = { persona: "A", scenario: "S1", reason: "salary_not_arrived", payroll_delay: false };
 
+export default function App() {
+  const [review, setReview] = useState(START_REVIEW);
   const [screen, setScreen] = useState("home");
   const [amount, setAmount] = useState(null);
-  const [advance, setAdvance] = useState(null);
+  const [liveAdvance, setLiveAdvance] = useState(null); // accepted in the live flow on 7 Jul
   const [reducedTerms, setReducedTerms] = useState(null);
   const [outcome, setOutcome] = useState("works");
   const failedOnce = useRef(new Set()); // terms ids whose first attempt has already failed
+
+  // Everything the screens see comes from the module's scenario(): persona B is S2 (7 Jul
+  // only); persona A on 7 Jul is the live flow, with whatever the reviewer accepted; later
+  // dates use the scenario's Rs 10,000 advance, because each cause's balances are built
+  // around Rs 10,300 owed.
+  const reviewId = review.persona === "B" ? "S2" : review.scenario;
+  const reviewOptions = scenarioOptions(reviewId, { reason: review.reason });
+  const scene = useMemo(
+    () => scenario(reviewId, { reason: review.reason, payroll_delay: review.payroll_delay }),
+    [reviewId, review.reason, review.payroll_delay]
+  );
+  const { persona, today } = scene;
+  const isLive = reviewId === "S1";
+  const advance = isLive ? liveAdvance : scene.advance;
   // The offer knows about the open advance: one advance at a time (module rule).
   const offer = getOffer(persona, today, advance);
   const terms = amount != null ? getTerms(persona, amount, today) : null;
@@ -93,6 +110,7 @@ export default function App() {
 
   function go(next) {
     hasChangedScreen = true;
+    quietArrival = false;
     setScreen(next);
   }
 
@@ -103,10 +121,17 @@ export default function App() {
     go("home");
   }
 
-  // Reviewer only: forget the accepted advance and go home, to run the flow again.
-  function startAgain() {
-    setAdvance(null);
+  // Reviewer only: new data starts from home, and focus stays in the reviewer control.
+  function changeReview(next) {
     leaveToHome();
+    quietArrival = true;
+    setReview(next);
+  }
+
+  // Reviewer only: back to 7 Jul, persona A, nothing accepted, to run the flow again.
+  function startAgain() {
+    setLiveAdvance(null);
+    changeReview({ ...review, persona: "A", scenario: "S1" });
   }
 
   function changeOutcome(next) {
@@ -134,7 +159,7 @@ export default function App() {
     }
     const result = acceptTerms(forTerms, consent, today);
     if (result.error) return "failed"; // unreachable: the screen only calls this once the box is ticked
-    setAdvance(result);
+    setLiveAdvance(result);
     go("receipt");
     return "moved";
   }
@@ -197,8 +222,10 @@ export default function App() {
           <AdvanceDetails Frame={PhoneFrame} advance={advance} onBack={() => go("home")} />
         ) : null}
 
-        <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">
-          <AcceptOutcome value={outcome} onChange={changeOutcome} onStartAgain={startAgain} />
+        <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6 space-y-4">
+          <ReviewerState value={review} options={reviewOptions} onChange={changeReview} onStartAgain={startAgain} />
+          {/* Accept can only be reached on 7 Jul with persona A. */}
+          {isLive ? <AcceptOutcome value={outcome} onChange={changeOutcome} /> : null}
         </aside>
       </div>
     </div>

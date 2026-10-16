@@ -500,7 +500,29 @@ const NOT_COLLECTED_INPUTS = {
 
 export const SCENARIO_IDS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"];
 
-export function scenario(id, { reason = "salary_not_arrived" } = {}) {
+// The dates the reviewer control offers for persona A. 7 Jul runs the live flow (S1–S9).
+export const REVIEW_DATES = ["S1", "S10", "S11", "S12", "S13"].map((id) => ({
+  scenario: id,
+  date: SCENARIO_DATES[id] ?? PROTOTYPE_TODAY,
+}));
+
+// Decided (chat 5): in the reviewer scenarios a payroll delay is reported on 2 Aug, the
+// day the late state (S12) is viewed, and only when the salary didn't arrive. Whether
+// other causes can be reported as a payroll delay is policy that isn't written.
+export const PAYROLL_DELAY_REPORTED_ON = "2026-08-02";
+const CAUSE_SCENARIOS = ["S11", "S12", "S13"]; // collection has been attempted
+
+// Which reviewer choices apply to a scenario, so the control shows only what changes it.
+export function scenarioOptions(id, { reason = "salary_not_arrived" } = {}) {
+  const today = SCENARIO_DATES[id] ?? PROTOTYPE_TODAY;
+  const hasCause = CAUSE_SCENARIOS.includes(id);
+  return {
+    reason: hasCause,
+    payroll_delay: hasCause && reason === "salary_not_arrived" && today >= PAYROLL_DELAY_REPORTED_ON,
+  };
+}
+
+export function scenario(id, { reason = "salary_not_arrived", payroll_delay = false } = {}) {
   if (!SCENARIO_IDS.includes(id)) throw new Error(`Unknown scenario ${id}`);
   const today = SCENARIO_DATES[id] ?? PROTOTYPE_TODAY;
   if (id === "S2") {
@@ -516,13 +538,17 @@ export function scenario(id, { reason = "salary_not_arrived" } = {}) {
   if (id === "S7") return { ...base, terms: reducePayout(terms) };
 
   let advance = acceptTerms(terms, { permission_granted: true }, PROTOTYPE_TODAY);
-  if (["S11", "S12", "S13"].includes(id)) {
+  if (CAUSE_SCENARIOS.includes(id)) {
     advance = collectionOutcome(advance, {
       date: advance.due_date,
       time: COLLECTION_TIME,
       balance: balanceOn(A, advance, reason, advance.due_date),
       ...NOT_COLLECTED_INPUTS[reason],
     });
+  }
+  // A delay asked for where it doesn't apply is ignored, never half-applied.
+  if (payroll_delay && scenarioOptions(id, { reason }).payroll_delay) {
+    advance = reportPayrollDelay(advance, PAYROLL_DELAY_REPORTED_ON);
   }
   return { ...base, advance };
 }

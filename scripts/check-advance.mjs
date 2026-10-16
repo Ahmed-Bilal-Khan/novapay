@@ -434,6 +434,47 @@ check('Every reviewer scenario builds, on the right date', () => {
   assert.equal(SA.scenario('S8').advance, SA.scenario('S9').advance);
 });
 
+check('Reviewer dates: 7 Jul, then S10–S13 on their own dates', () => {
+  assert.deepEqual(SA.REVIEW_DATES, [
+    { scenario: 'S1', date: '2026-07-07' },
+    { scenario: 'S10', date: '2026-07-25' },
+    { scenario: 'S11', date: '2026-07-28' },
+    { scenario: 'S12', date: '2026-08-02' },
+    { scenario: 'S13', date: '2026-08-20' },
+  ]);
+});
+
+check('Reviewer options: a cause from payday, a payroll delay from 2 Aug when salary didn\'t arrive', () => {
+  const opts = (id, reason = 'salary_not_arrived') => SA.scenarioOptions(id, { reason });
+  assert.deepEqual(opts('S1'), { reason: false, payroll_delay: false });
+  assert.deepEqual(opts('S10'), { reason: false, payroll_delay: false });
+  assert.deepEqual(opts('S11'), { reason: true, payroll_delay: false });
+  assert.deepEqual(opts('S12'), { reason: true, payroll_delay: true });
+  assert.deepEqual(opts('S13'), { reason: true, payroll_delay: true });
+  for (const reason of ['salary_short', 'balance_dropped', 'salary_moved_to_bank']) {
+    assert.deepEqual(opts('S12', reason), { reason: true, payroll_delay: false }, reason);
+  }
+  assert.equal(SA.PAYROLL_DELAY_REPORTED_ON, '2026-08-02');
+});
+
+check('Scenario with a payroll delay: reported on 2 Aug, reminders paused, the 20 Aug notice still sent', () => {
+  const s12 = SA.scenario('S12', { payroll_delay: true });
+  assert.equal(s12.advance.payroll_delay_reported_on, '2026-08-02');
+  const status = SA.getStatus(s12.advance, s12.today);
+  assert.equal(status.reminders_paused, true);
+  assert.equal(status.days_late, 5);
+  assert.equal(SA.getReminders(s12.advance, s12.today).find((r) => r.date === '2026-08-04').status, 'paused');
+  const s13 = SA.scenario('S13', { payroll_delay: true });
+  assert.equal(SA.getReminders(s13.advance, s13.today).find((r) => r.type === 'before_default').status, 'sent');
+  assert.equal(SA.getStatus(SA.scenario('S12').advance, '2026-08-02').reminders_paused, false);
+});
+
+check('Scenario ignores a payroll delay where it doesn\'t apply', () => {
+  assert.equal(SA.scenario('S11', { payroll_delay: true }).advance.payroll_delay_reported_on, null);
+  assert.equal(SA.scenario('S12', { reason: 'salary_short', payroll_delay: true }).advance.payroll_delay_reported_on, null);
+  assert.equal(SA.scenario('S10', { payroll_delay: true }).advance.payroll_delay_reported_on, null);
+});
+
 if (failures.length) {
   console.error(`advance check failed: ${failures.length} of ${passed + failures.length}\n`);
   console.error(failures.join('\n'));
