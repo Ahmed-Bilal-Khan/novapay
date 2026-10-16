@@ -281,6 +281,7 @@ export function getStatus(advance, today) {
       days_until_due: null,
       days_until_default: null,
       before_due_reminder_sent: false,
+      can_report_payroll_delay: false,
       ...common,
     };
   }
@@ -304,6 +305,10 @@ export function getStatus(advance, today) {
     before_due_reminder_sent:
       phase === "before_due" &&
       getReminders(advance, today).some((r) => r.type === "before_due" && r.status === "sent"),
+    // S12: "My salary is late" is offered once the repayment is late (not on payday evening,
+    // when nobody can know yet), only when the salary didn't arrive (MR), and until reported.
+    can_report_payroll_delay:
+      phase === "late" && common.last_attempt?.reason === "salary_not_arrived" && reported == null,
     ...common,
   };
 }

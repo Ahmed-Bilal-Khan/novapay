@@ -1,7 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppBar, Card, Button } from "../novakit";
 import { formatDate, formatTime } from "../advance/salaryAdvance";
-import { AdvanceSummary, LateLine, LateLink, LateSheet, NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
+import {
+  AdvanceSummary,
+  LateLabel,
+  LateLine,
+  LateLink,
+  LateSheet,
+  LateStatus,
+  NotCollectedNotice,
+  NotCollectedStatus,
+} from "./advanceParts";
 
 /**
  * The advance's details, opened from its card on the home screen. Not a confirmation (that's
@@ -15,14 +24,41 @@ import { AdvanceSummary, LateLine, LateLink, LateSheet, NotCollectedNotice, NotC
  * it'll be taken, with "What happens if it's late". The terms below become "What you
  * agreed", and the one action is paying it yourself, a labelled placeholder (my Assumption:
  * pay part manually, stubbed in the prototype).
+ * S12 (late): no danger card (red stays on payday's event). One attention card: how late,
+ * what's owed, what happened, when it'll be taken, what happens on the default date, and,
+ * once reported, that reminders are paused and the notice before default still comes.
+ * "My salary is late" is offered while getStatus says it can be (`can_report_payroll_delay`);
+ * after the tap the button goes and focus moves to the confirmation.
  */
-export default function AdvanceDetails({ Frame, advance, status, onBack, onPayYourself }) {
+export default function AdvanceDetails({
+  Frame,
+  advance,
+  status,
+  reminders,
+  onBack,
+  onPayYourself,
+  onReportPayrollDelay,
+}) {
   const [lateOpen, setLateOpen] = useState(false);
+  const [justReported, setJustReported] = useState(false);
+  const confirmationRef = useRef(null);
 
   const due = formatDate(advance.due_date);
   const time = formatTime(advance.collection.time);
   const until = formatDate(advance.permission.ends_by);
   const notCollected = status.phase === "not_collected";
+  const late = status.phase === "late";
+  const afterPayday = notCollected || late;
+
+  // Only after the person's own tap, not when the screen opens already reported.
+  useEffect(() => {
+    if (justReported && status.reminders_paused) confirmationRef.current?.focus();
+  }, [justReported, status.reminders_paused]);
+
+  function reportPayrollDelay() {
+    setJustReported(true);
+    onReportPayrollDelay();
+  }
 
   return (
     <Frame
@@ -30,10 +66,17 @@ export default function AdvanceDetails({ Frame, advance, status, onBack, onPayYo
       appBar={<AppBar title="Your salary advance" onBack={onBack} backLabel="Back to home" />}
       sheet={<LateSheet open={lateOpen} onClose={() => setLateOpen(false)} due={due} until={until} />}
       actions={
-        notCollected ? (
-          <Button variant="secondary" onClick={onPayYourself}>
-            Pay some or all yourself
-          </Button>
+        afterPayday ? (
+          <>
+            {late && status.can_report_payroll_delay ? (
+              <Button variant="secondary" onClick={reportPayrollDelay}>
+                My salary is late
+              </Button>
+            ) : null}
+            <Button variant="secondary" onClick={onPayYourself}>
+              Pay some or all yourself
+            </Button>
+          </>
         ) : null
       }
     >
@@ -47,6 +90,22 @@ export default function AdvanceDetails({ Frame, advance, status, onBack, onPayYo
         </>
       ) : null}
 
+      {late ? (
+        <Card tone="attention">
+          <LateLabel days={status.days_late} />
+          <div className="mt-1">
+            <LateStatus
+              status={status}
+              defaultDate={advance.default_date}
+              reminders={reminders}
+              confirmationRef={confirmationRef}
+              detailed
+            />
+          </div>
+          <LateLink onOpen={() => setLateOpen(true)} />
+        </Card>
+      ) : null}
+
       <AdvanceSummary
         disbursed={advance.disbursed_amount}
         fee={advance.fee}
@@ -54,7 +113,7 @@ export default function AdvanceDetails({ Frame, advance, status, onBack, onPayYo
         due={due}
         time={time}
         received
-        heading={notCollected ? "What you agreed" : "Your advance"}
+        heading={afterPayday ? "What you agreed" : "Your advance"}
       >
         <p className="text-caption text-neutral-700 mt-2">Accepted on {formatDate(advance.accepted_on)}</p>
       </AdvanceSummary>
@@ -68,7 +127,7 @@ export default function AdvanceDetails({ Frame, advance, status, onBack, onPayYo
       </Card>
 
       {/* Before payday only: from payday, the late link sits in the status section above. */}
-      {notCollected ? null : (
+      {afterPayday ? null : (
         <Card className="space-y-2">
           <LateLine due={due} time={time} onOpen={() => setLateOpen(true)} />
         </Card>

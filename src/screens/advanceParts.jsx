@@ -130,14 +130,75 @@ export function NotCollectedNotice({ attempt, onHide = null }) {
 
 /** S11: the person's status after it, calm (a default card's content): what's owed, and what happens next. */
 export function NotCollectedStatus({ status }) {
-  const retry = RETRY_LINES[status.last_attempt.reason]?.(formatDate(status.permission.ends_on));
   return (
     <>
       <p className="text-body text-neutral-900">
         <AmountText amount={status.outstanding} size="body" className="font-semibold" /> still to repay. The amount
         hasn't changed.
       </p>
-      {retry ? <p className="text-caption text-neutral-700 mt-1">{retry}</p> : null}
+      <RetryLine status={status} />
+    </>
+  );
+}
+
+// The retry line for the cause (shared by S11 and S12), or nothing rather than a guess.
+function RetryLine({ status }) {
+  const retry = RETRY_LINES[status.last_attempt.reason]?.(formatDate(status.permission.ends_on));
+  return retry ? <p className="text-caption text-neutral-700 mt-1">{retry}</p> : null;
+}
+
+// S12, what happened on payday, said once in plain text: red doesn't follow the person.
+const PAST_CAUSE_LINES = {
+  salary_not_arrived: (date) => `We couldn't take it on ${date} because your salary hadn't arrived.`,
+};
+
+/**
+ * S12: the short status label, the only attention-600 text (audit S12, 6.14). It's about the
+ * repayment, never the person. `days` is getStatus().days_late, counted from the due date.
+ */
+export function LateLabel({ days }) {
+  return (
+    <p className="text-caption font-semibold text-attention-600">{days === 1 ? "1 day late" : `${days} days late`}</p>
+  );
+}
+
+/**
+ * S12, late: the content of the attention card, on Home and (with `detailed`) at the top of the
+ * details view. What's owed, unchanged; what happened on payday; when it'll be taken. The details
+ * add what happens on the default date (my Assumptions' consequences only, in the late sheet's
+ * words) and, once a payroll delay is reported, a confirmation from getReminders: reminders are
+ * paused, and the notice before default still comes. That confirmation sits in a status region
+ * that's always there, so it's announced when it appears; `confirmationRef` lets the screen move
+ * focus to it after the tap.
+ */
+export function LateStatus({ status, defaultDate = null, reminders = [], detailed = false, confirmationRef = null }) {
+  const cause = PAST_CAUSE_LINES[status.last_attempt?.reason]?.(formatDate(status.last_attempt.date));
+  const notice = reminders.find((r) => r.type === "before_default" && r.status !== "paused");
+  const confirmed = status.reminders_paused && notice;
+  return (
+    <>
+      <p className="text-body text-neutral-900">
+        <AmountText amount={status.outstanding} size="body" className="font-semibold" /> still to repay. The amount
+        hasn't changed and no fee was added.
+      </p>
+      {cause ? <p className="text-caption text-neutral-700 mt-1">{cause}</p> : null}
+      <RetryLine status={status} />
+      {detailed ? (
+        <>
+          <p className="text-caption text-neutral-700 mt-1">
+            If it's still unpaid on {formatDate(defaultDate)}, new advances are paused and automatic collection
+            stops. We won't freeze your wallet.
+          </p>
+          <div role="status">
+            {confirmed ? (
+              <p ref={confirmationRef} tabIndex={-1} className="text-body text-neutral-900 mt-2 focus:outline-none">
+                You told us your salary is late. We've paused reminders, but we'll still send you a notice on{" "}
+                {formatDate(notice.date)}.
+              </p>
+            ) : null}
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

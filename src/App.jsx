@@ -10,6 +10,7 @@ import {
   acceptTerms,
   getActivity,
   getOffer,
+  getReminders,
   getStatus,
   getTerms,
   getWallet,
@@ -232,8 +233,12 @@ export default function App() {
             Frame={PhoneFrame}
             advance={advance}
             status={status}
+            reminders={getReminders(advance, today)}
             onBack={() => go("home")}
             onPayYourself={() => go("payYourself")}
+            // "My salary is late": the same review state as the reviewer checkbox, so the
+            // scenario reports it on 2 Aug (my Assumption). Stays on this screen.
+            onReportPayrollDelay={() => setReview({ ...review, payroll_delay: true })}
           />
         ) : null}
 

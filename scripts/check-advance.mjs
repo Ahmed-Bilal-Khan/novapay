@@ -161,6 +161,19 @@ check('Before-due reminder sent: true from 25 Jul until the due date, never afte
   assert.equal(sent(SA.scenario('S10').advance, SA.scenario('S10').today), true);
 });
 
+check('Reporting a payroll delay: offered once late, only when salary didn\'t arrive, until it\'s reported', () => {
+  const can = (s) => SA.getStatus(s.advance, s.today).can_report_payroll_delay;
+  assert.equal(can(SA.scenario('S10')), false);
+  assert.equal(can(SA.scenario('S11')), false); // payday evening: not late yet
+  assert.equal(can(SA.scenario('S12')), true);
+  assert.equal(can(SA.scenario('S12', { payroll_delay: true })), false); // already reported
+  for (const reason of ['salary_short', 'balance_dropped', 'salary_moved_to_bank']) {
+    assert.equal(can(SA.scenario('S12', { reason })), false, reason);
+  }
+  const repaid = notCollected(accept(), { salary_landed: true, salary_amount: 68000, balance: 70000 });
+  assert.equal(SA.getStatus(repaid, '2026-08-02').can_report_payroll_delay, false);
+});
+
 check('Not collected on payday: 0 days late on 28 Jul, the event is recorded', () => {
   const s = SA.getStatus(notCollected(accept()), '2026-07-28');
   assert.equal(s.phase, 'not_collected');

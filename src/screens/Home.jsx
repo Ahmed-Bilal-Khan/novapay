@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "../novakit";
 import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
-import { NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
+import { LateLabel, LateStatus, NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
 
 /**
  * Home. Before an advance (S1): the balance and the card that starts one.
@@ -13,6 +13,8 @@ import { NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
  * and that nothing is needed. The card is the in-app reminder; no other surface.
  * Not collected on payday (S11): a danger card for the event, then the advance card with
  * what's still owed and when it'll be taken. Nothing is required: it's automatic.
+ * Late (S12): the advance card in the attention tone with "5 days late", what's owed, what
+ * happened on payday in plain text, and when it'll be taken. No danger card, no action here.
  *
  * Money and dates come from the module: `offer` (getOffer: no new offer while an advance
  * is open), `wallet` (getWallet), `activity` (getActivity: sample rows, the balance adds
@@ -42,6 +44,9 @@ export default function Home({
   // S11: payday's collection didn't go through (getStatus). The event gets its own danger
   // card above the advance card, which stays calm and in its usual place (principle 4).
   const notCollected = status?.phase === "not_collected";
+  // S12: late. The advance card takes the attention tone; no danger card, because the failed
+  // attempt was an event on payday and red doesn't follow the person for days.
+  const late = status?.phase === "late";
   // "Hide this message": App keeps it hidden until the app is opened again (a reload) or
   // the reviewer starts again. Focus moves to the advance card, so nobody loses their place.
   // A timeout, not rAF: background tabs pause rAF (progress.md, system flags).
@@ -86,6 +91,21 @@ export default function Home({
             </Button>
           </Card>
         </>
+      ) : advance && offer.eligibility === "has_advance" && late ? (
+        <Card tone="attention" className="space-y-3">
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <h2 className="text-body font-semibold text-neutral-900">Your salary advance</h2>
+              <LateLabel days={status.days_late} />
+            </div>
+            <div className="mt-1">
+              <LateStatus status={status} />
+            </div>
+          </div>
+          <Button variant="secondary" onClick={onSeeAdvance}>
+            See details
+          </Button>
+        </Card>
       ) : advance && offer.eligibility === "has_advance" ? (
         <Card className="space-y-3">
           <div>

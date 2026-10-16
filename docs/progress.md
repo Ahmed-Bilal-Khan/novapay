@@ -246,6 +246,23 @@
   - Focus moves to the advance card's heading. The button reuses the late link's style (`TEXT_BUTTON` in `advanceParts.jsx`), so there's no new component.
   - Checked in the app.
 
+### Chat 5, continued: S12, late (2 Aug)
+
+- **Alignment pass first.** Dropped three things from the brief:
+  - "when the next reminder comes": the late cadence is a placeholder in my Assumptions,
+  - "by 27 Aug": it's S11's option A line now,
+  - "your wallet keeps working": it's the late sheet's "We won't freeze your wallet." now.
+  
+  Draft copy was measured in the live screen at 390 and 360 before building.
+- **Home:** the advance card in the attention tone: "Your salary advance" with "5 days late" (attention-600), then "Rs 10,300 still to repay. The amount hasn't changed and no fee was added.", "We couldn't take it on 28 Jul because your salary hadn't arrived.", the option A retry line, and See details. No danger card, no action area.
+- **Details:** the same in an attention status card, plus "If it's still unpaid on 27 Aug, new advances are paused and automatic collection stops. We won't freeze your wallet." and the late link. The actions are "My salary is late" (only while `getStatus().can_report_payroll_delay`, a new check that failed first; 44 checks now) and "Pay some or all yourself".
+- **After "My salary is late":**
+  - it sets the same review state as the reviewer checkbox, so it's reported on 2 Aug as my Assumption says,
+  - the button goes, and "You told us your salary is late. We've paused reminders, but we'll still send you a notice on 20 Aug." appears in a `role="status"` region and takes focus,
+  - no Toast.
+- **Shared wording in `advanceParts.jsx`:** `LateLabel` and `LateStatus`, plus `RetryLine`, now shared with S11.
+- **Checked in the app:** both variants; focus after the tap, and none when the screen opens already reported; the reviewer checkbox and Now showing follow the tap; S10 and S11 unchanged. Measured: the status card ends at 316px (two buttons) and 390px (reported), inside 450/506px at 360×640 and 654/710px at 390×844.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -398,6 +415,11 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**S12:**
+- Build as structured.
+- 27 Aug stays after a report: whether a payroll delay moves the default date is still an open question in my read, and the screen shows the module's current date.
+- 20 Aug reusing S12 is left for S13.
+
 **S11:**
 - Only "salary didn't arrive" is shown, as my Scope says.
 - "Nothing required, it's automatic" counts as the next step that works.
@@ -483,6 +505,13 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The danger card's `role="alert"` is there when the screen opens**, so it re-announces on every visit (the cost of audit 6.10).
   - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
+- *From S12, noted, not fixed:*
+  - **After a report, the details still say "if it's still unpaid on 27 Aug…"**, which treats an open question in my read as answered (my choice to keep it).
+  - **20 Aug shows S12's card ("23 days late") until S13 is built.** Tapping "My salary is late" there would record 2 Aug, and the confirmation's "we'll still send you a notice on 20 Aug" would be in the wrong tense.
+  - **"Nothing you need to do" sits next to the optional "My salary is late".**
+  - **The default line repeats the late sheet's last bullet.**
+  - **"5 days late" is 4.71:1**, an AA pass by 0.21.
+  - **Start again keeps the payroll-delay state.**
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
@@ -647,7 +676,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (the reminder before the due date) and S11 (not collected on payday) are built. Next: S12 (late, with "My salary is late") onwards, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
+S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (reminder), S11 (not collected) and S12 (late, with "My salary is late") are built. Next: S13, the notice before default on 20 Aug, which also fixes 20 Aug reusing S12, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
