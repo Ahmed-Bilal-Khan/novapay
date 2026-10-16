@@ -160,6 +160,13 @@
 - **A third review agent** checked S8, S9 and the details against every doc; its findings were fixed or decided (below).
 - **Checked in the app:** home before and after, the advance card, the activity rows, details, the sheet, back, and Start again.
 
+### Chat 5: Home on later dates (`e429d43`, `d6c9c5a`)
+
+- **Decided first, as lettered options:** 1B (the module gives a balance on every reviewer date), 2A with 2i (the module owns recent activity; a failed collection isn't a row), 3B with 3i (the offer card states what it is and what it costs, under a plain "Salary advance").
+- **Module:** sample activity rows in `salaryAdvance.js`, with `getActivity` (latest 4, newest first) and `getWallet` adding the rows to the 4,250 on 7 Jul. The balance is 14,250 on 7 Jul after accepting and 1,800 on 25 Jul. On payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause, carried to 2 Aug and 20 Aug. `scenario()` reads its 6pm balance from the same rows, and the cause comes from the advance's failed attempt. Seven new checks failed first (38 now).
+- **Home:** activity reads `getActivity`, with dates only (S9's "Today, 2:14pm" is now "Today"). The offer card reads "Salary advance" / "A short-term loan with a 3% fee, charged once. We take it from your NovaPay wallet on 28 Jul, once your salary arrives."
+- **Checked:** S1 and S9 in the app; every later date and cause through a temporary probe (removed); the offer card at 360×640.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -345,6 +352,13 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **Home's sample rows** ("Sent to Ahmed K.", "Paid for mobile top-up", and the dates "Today, 2:14pm", "28 Jun", "27 Jun") are still fixed sample data, not module data.
   - **Not checked in a real screen reader yet:** how the − sign (U+2212), "Rs" and "Jul" are read, and the BottomSheet's focus handling.
 
+### Added in chat 5
+
+- **My Assumptions don't have Home's later-date data yet** (`00-my-read.md` is mine to edit). Lines to add: the balance on 25 Jul is Rs 1,800; on payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause; nothing moves after payday, so later dates carry it forward; the July spending and the payday rows by cause are sample data.
+- **The advance card is still the "before due" card on later dates.** On 2 Aug it says "to repay on 28 Jul… once your salary arrives".
+- **Only the modelled stories have rows.** A collection that works on payday (repaid) adds no salary or repayment row; that's out of scope.
+- **Persona B's balance carries 4,250 to every date,** because nothing is modelled for B after 7 Jul.
+
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
 ## Write-up inbox
@@ -493,7 +507,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. The reviewer switcher and the late path come next.
+S3 to S9 are built and committed. Home's balance and activity follow the date (chat 5). The reviewer control (planned in chat 5) and the late path come next.
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
