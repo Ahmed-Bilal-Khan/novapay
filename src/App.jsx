@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { AppBar, Card, ListRow, Button, AmountText } from "./novakit";
 import ChooseAmount from "./screens/ChooseAmount";
 import ReviewAccept from "./screens/ReviewAccept";
 import Receipt from "./screens/Receipt";
+import Home from "./screens/Home";
+import AdvanceDetails from "./screens/AdvanceDetails";
 import AcceptOutcome from "./review/AcceptOutcome";
-import { PERSONAS, PROTOTYPE_TODAY, acceptTerms, getOffer, getTerms, reducePayout } from "./advance/salaryAdvance";
+import {
+  PERSONAS,
+  PROTOTYPE_TODAY,
+  acceptTerms,
+  getOffer,
+  getStatus,
+  getTerms,
+  getWallet,
+  reducePayout,
+} from "./advance/salaryAdvance";
 
 const PROCESSING_MS = 1500; // simulated time to confirm an acceptance
 
@@ -58,7 +68,6 @@ function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = nul
 export default function App() {
   const persona = PERSONAS.A;
   const today = PROTOTYPE_TODAY;
-  const offer = getOffer(persona, today);
 
   const [screen, setScreen] = useState("home");
   const [amount, setAmount] = useState(null);
@@ -66,15 +75,20 @@ export default function App() {
   const [reducedTerms, setReducedTerms] = useState(null);
   const [outcome, setOutcome] = useState("works");
   const failedOnce = useRef(new Set()); // terms ids whose first attempt has already failed
+  // The offer knows about the open advance: one advance at a time (module rule).
+  const offer = getOffer(persona, today, advance);
   const terms = amount != null ? getTerms(persona, amount, today) : null;
 
-  // Only an eligible offer reaches the salary-advance screens. Anyone else (persona B)
-  // is sent to home. The terms screens need terms; without them they go back to the amounts.
+  // Only an eligible offer reaches the offer screens (S3, S4, S7). Anyone else (persona B,
+  // or someone with an open advance) is sent to home. The terms screens need terms; without
+  // them they go back to the amounts. Screens after accepting need the advance.
+  // Mid-flow, the advance is set only after accepting, so S4 and S7 stay reachable until then.
+  const OFFER_SCREENS = ["chooseAmount", "terms", "reduced"];
   let current = screen;
-  if (screen !== "home" && offer.eligibility !== "eligible") current = "home";
+  if (OFFER_SCREENS.includes(screen) && offer.eligibility !== "eligible") current = "home";
   else if (screen === "terms" && terms == null) current = "chooseAmount";
   else if (screen === "reduced" && reducedTerms == null) current = "chooseAmount";
-  else if (screen === "receipt" && advance == null) current = "home";
+  else if ((screen === "receipt" || screen === "advanceDetails") && advance == null) current = "home";
 
   function go(next) {
     hasChangedScreen = true;
@@ -86,6 +100,12 @@ export default function App() {
     setReducedTerms(null);
     failedOnce.current.clear(); // the next run's first attempt fails again
     go("home");
+  }
+
+  // Reviewer only: forget the accepted advance and go home, to run the flow again.
+  function startAgain() {
+    setAdvance(null);
+    leaveToHome();
   }
 
   function changeOutcome(next) {
@@ -124,7 +144,17 @@ export default function App() {
           side, never inside it, and come after it in the DOM so Tab reaches the phone first. */}
       <div className="relative">
         {current === "home" ? (
-          <Home Frame={PhoneFrame} onStartAdvance={() => go("chooseAmount")} />
+          <Home
+            Frame={PhoneFrame}
+            today={today}
+            persona={persona}
+            offer={offer}
+            wallet={getWallet(persona, advance, today)}
+            advance={advance}
+            status={advance ? getStatus(advance, today) : null}
+            onStartAdvance={() => go("chooseAmount")}
+            onSeeAdvance={() => go("advanceDetails")}
+          />
         ) : null}
 
         {current === "chooseAmount" ? (
@@ -162,58 +192,14 @@ export default function App() {
 
         {current === "receipt" ? <Receipt Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
 
+        {current === "advanceDetails" ? (
+          <AdvanceDetails Frame={PhoneFrame} advance={advance} onBack={() => go("home")} />
+        ) : null}
+
         <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">
-          <AcceptOutcome value={outcome} onChange={changeOutcome} />
+          <AcceptOutcome value={outcome} onChange={changeOutcome} onStartAgain={startAgain} />
         </aside>
       </div>
     </div>
-  );
-}
-
-// The starter home screen. Only the advance card's button is wired, to start the advance.
-function Home({ Frame, onStartAdvance }) {
-  return (
-    <Frame title="NovaPay" appBar={<AppBar title="NovaPay" />}>
-      <Card>
-        <div className="text-caption text-neutral-500">Available balance</div>
-        <div className="mt-1">
-          <AmountText amount={4250} size="display" />
-        </div>
-      </Card>
-
-      <Card className="space-y-3">
-        <div>
-          <div className="text-title text-neutral-900">Need cash before payday?</div>
-          <div className="text-body text-neutral-700 mt-1">
-            You may qualify for a NovaPay salary advance.
-          </div>
-        </div>
-        <Button size="lg" onClick={onStartAdvance}>
-          See amounts and costs
-        </Button>
-      </Card>
-
-      <Card>
-        <div className="text-caption text-neutral-500 mb-1">Recent activity</div>
-        <ListRow
-          icon="↑"
-          title="Sent to Ahmed K."
-          subtitle="Today, 2:14 PM"
-          trailing={<AmountText amount={1500} size="body" />}
-        />
-        <ListRow
-          icon="↓"
-          title="Salary credited"
-          subtitle="28 Jun"
-          trailing={<AmountText amount={68000} size="body" />}
-        />
-        <ListRow
-          icon="↑"
-          title="Mobile top-up"
-          subtitle="27 Jun"
-          trailing={<AmountText amount={500} size="body" />}
-        />
-      </Card>
-    </Frame>
   );
 }

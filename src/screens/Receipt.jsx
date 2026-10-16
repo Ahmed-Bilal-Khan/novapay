@@ -8,7 +8,8 @@ import { formatDate, formatTime } from "../advance/salaryAdvance";
  * The person has done what they came to do, so the money they received is centre stage:
  * one centred column, the amount in the largest type token, in brand colour. Space does the
  * grouping, not lines or extra cards. Nothing is repeated from the accept screen except the
- * one thing they still need: what they repay and when. No back: the advance is accepted.
+ * one thing they still need: what they repay and when, and where to find the details again.
+ * No back: the advance is accepted.
  * No confetti, no success colour.
  */
 export default function Receipt({ Frame, advance, onDone }) {
@@ -28,19 +29,16 @@ export default function Receipt({ Frame, advance, onDone }) {
           <p className="text-brand">
             <AmountText amount={advance.disbursed_amount} size="display" />
           </p>
-          <p className="text-body text-neutral-900">It's in your NovaPay wallet now.</p>
+          <p className="text-body text-neutral-900">It's in your NovaPay wallet.</p>
           <p className="text-caption text-neutral-700">Accepted on {formatDate(advance.accepted_on)}</p>
         </Card>
 
         <p className="text-body text-neutral-900 px-4">
-          You repay <span className="font-semibold">{formatAmount(advance.total)}</span> on{" "}
+          You repay <span className="font-semibold">{formatAmount(advance.total)}</span> from your NovaPay wallet on{" "}
           <span className="font-semibold">{due}</span> at {time}, once your salary arrives.
         </p>
 
-        <p className="text-caption text-neutral-700 px-4">
-          <span className="font-semibold">Placeholder:</span> your copy of this agreement will be kept in [where, to
-          be confirmed].
-        </p>
+        <p className="text-caption text-neutral-700 px-4">You can see these details from your advance on the home screen.</p>
       </div>
     </Frame>
   );

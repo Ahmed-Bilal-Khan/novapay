@@ -1,4 +1,4 @@
-import { Card, Choice } from "../novakit";
+import { Card, Choice, Button } from "../novakit";
 
 // What happens after "Accept" is tapped. The prototype has no backend, so the reviewer picks.
 export const ACCEPT_OUTCOMES = [
@@ -14,9 +14,10 @@ export const ACCEPT_OUTCOMES = [
 /**
  * Reviewer scaffolding, shown beside the phone frame, never inside it. Not part of the
  * product, so it may start with a selection. "Network failure" fails the first attempt of
- * each run (it resets when the flow goes back home).
+ * each run (it resets when the flow goes back home). "Start again" clears the accepted
+ * advance and returns home, so the flow can be run again with another outcome.
  */
-export default function AcceptOutcome({ value, onChange }) {
+export default function AcceptOutcome({ value, onChange, onStartAgain }) {
   return (
     <Card className="w-64 shrink-0">
       <fieldset>
@@ -36,6 +37,11 @@ export default function AcceptOutcome({ value, onChange }) {
           ))}
         </div>
       </fieldset>
+      <div className="mt-3">
+        <Button variant="secondary" onClick={onStartAgain}>
+          Start again
+        </Button>
+      </div>
     </Card>
   );
 }

@@ -2,8 +2,8 @@ import { Card, ListRow, AmountText, BottomSheet, formatAmount } from "../novakit
 import { FEE_PERCENT, MAX_REMINDERS_PER_7_DAYS, QUIET_HOURS, formatTime } from "../advance/salaryAdvance";
 
 /**
- * Pieces the accept screen (S4), the lower offer (S7) and the receipt (S8) share, so what a
- * person agreed to reads exactly the same everywhere (principle 1). Screen parts, not NovaKit.
+ * Pieces the accept screen (S4), the lower offer (S7) and the advance's details share, so what
+ * a person agreed to reads exactly the same everywhere (principle 1). Screen parts, not NovaKit.
  * Every value comes from the caller, which reads it from the module.
  */
 
@@ -17,15 +17,16 @@ function withWas(text, was) {
 /**
  * "Your advance": what you get, the fee and what you repay, and when and from where.
  * `before` (S7 only) is the offer it replaces, so each row also says what it was.
+ * `received` (the details, after accepting) says "You received" instead of "You get".
  */
-export function AdvanceSummary({ disbursed, fee, total, due, time, before = null, children = null }) {
+export function AdvanceSummary({ disbursed, fee, total, due, time, before = null, received = false, children = null }) {
   return (
     <Card>
       <h2 className="text-body font-semibold text-neutral-900">Your advance</h2>
       <div className="mt-1">
         <ListRow
           wrap
-          title="You get"
+          title={received ? "You received" : "You get"}
           subtitle={withWas(
             "Paid into your NovaPay wallet",
             before && `You asked for ${formatAmount(before.disbursed_amount)}.`
