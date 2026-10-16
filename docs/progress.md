@@ -62,6 +62,36 @@
 - **The allow-list is down to 6:** three for the phone frame, the backdrop, and two for the frozen copy. Every starter-debt entry is gone.
 - `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
 
+### Chat 4: S3 (choose an amount) and S4 (terms + accept)
+
+- **Module:** `getOffer` now returns `collection_time`, so S3 can say "6pm" without reaching for a constant. The check was changed first and failed until the field existed (`41e94a1`).
+- **S3, first version** (`b50c6eb`): the tiers as unselected radios, the over-limit reason, a neutral inline message, "Review terms" wired to a labelled placeholder, and home's button wired to S3.
+- **Critique of S3 three ways** (regulator, low-literacy borrower on a small Android phone, screen-reader user), then my triage: fix, reject, defer. The rejections are in Pushback below (`de6bfe0`).
+- **The accessible names were checked in Edge's real accessibility tree** (headless Edge over the DevTools protocol, nothing installed). The browser pane's tree was wrong: it named radios by their `value` and gave buttons no name.
+- **NovaKit changes, logged in `DESIGN_SYSTEM.md`** (`5c2e023`):
+  - Choice uses `aria-disabled`, so a blocked option stays focusable and its reason is heard,
+  - Button adds a stop between its two lines for screen readers,
+  - AppBar gets `backLabel`, and its `h1` can take focus,
+  - Toast gets a `neutral` variant.
+- **S3 revised after triage, and the shell** (`c4f284e`):
+  - new copy and hierarchy: "You repay Rs X on 28 Jul" is the strong line and the fee is secondary,
+  - the question and limit hint are the legend,
+  - the "choose an amount" message sits next to the button and is announced on every tap,
+  - tapping Rs 15,000 shows a neutral toast,
+  - home's button says "See amounts and costs",
+  - every screen sets the page title and moves focus to its `h1` on a screen change,
+  - overlays sit above the action area, so a toast never hides the way out.
+- **S3's card shortened to four lines** (`5f27328`). Each draft was measured in the live screen first. At 360×640, Rs 5,000 and Rs 10,000 are now above the fold, and Rs 15,000 is one scroll down.
+- **S4, terms + accept** (`8b1107e`, `3e1837b`):
+  - the cost summary is first and fits without scrolling at 390×844 and 360×640,
+  - one line on what happens if it isn't collected, then a native `<details>`,
+  - the collection permission is its own unticked checkbox, with its end date,
+  - "Accept Rs 10,000 / Repay Rs 10,300 on 28 Jul" stays enabled,
+  - "Change amount" and "Back to home" are equal secondary buttons,
+  - Accept calls `acceptTerms` and goes to a labelled receipt placeholder.
+- **S3's lower-payout line now matches the flow:** "If we can only pay a lower amount, we'll ask you again before paying anything."
+- Every control was clicked through in the running app. `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -146,6 +176,30 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The AppBar glyph uses `text-display`, not the suggested `text-title`.** Measured, `text-title` only took it from 5px to 7px wide.
 - **A real zero still formats as "Rs 0".** Only missing data returns `null`, and a number passed as a string counts as missing.
 
+### Chat 4: S3 and S4
+
+**S3**
+- **The over-limit reason is only the fact:** "Above your limit of Rs 10,000." Explaining how the limit is set would be invented policy, and "how you use NovaPay" hints that activity earns a bigger limit.
+- **No wallet balance on S3.** Showing it next to the amounts could push people to borrow more.
+- **The blocked tier stays visible and focusable.** Tapping it shows a neutral toast: "Rs 15,000 is above your Rs 10,000 limit. Choose Rs 5,000 or Rs 10,000."
+- **The 3% stays on S3,** alongside the fee in rupees per tier.
+- **The card is option A,** with no heading: "A short-term loan with a 3% fee, charged once. If you accept, we take the full amount from your NovaPay wallet automatically at 6pm on 28 Jul, once your salary arrives." It keeps the precise wallet, date and "the full amount" rather than the product name.
+- **The AppBar names the screen** ("Choose an amount", "Review and accept"), so the heading that gets focus tells screen-reader users where they are.
+- **Leaving resets the chosen amount,** so nothing is pre-selected next time. Going to S4 and back keeps it.
+
+**S4**
+- **No annual rate.** The fee is a fixed 3% of the amount borrowed.
+- **"Paid into your NovaPay wallet",** without saying when.
+- **No late-fee line, and no "other consequences are being confirmed" line.**
+- **The default line has no placeholder label:** "If it's still unpaid on 27 Aug, the advance is in default. New advances are paused and automatic collection stops."
+- **The permission resets to unticked every time S4 opens,** including after "Change amount".
+- **Accept goes to a labelled receipt placeholder** until S5 exists, and a missing `terms` sends the user back to S3 (or home for persona B).
+
+**Calls the AI made during the build, flagged and not overruled**
+- **The shell moves focus to the `h1` only after a screen change,** not on the first page load.
+- **The receipt placeholder doesn't show the advance's ID,** because the ID contains the year.
+- **The blocked radio is dimmed except while it has keyboard focus,** so its focus ring isn't dimmed too.
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
@@ -170,6 +224,16 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The transcript export from this chat includes the brief's full text,** because it was read in the chat. `_inputs/` is ignored so the brief is never published, so the export shouldn't be committed or pushed as it is.
 
 **Resolved since:** `DESIGN_SYSTEM.md` now exists (`eca45f1`), including the check's `white`/`black`/`transparent` exception.
+
+### Added in chat 4
+
+- **The S4 default line contradicts two of my rules.** It's shown without a placeholder label, but my Assumptions say "default consequences shown in the prototype are placeholders", and `CLAUDE.md` says placeholder policy copy is labelled. One of them needs updating.
+- **"How is the limit set?"** I'm adding it to What I'd want to know in my read. It isn't there yet.
+- **"You can pay some or all of it yourself" (S4) is a stub.** Manual payment is only shown on the late screen, and early repayment is "with more time".
+- **Persona B's home card** still says "See amounts and costs" and would send them nowhere. Their S2 state isn't built yet.
+- **The radio's focus ring is a rounded square,** not a circle, because Chromium draws the ring box around a native radio. It's still visible, so it's flagged, not fixed.
+
+**Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
 ## Write-up inbox
 
@@ -208,6 +272,8 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
 - *Added in chat 3, continued:*
   - Should a reported payroll delay move the default date?
   - What happens if a reduced payout is needed from the lowest tier?
+- *Added in chat 4:*
+  - How is the limit set?
 
 ### System flags
 
@@ -235,6 +301,14 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The "‹" glyph was about 5px wide at the inherited 16px,** even inside a 44px target.
   - **On Windows the frame's scroll area showed a classic scrollbar.** It's now hidden.
   - **The README prose still says "a warm amber accent"** after the rename. Only its example was updated.
+- *Added in chat 4, found while building S3 and S4:*
+  - **The browser pane's accessibility tree isn't the browser's.** It named radios by their `value` and gave buttons no name. Real names came from Edge's tree over the DevTools protocol.
+  - **A natively disabled radio is invisible to keyboard users.** Tab and the arrow keys skip it, so its reason is never heard. Choice now uses `aria-disabled`.
+  - **A button's two lines ran together as one name** ("Review terms Nothing is borrowed yet"). Button now adds a stop between them.
+  - **Toast was success-only,** so "you can't choose that" would have worn a green tick. It now has a `neutral` variant. It still has no `aria-live`.
+  - **The dev server's file watcher missed edits twice** and served old files until it was restarted.
+  - **The fixed 390×844 frame hid a small-phone problem.** At 360×640, S3's first card pushed every amount below the fold.
+  - **Advance IDs contain the year,** so they can't be shown on screen.
 
 ### AI process
 
@@ -253,6 +327,22 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
     - each component change was measured before and after in the running app,
     - every temporary probe was removed.
   - **The AI attributed a rule to my read that isn't there:** "the payout lands when accepted". It was caught while writing this file and is now an open question.
+- *Added in chat 4:*
+  - **Rejected AI output (candidate for the write-up).** The AI's first over-limit reason added a placeholder about how the limit is set ("based on your salary and how you use NovaPay"). I cut it: it's invented policy, and it hints that activity earns a bigger limit.
+  - **A three-way critique, then triage by codes.** The AI critiqued S3 as a regulator, a low-literacy borrower and a screen-reader user. I sorted every point into fix, reject or defer, with reasons. The rejections are in Pushback.
+  - **"Check first" paid off.** I asked for the accessible names before any fix. The browser pane's tree said the radios were named "5000"; Edge's real tree said "Rs 5,000". Fixing the pane's reading would have been wasted work.
+  - **The AI asked before using the existing Toast.** It was green with a tick, which would have contradicted the message. I chose a neutral variant.
+  - **Copy measured, not guessed.** For the small-phone fold, the AI tried each card draft in the live screen at 360×640 and reported the pixels. The heading alone cost 22px.
+  - **The AI caught my S3 copy contradicting my own flow.** "We'll confirm the final amount before you accept" didn't match a reduced payout arriving after the tap. I changed it.
+  - **The AI found two issues in its own build:** the toast covered the way out, and the dimmed radio dimmed its own focus ring. Both were fixed before commit.
+  - **Overrides I made:** no annual rate on S4 (the fee is a fixed 3%), no late-fee or "being confirmed" lines, and no placeholder label on the default line. The last one now conflicts with my Assumptions (see Open questions).
+
+### Deferred from the S3 critique
+
+- **R9:** lender name, key facts and cancellation. It's a "want to know"; a placeholder lender line on S4 comes later.
+- **B3:** a test at 200% text size.
+- **B10:** Urdu. The prototype is English only for now.
+- **SR9:** how abbreviations ("Rs", "Jul", "6pm") are read aloud.
 
 ### Pushback
 
@@ -265,13 +355,19 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-The foundations are done: tokens, components, the module and the frame.
+S3 and S4 are built. The rest of the accept moment, the reviewer switcher and the late path come next.
 
-1. **Small loose ends in my read:**
+1. **Loose ends in my read:**
    - principle 4's stale wording ("provisional", "the audit confirms it", "accent"),
-   - whether the payout lands on the day it's accepted, as an assumption.
-2. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()` from the module.
-3. **Screens, one state per request, each with a plan I approve first.**
-   - Start with S3 (choose amount), then S4 (terms + accept), as two screens.
-   - Every number and date comes from the module, and every money string from `formatAmount`.
+   - whether the payout lands on the day it's accepted, as an assumption,
+   - "How is the limit set?" in What I'd want to know,
+   - the default line vs "default consequences are placeholders" (see Open questions).
+2. **The rest of the accept moment, one state per request, each with a plan I approve first:**
+   - after the tap: processing and double-tap protection, then a network failure,
+   - S7, the reduced payout, with fresh consent,
+   - S5, the receipt, which replaces the placeholder and has to say where the lasting record lives.
+3. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
+4. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
+
+Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
 
