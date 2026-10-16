@@ -181,6 +181,21 @@
   - a live Rs 5,000 advance survives a trip to 25 Jul and back,
   - arrow keys and Tab work in the control.
 
+### Chat 5, continued: the reviewer panel restructured (`1eeec89`)
+
+- **Reviewed with better-layout first:**
+  - 1,003px tall on 7 Jul, more than the 844px phone,
+  - no summary of what's on screen,
+  - every option an identical radio row,
+  - two white cards that looked like product UI.
+- **Rebuilt as one panel (L1–L3):**
+  - "Reviewer tools / Not part of the app" on neutral-100,
+  - "Now showing" first,
+  - then Who (segments), When (a timeline), "Why it wasn't collected" (a 2×2 segment grid), the payroll delay, and After Accept (segments),
+  - Start again in a footer.
+- **Two review-only components** in `src/review/`, not NovaKit: `SegmentedControl` and `DateSteps`. Logged in `DESIGN_SYSTEM.md` under "Reviewer scaffolding".
+- **Measured:** 746px on 7 Jul and 834px at most (20 Aug with every option), with no sideways scroll at a 1024px window. Checked the arrow keys, focus rings, every option, persona B and Start again.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -330,7 +345,10 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 **Calls the AI made during the build, flagged and not overruled**
 - **The cause on Home comes from the advance's own failed attempt,** not a separate parameter, so screens can't show a cause the advance doesn't have.
 - **"Start again" moved into the new control,** because "after Accept" is hidden on later dates and Start again has to be reachable from any date.
-- **The control's date names** ("Offer and accept (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
+- **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
+- **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
+
+**Reviewer panel (L1–L3):** two review-only components (`SegmentedControl`, `DateSteps`) in `src/review/`, logged in `DESIGN_SYSTEM.md`, and After Accept merged into the one panel.
 
 ## Open questions
 
@@ -530,6 +548,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI found that my numbers didn't add up before building.** A 25 Jul balance plus the payday balances meant money going out with no rows to explain it, in two causes and in July. I chose the rows. The balance is now added up from those rows, so the two can't disagree.
   - **The AI corrected its own earlier claim.** It had said the 28 Jun salary row would show on later dates. With a 4-row cap it doesn't, and it said so before building.
   - **Policy questions stayed questions.** Whether a short salary or a move to a bank counts as a payroll delay isn't written, so the delay applies only when the salary didn't arrive (C6a).
+  - **The AI's own estimate failed when measured.** It estimated the restructured panel at about 640px; the first build measured 904px. Wrapping names and descriptions cost the most. The AI shortened the date rows to one line, made the causes a 2×2 grid, and moved the delay's date into "Now showing", then measured again (834px at most).
   - **A check that already passed was shown failing on purpose.** "A delay is ignored where it doesn't apply" passed before the code existed, so the AI removed the guard to prove the check catches it.
 
 ### Deferred from the S3 critique
