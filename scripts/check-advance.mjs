@@ -32,12 +32,13 @@ const daysApart = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 8640000
 
 // ---- Offer ----
 
-check('Persona A offer: limit, due date, days until due', () => {
+check('Persona A offer: limit, due date, days until due, 6pm collection', () => {
   const o = SA.getOffer(A, TODAY);
   assert.equal(o.eligibility, 'eligible');
   assert.equal(o.limit, 10000);
   assert.equal(o.due_date, '2026-07-28');
   assert.equal(o.days_until_due, 21);
+  assert.equal(o.collection_time, '18:00');
 });
 
 check('Persona A tiers: ascending, fee in rupees, total, 15,000 blocked over the limit', () => {
@@ -50,7 +51,8 @@ check('Persona A tiers: ascending, fee in rupees, total, 15,000 blocked over the
 
 check('Persona B needs verification, and nothing unknown shows as 0', () => {
   assert.deepEqual(SA.getOffer(B, TODAY), {
-    eligibility: 'needs_verification', limit: null, due_date: null, days_until_due: null, tiers: null,
+    eligibility: 'needs_verification', limit: null, due_date: null, days_until_due: null,
+    collection_time: null, tiers: null,
   });
 });
 

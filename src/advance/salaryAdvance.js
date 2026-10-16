@@ -129,6 +129,7 @@ export function getOffer(persona, today) {
       limit: null,
       due_date: null,
       days_until_due: null,
+      collection_time: null,
       tiers: null,
     };
   }
@@ -138,6 +139,7 @@ export function getOffer(persona, today) {
     limit: persona.limit,
     due_date,
     days_until_due: daysBetween(today, due_date),
+    collection_time: COLLECTION_TIME, // so the offer screen can say "at 6pm" without reaching for a constant
     tiers: TIERS.map((amount) =>
       amount <= persona.limit
         ? { amount, fee: feeFor(amount), total: amount + feeFor(amount), available: true, blocked_reason: null }
