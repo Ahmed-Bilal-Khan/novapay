@@ -57,7 +57,7 @@ The first two aren't the user's fault, and that's why the late experience should
 **Cost**
 - Showing the fee after commitment.
 - Hiding when and from where repayment is taken.
-- Calling it "no interest". 3% over 21 days is about 52% a year.
+- Calling it "no interest". The fee is a fixed 3% of the amount, charged once per advance. It isn't an annual rate.
 
 **Accept**
 - Pre-ticked consent.
@@ -103,7 +103,7 @@ Built as separate states the reviewer can jump to, so the depth goes into two pl
 
 **In depth: terms + accept**
 - Tiers with the fee in rupees, the total and the date. The over-limit tier is shown blocked, with the reason.
-- What happens if it's late, in one line, with details behind an expandable section. Default consequences are stated here, at accept (placeholder copy until compliance confirms).
+- What happens if it's late, in one line, with the details in a bottom sheet. Default consequences are stated here, at accept, as in my Assumptions.
 - A separate collection permission: "I allow NovaPay to collect Rs 10,300 from my wallet on 28 Jul, or when my salary lands after that, until this advance is repaid or the default date, whichever comes first." It starts unticked.
 - A descriptive button: main label "Accept Rs 10,000", secondary line "Repay Rs 10,300 on 28 Jul".
 - After the tap: processing, double-tap protection, network failure, and a reduced payout that needs fresh consent.
@@ -147,13 +147,13 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms. A reduced payout can't go below Rs 5,000, the lowest tier. That case isn't designed.
 - After a default, new advances are paused and the wallet is never frozen.
 - After default, automatic collection stops. We ask for permission again, or the user pays manually.
-- Default consequences shown in the prototype are placeholders.
+- Default consequences shown in the prototype are only the ones above: new advances are paused, automatic collection stops, and the wallet is never frozen. They're shown as stated, without a placeholder label. Anything else (credit reporting, collections, legal steps) isn't shown until compliance confirms it.
 - Data uses the glossary field names. The screens say "declined".
 - **What I'd push for, pending finance and compliance:** no late fees and no compounding. The screens won't promise "never" until it's confirmed.
 
 ## What I'd want to know
 - Is there a required cancellation window?
-- Is the fee legally interest? Do we need an annualised rate or a key facts statement? Is interest (riba) a concern for this market?
+- Is the fee legally interest? Do we need a key facts statement? Is interest (riba) a concern for this market?
 - What exactly happens at default: which credit bureau, collections, any legal steps?
 - Should a reported payroll delay move the default date?
 - Collection: can we retry when funds are short? How often? Is any amount protected for the user?
