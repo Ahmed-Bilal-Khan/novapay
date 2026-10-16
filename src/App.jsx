@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "./novakit";
 import ChooseAmount from "./screens/ChooseAmount";
 import ReviewAccept from "./screens/ReviewAccept";
+import Receipt from "./screens/Receipt";
 import AcceptOutcome from "./review/AcceptOutcome";
 import { PERSONAS, PROTOTYPE_TODAY, acceptTerms, getOffer, getTerms, reducePayout } from "./advance/salaryAdvance";
 
@@ -73,6 +74,7 @@ export default function App() {
   if (screen !== "home" && offer.eligibility !== "eligible") current = "home";
   else if (screen === "terms" && terms == null) current = "chooseAmount";
   else if (screen === "reduced" && reducedTerms == null) current = "chooseAmount";
+  else if (screen === "receipt" && advance == null) current = "home";
 
   function go(next) {
     hasChangedScreen = true;
@@ -158,7 +160,7 @@ export default function App() {
           />
         ) : null}
 
-        {current === "receipt" ? <ReceiptPlaceholder Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
+        {current === "receipt" ? <Receipt Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
 
         <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">
           <AcceptOutcome value={outcome} onChange={changeOutcome} />
@@ -211,29 +213,6 @@ function Home({ Frame, onStartAdvance }) {
           subtitle="27 Jun"
           trailing={<AmountText amount={500} size="body" />}
         />
-      </Card>
-    </Frame>
-  );
-}
-
-// PLACEHOLDER until S8 (the receipt) is built. It exists so "Accept" leads somewhere
-// honest. There's no back: the advance has been accepted.
-function ReceiptPlaceholder({ Frame, advance, onDone }) {
-  return (
-    <Frame
-      title="Receipt placeholder: NovaPay"
-      appBar={<AppBar title="Salary advance" />}
-      actions={
-        <Button size="lg" onClick={onDone}>
-          Done
-        </Button>
-      }
-    >
-      <Card className="space-y-1">
-        <p className="text-body font-semibold text-neutral-900">Placeholder: receipt</p>
-        <p className="text-body text-neutral-700">
-          This screen isn't built yet. {advance ? "The advance was accepted." : null}
-        </p>
       </Card>
     </Frame>
   );

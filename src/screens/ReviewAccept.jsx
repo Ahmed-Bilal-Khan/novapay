@@ -1,16 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { AppBar, Card, ListRow, Choice, Button, AmountText, BottomSheet, formatAmount } from "../novakit";
-import {
-  FEE_PERCENT,
-  MAX_REMINDERS_PER_7_DAYS,
-  QUIET_HOURS,
-  formatDate,
-  formatTime,
-} from "../advance/salaryAdvance";
+import { AppBar, Card, Choice, Button, formatAmount } from "../novakit";
+import { formatDate, formatTime } from "../advance/salaryAdvance";
+import { AdvanceSummary, LateLine, LateSheet } from "./advanceParts";
 
 const MISSING_MESSAGE = "To accept, tick the box to give this permission.";
 const PROCESSING_LABEL = "Confirming your advance…";
-const TIMES = { 1: "once", 2: "twice" };
 
 /**
  * S4: terms + accept, and S7: the reduced payout (when `terms.reduced_from` is set).
@@ -88,27 +82,7 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount = 
     // "moved": the app has gone to the next screen, and this one unmounts.
   }
 
-  const lateSheet = (
-    <BottomSheet open={lateOpen} onClose={() => setLateOpen(false)} title="What happens if it's late">
-      <ul className="list-disc pl-5 space-y-1 text-body text-neutral-900">
-        <li>Days late are counted from {due}.</li>
-        <li>You can pay some or all of it yourself.</li>
-        <li>
-          If your salary is delayed, tell us and we'll pause reminders. We'll still tell you before it goes into
-          default.
-        </li>
-        <li>
-          Reminders come at most {TIMES[MAX_REMINDERS_PER_7_DAYS] ?? `${MAX_REMINDERS_PER_7_DAYS} times`} a week,
-          never between {formatTime(QUIET_HOURS.from)} and {formatTime(QUIET_HOURS.to)}, and only to you.
-        </li>
-        <li>We won't freeze your wallet.</li>
-        <li>
-          If it's still unpaid on {until}, the advance is in default. New advances are paused and automatic
-          collection stops.
-        </li>
-      </ul>
-    </BottomSheet>
-  );
+  const lateSheet = <LateSheet open={lateOpen} onClose={() => setLateOpen(false)} due={due} until={until} />;
 
   const appBar = reduced ? (
     <AppBar title="Check the new amount" />
@@ -185,52 +159,24 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount = 
           </Card>
         ) : null}
 
-        <Card>
-          <h2 className="text-body font-semibold text-neutral-900">Your advance</h2>
-          <div className="mt-1">
-            <ListRow
-              wrap
-              title="You get"
-              subtitle={withWas("Paid into your NovaPay wallet", reduced && `You asked for ${formatAmount(reduced.disbursed_amount)}.`)}
-              trailing={<AmountText amount={terms.disbursed_amount} size="body" className="font-semibold" />}
-            />
-            <ListRow
-              wrap
-              title="Fee"
-              subtitle={withWas(`${FEE_PERCENT}%, charged once`, reduced && `Was ${formatAmount(reduced.fee)}.`)}
-              trailing={<AmountText amount={terms.fee} size="body" className="font-semibold" />}
-            />
-            <ListRow
-              wrap
-              title={<span className="font-semibold">You repay on {due}</span>}
-              subtitle={withWas(
-                `At ${time} from your NovaPay wallet, once your salary arrives`,
-                reduced && `Was ${formatAmount(reduced.total)}.`
-              )}
-              trailing={<AmountText amount={terms.total} size="body" className="font-semibold" />}
-            />
-          </div>
+        <AdvanceSummary
+          disbursed={terms.disbursed_amount}
+          fee={terms.fee}
+          total={terms.total}
+          due={due}
+          time={time}
+          before={reduced}
+        >
           {reduced ? null : (
             <p className="text-caption text-neutral-700 mt-2">
               If we can only pay a lower amount, we'll show you the new terms and ask you again before paying
               anything.
             </p>
           )}
-        </Card>
+        </AdvanceSummary>
 
         <Card className="space-y-2">
-          <p className="text-body text-neutral-900">
-            If we can't take it on {due}, we'll tell you at {time}. If your salary is late, we'll try again when it
-            arrives.
-          </p>
-          <button
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => setLateOpen(true)}
-            className="inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-          >
-            What happens if it's late
-          </button>
+          <LateLine due={due} time={time} onOpen={() => setLateOpen(true)} />
         </Card>
 
         <Card>
@@ -251,9 +197,4 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount = 
       </div>
     </Frame>
   );
-}
-
-// S7: a row's subtitle, plus what it was before the lower offer.
-function withWas(text, was) {
-  return was ? `${text}. ${was}` : text;
 }
