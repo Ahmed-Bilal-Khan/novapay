@@ -138,6 +138,8 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - The fee is 3% of the amount paid out, charged once, and added to the repayment.
 - A second user is paid into a bank account, so the wallet can't see their income. They see the "Verify your salary" home card.
 - Wallet balance is Rs 4,250 for both personas (taken from the starter screen).
+- The balance on 25 Jul is Rs 1,800.
+- On payday at 6pm the balance is Rs 1,800 / 9,600 / 6,500 / 1,800, depending on why the repayment wasn't collected (salary didn't arrive / arrived short / balance dropped / salary moved to a bank). Nothing moves after payday, so later dates carry it forward. The July spending and the payday rows for each cause are sample data, not policy.
 - The payout lands in the NovaPay wallet the moment the advance is accepted, so the receipt can say "It's in your NovaPay wallet."
 - One advance at a time: while an advance is open (not yet repaid), no new one is offered.
 - The record of the agreement lives in the app: the advance's details, opened from its card on the home screen. Whether a copy is also sent is still a question.
@@ -147,6 +149,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - Reminder before the due date: 25 Jul at 10:00. The not-collected notice: 6pm on the day the attempt fails.
 - Late reminders every 7 days (4, 11, 18 and 25 Aug). This cadence is a placeholder.
 - Notice before default: 20 Aug, never paused, even after a payroll delay is reported. Default happens on day 30 (27 Aug).
+- In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
 - A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms. A reduced payout can't go below Rs 5,000, the lowest tier. That case isn't designed.
 - After a default, new advances are paused and the wallet is never frozen.
 - After default, automatic collection stops. We ask for permission again, or the user pays manually.

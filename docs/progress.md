@@ -195,6 +195,12 @@
   - Start again in a footer.
 - **Two review-only components** in `src/review/`, not NovaKit: `SegmentedControl` and `DateSteps`. Logged in `DESIGN_SYSTEM.md` under "Reviewer scaffolding".
 - **Measured:** 746px on 7 Jul and 834px at most (20 Aug with every option), with no sideways scroll at a 1024px window. Checked the arrow keys, focus rings, every option, persona B and Start again.
+- **Then simplified at my request:**
+  - "Why it wasn't collected" is removed, so the late path is shown for "salary didn't arrive" (the scenario default). "Now showing" still names it from payday on.
+  - The payroll delay is one checkbox, "Payroll delay reported on 2 Aug".
+  - The panel is `w-80` (320px, from 256px).
+  - Measured: 746px on 7 Jul and 704px on 2 Aug and 20 Aug.
+- **My three Assumptions are now in `00-my-read.md`:** the 25 Jul balance, the payday balances by cause as sample data, and the 2 Aug payroll delay.
 
 ## Decisions
 
@@ -348,6 +354,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**Reviewer panel, simplified:** no cause choice (it added little for the space it took). The other three causes stay in the module and its checks, but the reviewer can't show them. Width `w-80`, the nearest default to the 20% wider I asked for.
+
 **Reviewer panel (L1–L3):** two review-only components (`SegmentedControl`, `DateSteps`) in `src/review/`, logged in `DESIGN_SYSTEM.md`, and After Accept merged into the one panel.
 
 ## Open questions
@@ -402,12 +410,13 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 
 ### Added in chat 5
 
-- **My Assumptions don't have Home's later-date data yet** (`00-my-read.md` is mine to edit). Lines to add: the balance on 25 Jul is Rs 1,800; on payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause; nothing moves after payday, so later dates carry it forward; the July spending and the payday rows by cause are sample data.
+- ~~**My Assumptions don't have Home's later-date data yet.**~~ *Resolved in chat 5: added to `00-my-read.md` at my request.* Lines to add: the balance on 25 Jul is Rs 1,800; on payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause; nothing moves after payday, so later dates carry it forward; the July spending and the payday rows by cause are sample data.
 - **The advance card is still the "before due" card on later dates.** On 2 Aug it says "to repay on 28 Jul… once your salary arrives".
 - **Only the modelled stories have rows.** A collection that works on payday (repaid) adds no salary or repayment row; that's out of scope.
 - **Persona B's balance carries 4,250 to every date,** because nothing is modelled for B after 7 Jul. *(The reviewer control keeps B on 7 Jul, so this isn't shown.)*
 - **Nothing on screen reads the payroll delay yet.** It changes the advance (`payroll_delay_reported_on`, reminders paused), and the late screens will show it.
 - **The reviewer control has no URL state, notes or narrow-screen drawer** (planned for chat 6). At narrow widths it hangs off the right of the phone.
+- **At `w-80` the panel needs a window about 1,060px wide.** At 1,024px its right edge is at 1,043px, so the page scrolls sideways a little. The narrow-screen drawer (chat 6) is the fix.
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
@@ -438,7 +447,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - The payout lands in the NovaPay wallet the moment the advance is accepted (added in chat 4).
   - One advance at a time: no new offer while one is open (added in chat 4).
   - The record of the agreement lives in the app, in the advance's details from the home screen; whether a copy is also sent is still a question (added in chat 4).
-- *To add in chat 5 (not in `00-my-read.md` yet; it's mine to edit):*
+- *Added in chat 5 (now in `00-my-read.md`):*
   - The balance on 25 Jul is Rs 1,800. On payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause, and nothing moves after payday.
   - The July spending and the payday rows by cause are sample data.
   - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
