@@ -15,6 +15,7 @@ Then open the local URL Vite prints. The app renders inside a ~390px mobile fram
 
 ```bash
 npm run build   # production build (also a quick way to check nothing is broken)
+npm run check   # fails on hex colours, arbitrary values or default Tailwind colours in src/, and checks the salary-advance module
 ```
 
 ## What's in here
@@ -22,22 +23,29 @@ npm run build   # production build (also a quick way to check nothing is broken)
 ```
 src/
   novakit/            # the design system — build from these
-    Button.jsx        # primary | secondary · md | lg · default/pressed/disabled
+    Button.jsx        # primary | secondary · md | lg · optional second line · loading
     TextField.jsx     # default · focused · disabled
-    Card.jsx          # surface container
-    Panel.jsx         # surface container
-    ListRow.jsx       # icon · title/subtitle · trailing amount
-    AppBar.jsx        # title + optional back
-    BottomSheet.jsx   # modal sheet
-    Toast.jsx         # transient confirmation
-    AmountText.jsx    # formats PKR amounts
+    Card.jsx          # surface container · tones: default | attention | danger
+    Panel.jsx         # deprecated alias of Card
+    ListRow.jsx       # icon · title/subtitle · trailing amount · optional wrap
+    AppBar.jsx        # title (the screen's h1) + optional back with a label
+    BottomSheet.jsx   # modal dialog sheet: title, focus handling, Escape, Close
+    Toast.jsx         # transient message · success | neutral
+    AmountText.jsx    # formats PKR amounts (and formatAmount for strings)
+    Choice.jsx        # checkbox or radio with label, description, blocked reason
     index.js          # barrel export -> import { Button } from "./novakit"
-  App.jsx             # starter home screen (your canvas)
+  advance/
+    salaryAdvance.js  # the one source of truth for salary-advance money and dates
+  screens/            # ChooseAmount (S3), ReviewAccept (S4, and S7 for a lower offer)
+  review/             # reviewer controls shown beside the phone, never inside it
+  App.jsx             # phone frame, home, routing and placeholders
   index.css           # Tailwind entry
+scripts/              # npm run check: token check and module check, plus the allow-list
 tailwind.config.js    # design tokens (colors, radius, type scale, elevation)
+DESIGN_SYSTEM.md      # log of every token or component change
 ```
 
-Tokens live in `tailwind.config.js` (e.g. `bg-brand`, `bg-brand-50`, `text-attention-600`, `text-neutral-700`, `rounded-md`, `shadow-card`, `text-title`). The palette is intentionally generous — a full brand (indigo) ramp, a warm amber accent, and a layered neutral scale — so you have room to make real aesthetic choices. Use it with restraint. Build new work from tokens and existing components; extend the system only where you genuinely need to, and keep design and code in sync.
+Tokens live in `tailwind.config.js` (e.g. `bg-brand`, `bg-brand-50`, `text-attention-600`, `text-neutral-700`, `rounded-md`, `shadow-card`, `text-title`). The palette is intentionally generous — a full brand (indigo) ramp, an amber `attention` ramp for states that need attention (soft background, dark text, never a solid fill), a `danger` colour only for a failed event, and a layered neutral scale — so you have room to make real aesthetic choices. Use it with restraint. Build new work from tokens and existing components; extend the system only where you genuinely need to, and keep design and code in sync.
 
 ## Your task (summary)
 

@@ -80,7 +80,7 @@ The first two aren't the user's fault, and that's why the late experience should
 - Threatening language.
 
 ## Principles (each one can fail a screen)
-1. **The number you tap is the number you owe.** On the screen with the accept button, the amount received, the fee in rupees, the total and the due date are all visible without scrolling or tapping. The button names the amount and the date.
+1. **The number you tap is the number you owe.** On the screen with the accept button, the amount received, the fee in rupees, the total and the due date are all visible without scrolling or tapping. The button names the amount, and its second line the repayment and date, unless the rest of the screen already makes those clear enough that the line would only repeat them.
 2. **Know before you ask.** No user reaches a "no" that could have been known before they applied. Only the credit check happens at application.
 3. **Smaller is never harder.** Tiers in ascending order, nothing pre-selected, the same visual weight for each, no timers, no expiry.
 4. **Late is a situation, not a character flaw.**
@@ -89,7 +89,7 @@ The first two aren't the user's fault, and that's why the late experience should
    - No amount, "loan" or "overdue" on the lock screen.
    - Never sent to anyone but the borrower.
    - Red only on the event that failed (e.g. "We couldn't collect on 28 Jul"), never on the person's status card or the late screen. Their status uses the attention colour.
-   - Attention colour (provisional): the existing amber ramp, only as a soft background with dark text (body text neutral-900 on accent-50; accent-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons. The system audit confirms it.
+   - Attention colour: the amber ramp, now named `attention`, only as a soft background with dark text (body text neutral-900 on attention-50; attention-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons.
 5. **Their wallet stays theirs.** The advance is shown separately from their own money. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
 
 ## A moment that shouldn't exist
@@ -104,8 +104,8 @@ Built as separate states the reviewer can jump to, so the depth goes into two pl
 **In depth: terms + accept**
 - Tiers with the fee in rupees, the total and the date. The over-limit tier is shown blocked, with the reason.
 - What happens if it's late, in one line, with the details in a bottom sheet. Default consequences are stated here, at accept, as in my Assumptions.
-- A separate collection permission: "I allow NovaPay to collect Rs 10,300 from my wallet on 28 Jul, or when my salary lands after that, until this advance is repaid or the default date, whichever comes first." It starts unticked.
-- A descriptive button: main label "Accept Rs 10,000", secondary line "Repay Rs 10,300 on 28 Jul".
+- A separate collection permission, its own unticked checkbox, that doesn't repeat the amounts above it: "I allow NovaPay to take the repayment above automatically." with "This ends automatically when it's repaid, or on 27 Aug at the latest." On a lower offer it says "the new repayment".
+- A descriptive button: "Accept Rs 10,000". No second line on S4, because "Your advance" above it already shows "You repay on 28 Jul" and Rs 10,300 without scrolling.
 - After the tap: processing, double-tap protection, network failure, and a reduced payout that needs fresh consent.
 - A receipt of what was agreed.
 
@@ -158,6 +158,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - Should a reported payroll delay move the default date?
 - Collection: can we retry when funds are short? How often? Is any amount protected for the user?
 - What happens if a reduced payout is needed from the lowest tier?
+- How is the limit set?
 - How long can a collection permission legally last, and what does re-asking after default require?
 - Can we use wallet data to check eligibility before an application, and what consent does that need?
 - How is the record of agreement delivered and stored, and in which languages (Urdu and English)?

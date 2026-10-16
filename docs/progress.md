@@ -86,15 +86,14 @@
   - the cost summary is first and fits without scrolling at 390×844 and 360×640,
   - one line on what happens if it isn't collected, then a native `<details>` (moved to a BottomSheet later in the chat, see below),
   - the collection permission is its own unticked checkbox, with its end date,
-  - "Accept Rs 10,000 / Repay Rs 10,300 on 28 Jul" stays enabled,
+  - "Accept Rs 10,000 / Repay Rs 10,300 on 28 Jul" stays enabled (the second line was dropped later in the chat, see below),
   - "Change amount" and "Back to home" are equal secondary buttons,
   - Accept calls `acceptTerms` and goes to a labelled receipt placeholder.
 - **S3's lower-payout line now matches the flow:** "If we can only pay a lower amount, we'll ask you again before paying anything."
 - Every control was clicked through in the running app. `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
 
-### Chat 4, continued: S4 made calmer, then re-verified (not committed yet)
+### Chat 4, continued: S4 made calmer, then re-verified (`401aa10`, `376bef5`, `8a07317`)
 
-Everything below is in the working tree, waiting for my "Commit now".
 - **My read:** the fee line in the predatory list now says the fee is a fixed 3% of the amount, charged once per advance, and isn't an annual rate. "Annualised rate" is gone from What I'd want to know. The default-consequences Assumption and the Scope line now say the consequences are shown as stated, with no placeholder label.
 - **S4 redesigned for calm:**
   - the late consequences moved from `<details>` into a BottomSheet,
@@ -120,6 +119,25 @@ Everything below is in the working tree, waiting for my "Commit now".
   - On S4 at 360×640, the cost is visible.
   - On S3 at 360×640, Rs 5,000 and Rs 10,000 are visible.
 - **The audit's S4, S13, BottomSheet, details, 6.8, 6.11 and Q2 rows** carry dated "Updated 16 Oct (chat 4)" notes.
+
+### Chat 4, continued: after Accept (S5, S6, S7), not committed yet
+
+- **S4's Accept is one line, "Accept Rs 10,000".** The exception is in `CLAUDE.md`, principle 1, Scope and the audit.
+- **S5, processing:** Accept shows "Confirming your advance…", and back and the other actions are hidden. The content is `inert`, screen readers hear "Confirming your advance." once, and a second tap can't happen. It takes about 1.5s, simulated.
+- **S6, network failure:** a danger Card with `role="alert"` at the top of S4: "We couldn't confirm your advance" / "Nothing was sent to your wallet and nothing was charged. Please try again." Focus moves to "Try again". The permission stays ticked, because the terms didn't change.
+- **S7, reduced payout:** the same screen in its reduced form, not a sheet and not a new component.
+  - "We can offer Rs 5,000, not Rs 10,000" / "Nothing has been sent or charged. If Rs 5,000 works for you, accept it below."
+  - S4's "Your advance" rows, each saying what it was: "You asked for Rs 10,000", "Was Rs 300", "Was Rs 10,300". The wallet and 6pm stay in the rows.
+  - The late card and sheet, a fresh unticked permission, "Accept Rs 5,000" and "No thanks". There's no back.
+- **Reviewer control "after Accept"** (`src/review/AcceptOutcome.jsx`), with Works, Network failure or Lower amount. The phone is centred on the page and the control hangs off its right.
+- **A second review agent re-checked S5–S7.** Fixed from it:
+  - S7 now says where the repayment comes from,
+  - "Check your connection" is gone, because no cause is known,
+  - "After our final checks" and "you don't need to do anything" are gone, because they were unsupported policy,
+  - Network failure fails the first attempt of every run, not just the first ever,
+  - Lower amount is labelled "from Rs 10,000 only".
+- **Checked in the app:** every outcome; Try again; S7's Accept and No thanks; the tick message scrolling the whole checkbox row into view on S4 and S7. Build and check pass.
+- **The audit has S5, S6 and S7 notes and a new R2 row** for the reviewer control.
 
 ## Decisions
 
@@ -201,7 +219,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The desktop scrollbar is hidden inside the frame,** because phones overlay theirs.
 
 **Calls the AI made during the build, flagged and not overruled**
-- **Button keeps its colours while loading,** because it's working, not unavailable. Its second line stays visible, so the height never changes.
+- **Button keeps its colours while loading,** because it's working, not unavailable. Its second line stays visible, so the height never changes. *Chat 4: S4's and S7's Accept have no second line now; S5 uses the loading state.*
 - **The AppBar glyph uses `text-display`, not the suggested `text-title`.** Measured, `text-title` only took it from 5px to 7px wide.
 - **A real zero still formats as "Rs 0".** Only missing data returns `null`, and a number passed as a string counts as missing.
 
@@ -240,14 +258,25 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **All action-area buttons on S3 and S4 are medium.** On S4, "Change amount" and "Back to home" sit side by side. The two names for going back from S4 stay: the AppBar's "Back to amounts" and the button "Change amount".
 - **Large secondaries were tried first and rejected:** side by side, "Change amount" wrapped onto two lines (70px tall).
 
+### Chat 4, continued: after Accept
+
+- **A network failure always returns an error,** so "Nothing was sent to your wallet and nothing was charged" is true. (This lives only in chat; I chose not to add it to my Assumptions yet.)
+- **S7's permission:** "I allow NovaPay to take the new repayment automatically."
+- **S7 includes the late card and sheet,** because it's a fresh consent.
+- **S7's Accept is one line too ("Accept Rs 5,000").** The `CLAUDE.md` exception still names only S4, and I left it that way.
+- **S7's comparison uses list rows, not a table.**
+- **The reviewer control was added now and recorded** (audit R2). The phone is centred; reviewer controls sit to its side.
+- **The two "nothing was sent or charged" promises stay as they are** without new Assumptions.
+- **S4's Accept button is one line: "Accept Rs 10,000".** "Your advance" already shows "You repay on 28 Jul" and Rs 10,300 without scrolling, so a second line would only repeat it. Exceptions like this are allowed when the rest of the screen gives enough context. The rule is updated in `CLAUDE.md`, principle 1 and Scope in my read, and the audit's S4 and 6.5 rows. Button's `subLabel` stays: S3's "Review terms" still uses "Nothing is borrowed yet".
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
 - The decision is called "Declined" in the text but `decision (approved/denied)` with `denial_reason` in the glossary.
 - The decline reason is `income_unverified`, but the glossary field is `income_verified`.
 - The glossary lists `income_source (salaried/freelance)`, but the product is described as only for salaried users.
-- `DESIGN_SYSTEM.md` doesn't exist yet. `CLAUDE.md` says every token or component change is logged there, including the check's `white`/`black`/`transparent` exception.
-- Principle 4 in `00-my-read.md` still says "(provisional)", "The system audit confirms it" and "accent". All three are stale after the audit. The read is mine to update.
+- ~~`DESIGN_SYSTEM.md` doesn't exist yet.~~ *Resolved (`eca45f1`).* `CLAUDE.md` says every token or component change is logged there, including the check's `white`/`black`/`transparent` exception.
+- ~~Principle 4 in `00-my-read.md` still says~~ *Resolved in chat 4: the wording is updated.* "(provisional)", "The system audit confirms it" and "accent". All three are stale after the audit. The read is mine to update.
 - Where does the lasting record of the agreement live? The receipt has to say where.
 
 ### Added in chat 3, continued
@@ -260,7 +289,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The check doesn't catch a colour name that doesn't exist.** A leftover `text-accent-600` would build silently with no colour.
 - **How do I show colours before the change?** The frozen v0 copy freezes component code, not token values, so it now shows the new colours. A true "before" needs the `starter` tag.
 - **The frame plus padding is 892px tall,** so on shorter laptop screens the page scrolls and the action area can sit below the browser's fold. Do I scale the frame to fit?
-- **Toast sits over the sticky action area** when both show.
+- ~~**Toast sits over the sticky action area** when both show.~~ *Resolved in chat 4 (`c4f284e`).*
 - **The transcript export from this chat includes the brief's full text,** because it was read in the chat. `_inputs/` is ignored so the brief is never published, so the export shouldn't be committed or pushed as it is.
 
 **Resolved since:** `DESIGN_SYSTEM.md` now exists (`eca45f1`), including the check's `white`/`black`/`transparent` exception.
@@ -268,13 +297,13 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 ### Added in chat 4
 
 - ~~**The S4 default line contradicts two of my rules.**~~ Resolved later in chat 4: my Assumptions now say default consequences are shown as stated, with no placeholder label, so the `CLAUDE.md` placeholder rule no longer applies to them. The audit's S4 and S13 rows are updated.
-- **"How is the limit set?"** I'm adding it to What I'd want to know in my read. It isn't there yet.
+- ~~**"How is the limit set?"** It isn't in my read yet.~~ *Resolved in chat 4: added to What I'd want to know.*
 - **"You can pay some or all of it yourself" (S4) is a stub.** Manual payment is only shown on the late screen, and early repayment is "with more time".
 - **Persona B's home card** still says "See amounts and costs" and would send them nowhere. Their S2 state isn't built yet.
 - **The radio's focus ring is a rounded square,** not a circle, because Chromium draws the ring box around a native radio. It's still visible, so it's flagged, not fixed.
 
 - *Added later in chat 4, from the S4 review:*
-  - **My read's Scope still quotes the old, long permission wording** (the "I allow NovaPay to collect Rs 10,300…" line). It's mine to update.
+  - ~~**My read's Scope still quotes the old, long permission wording**~~ *Resolved in chat 4.* (the "I allow NovaPay to collect Rs 10,300…" line). It's mine to update.
   - **The default line reads the permission's end date** (`terms.permission.ends_by`), not `terms.default_date`. They're the same today but mean different things.
   - **The receipt placeholder's heading is "Salary advance",** not a screen name. It goes away when S8 is built.
   - **After Done, home still offers an advance.** Accepting the same terms again returns the first advance and shows "accepted" again. This waits for home after accepting (S9).
@@ -340,7 +369,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
 - ListRow truncates its title and subtitle, which would cut cost and due-date lines.
 - The phone frame grows with its content, so "visible without scrolling" can't be tested, and Toast and BottomSheet can end up off-screen.
 - The amber ramp: accent-600 on accent-50 is 4.71:1, a pass by 0.21. accent-600 fails on accent-100 (4.31) and neutral-100 (4.49). accent DEFAULT fails as text (2.15).
-- After the accent → attention rename, the README's example `text-accent-600` will be out of date.
+- After the accent → attention rename, the README's example `text-accent-600` will be out of date. *(Fixed in chat 3.)*
 - *Added in chat 3, continued, found while changing the system:*
   - **The dev server keeps the old Tailwind config.** After a change to `tailwind.config.js` it served stale CSS until it was restarted.
   - **The check only knows the names it's given.** It catches Tailwind's default colour names but not ones that don't exist, which build silently.
@@ -348,7 +377,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Native checkbox and radio rendering varies by browser,** so check `Choice`'s 24px control and focus ring on each.
   - **The "‹" glyph was about 5px wide at the inherited 16px,** even inside a 44px target.
   - **On Windows the frame's scroll area showed a classic scrollbar.** It's now hidden.
-  - **The README prose still says "a warm amber accent"** after the rename. Only its example was updated.
+  - ~~**The README prose still says "a warm amber accent"** after the rename.~~ *Resolved in chat 4: the README's palette and file list describe the kit as it is now.*
 - *Added in chat 4, found while building S3 and S4:*
   - **The browser pane's accessibility tree isn't the browser's.** It named radios by their `value` and gave buttons no name. Real names came from Edge's tree over the DevTools protocol.
   - **A natively disabled radio is invisible to keyboard users.** Tab and the arrow keys skip it, so its reason is never heard. Choice now uses `aria-disabled`.
@@ -360,6 +389,9 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The starter BottomSheet couldn't be used as it was.** It had no dialog role, focus handling or Escape, and its grab handle promised a swipe that didn't exist. It was rebuilt before S4 used it.
   - **`aria-modal` alone doesn't stop focus leaving a sheet.** The rest of the frame had to be made `inert`.
   - **Large buttons don't fit two to a row at 390px.** "Change amount" wrapped onto two lines.
+  - **`formatAmount` uses a non-breaking space** between "Rs" and the number, so a plain-space text search ("Accept Rs 5,000") misses it.
+  - **Background browser tabs pause `requestAnimationFrame` and throttle timers.** A scroll put in a rAF never ran there, so it now uses a timeout.
+  - **`inert` is passed as `inert=""`,** which React 18 renders. React 19 expects a boolean, so it needs changing on an upgrade.
 
 ### AI process
 
@@ -390,6 +422,12 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI pushed back on my checkbox wording.** I asked for "I have read the terms stated above and accept". The AI pointed out that this is the bundled "I agree" on my own predatory list, and it breaks my `CLAUDE.md` rule. My real point was not repeating the amounts, so the checkbox now points at "the repayment above" and stays its own permission with an end date.
   - **A review agent re-verified S4 against every doc.** It found a false promise (retrying "when your salary next arrives", which lands after default for most causes), the checkbox state never reaching the module, an incomplete focus trap, a 22px target, and the AI's own S5/S8 mislabel. All were fixed, and its other points became decisions or doc updates.
   - **No commits until I say "Commit now".** The AI kept the S4 redesign in the working tree while I iterated.
+  - **A second review agent checked S5–S7 against every doc.** The AI's own copy had three problems:
+    - "Check your connection" blamed the user,
+    - "After our final checks" stated a policy I hadn't written,
+    - S7 hid where the repayment is taken from.
+    It also caught a reviewer control that didn't do what its label said. All were fixed.
+  - **I rejected the AI's table on S7** and asked for the same list rows as S4, so old and new read the same way as the screen before.
 
 ### Deferred from the S3 critique
 
@@ -409,17 +447,11 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 and S4 are built. The S4 redesign and fixes are in the working tree, waiting for my "Commit now". After that come the rest of the accept moment, the reviewer switcher and the late path.
+S3 to S7 are built. The latest work (one-line Accept, S5–S7, the reviewer control, the centred phone) is in the working tree, waiting for my "Commit now". After that come S8, the reviewer switcher and the late path.
 
-1. **Loose ends in my read:**
-   - principle 4's stale wording ("provisional", "the audit confirms it", "accent"),
-   - whether the payout lands on the day it's accepted, as an assumption,
-   - "How is the limit set?" in What I'd want to know,
-   - the old permission wording quoted in Scope.
+1. **Loose end in my read:** whether the payout lands on the day it's accepted, as an assumption.
 2. **The rest of the accept moment, one state per request, each with a plan I approve first:**
-   - after the tap: S5, processing and double-tap protection, then S6, a network failure,
-   - S7, the reduced payout, with fresh consent,
-   - S8, the receipt, which replaces the placeholder and has to say where the lasting record lives.
+   - S8, the receipt, which replaces the placeholder and has to say where the lasting record lives. (S5, S6 and S7 are built.)
 3. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
 4. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
 

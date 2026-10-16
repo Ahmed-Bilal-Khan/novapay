@@ -40,7 +40,7 @@ NovaPay salary-advance case study, built on NovaKit Lite. These rules apply to e
 ## Trust and copy
 
 - Nothing is pre-ticked or pre-selected. Tiers are in ascending order with equal visual weight.
-- The accept button names the amount; its second line names the repayment and date.
+- The accept button names the amount; its second line names the repayment and date. Exception: the second line can be left out when the rest of the screen already gives enough context, so the line would only repeat it (S4: the repayment and date are in "Your advance", visible without scrolling).
 - The cost (amount received, fee in rupees, total, due date) is visible on the accept screen without scrolling.
 - The permission to collect is its own unticked checkbox, and it states when it ends.
 - Never show "Rs 0" or a guessed number when data is missing.
