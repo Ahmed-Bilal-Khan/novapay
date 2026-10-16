@@ -3,6 +3,8 @@ import { AppBar, Card, Button } from "../novakit";
 import { formatDate, formatTime } from "../advance/salaryAdvance";
 import {
   AdvanceSummary,
+  DefaultDateLabel,
+  DefaultNoticeStatus,
   LateLabel,
   LateLine,
   LateLink,
@@ -29,6 +31,10 @@ import {
  * once reported, that reminders are paused and the notice before default still comes.
  * "My salary is late" is offered while getStatus says it can be (`can_report_payroll_delay`);
  * after the tap the button goes and focus moves to the confirmation.
+ * S13 (notice before default, getStatus().default_notice_sent): the same attention card,
+ * leading with the default date, what changes then (my Assumptions' consequences only) and
+ * what doesn't change today; once reported, why this notice still came. The report isn't
+ * offered any more (getStatus), so the only action is the pay stub.
  */
 export default function AdvanceDetails({
   Frame,
@@ -90,7 +96,15 @@ export default function AdvanceDetails({
         </>
       ) : null}
 
-      {late ? (
+      {late && status.default_notice_sent ? (
+        <Card tone="attention">
+          <DefaultDateLabel date={advance.default_date} />
+          <div className="mt-1">
+            <DefaultNoticeStatus status={status} defaultDate={advance.default_date} detailed />
+          </div>
+          <LateLink onOpen={() => setLateOpen(true)} />
+        </Card>
+      ) : late ? (
         <Card tone="attention">
           <LateLabel days={status.days_late} />
           <div className="mt-1">

@@ -282,6 +282,7 @@ export function getStatus(advance, today) {
       days_until_default: null,
       before_due_reminder_sent: false,
       can_report_payroll_delay: false,
+      default_notice_sent: false,
       ...common,
     };
   }
@@ -293,6 +294,11 @@ export function getStatus(advance, today) {
   else if (sinceDue === 0) phase = failedAttemptOn(advance, advance.due_date, today) ? "not_collected" : "due_today";
   else if (days_late >= DEFAULT_AFTER_DAYS) phase = "default";
   else phase = "late";
+
+  // S13: the notice before default has gone out (never paused) and it's still late, so the
+  // screens lead with the default date. Decided here, not in the screen.
+  const default_notice_sent =
+    phase === "late" && getReminders(advance, today).some((r) => r.type === "before_default" && r.status === "sent");
 
   return {
     phase,
@@ -307,8 +313,14 @@ export function getStatus(advance, today) {
       getReminders(advance, today).some((r) => r.type === "before_due" && r.status === "sent"),
     // S12: "My salary is late" is offered once the repayment is late (not on payday evening,
     // when nobody can know yet), only when the salary didn't arrive (MR), and until reported.
+    // Prototype: the report is dated 2 Aug (MR), so it isn't offered once the notice before
+    // default has gone out; a later report would be recorded with the wrong date.
     can_report_payroll_delay:
-      phase === "late" && common.last_attempt?.reason === "salary_not_arrived" && reported == null,
+      phase === "late" &&
+      common.last_attempt?.reason === "salary_not_arrived" &&
+      reported == null &&
+      !default_notice_sent,
+    default_notice_sent,
     ...common,
   };
 }

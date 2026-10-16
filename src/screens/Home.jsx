@@ -1,7 +1,14 @@
 import { useRef } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "../novakit";
 import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
-import { LateLabel, LateStatus, NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
+import {
+  DefaultDateLabel,
+  DefaultNoticeStatus,
+  LateLabel,
+  LateStatus,
+  NotCollectedNotice,
+  NotCollectedStatus,
+} from "./advanceParts";
 
 /**
  * Home. Before an advance (S1): the balance and the card that starts one.
@@ -15,6 +22,8 @@ import { LateLabel, LateStatus, NotCollectedNotice, NotCollectedStatus } from ".
  * what's still owed and when it'll be taken. Nothing is required: it's automatic.
  * Late (S12): the advance card in the attention tone with "5 days late", what's owed, what
  * happened on payday in plain text, and when it'll be taken. No danger card, no action here.
+ * Notice before default (S13): the same card, leading with "Default date: 27 Aug" and what it
+ * means, in 7 days. Firm and clear, never alarming.
  *
  * Money and dates come from the module: `offer` (getOffer: no new offer while an advance
  * is open), `wallet` (getWallet), `activity` (getActivity: sample rows, the balance adds
@@ -47,6 +56,9 @@ export default function Home({
   // S12: late. The advance card takes the attention tone; no danger card, because the failed
   // attempt was an event on payday and red doesn't follow the person for days.
   const late = status?.phase === "late";
+  // S13: the notice before default has gone out (getStatus). The same attention card, now
+  // leading with the default date and what it means. No countdown styling, no red.
+  const defaultNotice = status?.default_notice_sent === true;
   // "Hide this message": App keeps it hidden until the app is opened again (a reload) or
   // the reviewer starts again. Focus moves to the advance card, so nobody loses their place.
   // A timeout, not rAF: background tabs pause rAF (progress.md, system flags).
@@ -91,6 +103,21 @@ export default function Home({
             </Button>
           </Card>
         </>
+      ) : advance && offer.eligibility === "has_advance" && defaultNotice ? (
+        <Card tone="attention" className="space-y-3">
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <h2 className="text-body font-semibold text-neutral-900">Your salary advance</h2>
+              <DefaultDateLabel date={advance.default_date} />
+            </div>
+            <div className="mt-1">
+              <DefaultNoticeStatus status={status} defaultDate={advance.default_date} />
+            </div>
+          </div>
+          <Button variant="secondary" onClick={onSeeAdvance}>
+            See details
+          </Button>
+        </Card>
       ) : advance && offer.eligibility === "has_advance" && late ? (
         <Card tone="attention" className="space-y-3">
           <div>

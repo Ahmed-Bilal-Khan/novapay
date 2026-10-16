@@ -163,6 +163,51 @@ export function LateLabel({ days }) {
 }
 
 /**
+ * S13: the short status label once the notice before default has gone out. A fact (the date),
+ * not a forecast: default only happens if it's still unpaid. The only attention-600 text.
+ */
+export function DefaultDateLabel({ date }) {
+  return <p className="text-caption font-semibold text-attention-600">Default date: {formatDate(date)}</p>;
+}
+
+/**
+ * S13, notice before default: the content of the attention card, on Home and (with `detailed`) at
+ * the top of the details view. The date and what it means lead (S4's own words), then what's
+ * owed today, what happened on payday and when it'll still be taken. Nothing about after default
+ * beyond my Assumptions' consequences, and no promise about the amount after it. The details add
+ * what changes then and, once a payroll delay is reported, why this notice still came.
+ */
+export function DefaultNoticeStatus({ status, defaultDate, detailed = false }) {
+  const cause = PAST_CAUSE_LINES[status.last_attempt?.reason]?.(formatDate(status.last_attempt.date));
+  const days = status.days_until_default;
+  return (
+    <>
+      <p className="text-body text-neutral-900">
+        If it's still unpaid on <span className="font-semibold">{formatDate(defaultDate)}</span>, the advance is in
+        default. {days === 1 ? "That's tomorrow." : `That's in ${days} days.`}
+      </p>
+      {detailed ? (
+        <p className="text-caption text-neutral-700 mt-1">
+          Then new advances are paused and automatic collection stops. We won't freeze your wallet.
+        </p>
+      ) : null}
+      <p className={`text-body text-neutral-900 ${detailed ? "mt-2" : "mt-1"}`}>
+        <AmountText amount={status.outstanding} size="body" className="font-semibold" /> still to repay. The amount
+        hasn't changed and no fee was added.
+      </p>
+      {cause ? <p className="text-caption text-neutral-700 mt-1">{cause}</p> : null}
+      <RetryLine status={status} />
+      {detailed && status.reminders_paused ? (
+        <p className="text-body text-neutral-900 mt-2">
+          You told us your salary is late, so the other reminders are paused. This notice is always sent, because
+          it's about the date your advance goes into default.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/**
  * S12, late: the content of the attention card, on Home and (with `detailed`) at the top of the
  * details view. What's owed, unchanged; what happened on payday; when it'll be taken. The details
  * add what happens on the default date (my Assumptions' consequences only, in the late sheet's
