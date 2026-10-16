@@ -289,6 +289,22 @@
 - **The stub:** "Start verification" opens the existing placeholder screen, which now takes its wording as props: "Placeholder: verify your salary / This screen isn't built yet. Nothing has been shared." The file keeps the name `PayYourselfPlaceholder.jsx` (renaming means deleting a file, which needs my OK).
 - **Checked in the app:** persona B's card, the placeholder and back, and the pay placeholder unchanged. At 360×640 the button ends at 438px of 582px.
 
+### Chat 5, continued: lock-screen previews deferred, and the reminder table (`80168e1`)
+
+- **No preview built** (my call; reasons under Decisions). Instead, the Write-up inbox has a reminder table: one row per reminder from `getReminders`, with channel, lock-screen/SMS text, in-app text and pause behaviour.
+- **Recorded elsewhere:** the audit's Q6 (12A), 6.21 and S10 rows carry a dated note. My read has "lock-screen previews" under With more time and a new Assumption: reminders go by push and SMS, to the borrower only.
+
+### Chat 5: summary
+
+- **Built and kept:**
+  - Home on later dates (balance and activity from sample rows),
+  - the reviewer panel (persona, date, payroll delay),
+  - S10, S11 (with a hideable alert), S12, and S2.
+- **Built and rejected:** the first reviewer control (as "hectic"), its cause choice, and S13 (as a pile-on).
+- **Deferred:** the lock-screen previews.
+- **Module:** now 44 checks. Three display rules moved out of screens into `getStatus` (`before_due_reminder_sent`, `can_report_payroll_delay`) or were reverted with S13 (`default_notice_sent`).
+- **Nothing is pushed.**
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -555,6 +571,10 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **"5 days late" is 4.71:1**, an AA pass by 0.21.
   - **Start again keeps the payroll-delay state.**
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
+- *At the end of chat 5:*
+  - **The S12 item "20 Aug shows S12's card…" no longer applies in the reviewer**, since 20 Aug was dropped. It would still apply to a real person on 20 Aug, because no S13 screen exists.
+  - **25 Aug (a late reminder) shows S12's card with no word about default**, two days before it (see the reminder table).
+  - **The audit's rows S5–S9 and earlier were not re-checked in this chat.** Only the rows touched here have chat 5 notes.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
@@ -606,6 +626,12 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - How is the limit set?
   - Besides the in-app details, is a copy of the agreement also sent (SMS, email), and in which languages?
   - Can a network failure ever be ambiguous (the request reached us but the reply didn't)? The failure screen promises nothing was sent or charged.
+- *Added in chat 5:*
+  - How would NovaPay know a salary moved to a bank account, rather than just not arriving? From the wallet the two look the same, so S11 couldn't say it.
+  - Does a verified salary always lead to an offer, or can verification end without one? S2's step 3 avoids promising either.
+  - Can someone report a payroll delay after the notice before default, and what date does the report carry? The prototype only models a report on 2 Aug.
+  - What is the real late-reminder cadence? It's a placeholder, so the screens don't name the next reminder's date.
+  - After default, can the amount owed change (fees, compounding)? The screens only say what's true today ("no fee was added"), never what happens after.
 
 ### System flags
 
@@ -650,6 +676,15 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Vite leaves `vite.config.js.timestamp-*.mjs` files** in the project root while the dev server starts. They're now ignored locally (`.git/info/exclude`).
   - **Rules can hide in screens.** "One advance at a time" lived only in Home's JSX until review. Limit logic belongs in the module, with a check.
   - **A screen-level "today" comparison counts as date logic.** "Today" on the activity row now comes from the module's `formatDay`.
+- *Added in chat 5, found while building the late path:*
+  - **Display rules kept creeping into screens.** When Home becomes the reminder, who can report a payroll delay, and when the default notice applies were each first written in a screen. They moved to `getStatus` with checks. Every "which form shows today" rule belongs in the module.
+  - **Tailwind only builds classes that some source file uses.** `list-decimal` and `text-attention-600` didn't exist in the CSS until a screen used them, so draft copy measured in the live page showed them unstyled. Sizes were still right; colours weren't.
+  - **The Browser pane's screenshots show stale frames.** Buttons looked filled when their computed background was white. Page text, the DOM and computed styles were used as the evidence.
+  - **Hot reload keeps React state.** After 20 Aug was removed from the reviewer, the open page still had it selected and the panel crashed until a reload. The panel assumes its selected date exists.
+  - **The pane's console keeps errors from earlier hot reloads,** so an old error can look new. The server log's timestamps and a clean reload told them apart.
+  - **Shell one-liners mangle backticks and `${}`.** A `node -e` edit left `label={}` in a file. Edits with template strings now go through the editor.
+  - **`role="alert"` on content that's already there when a screen opens re-announces it on every visit.** That's audit 6.10's rule applied to S11. A `role="status"` region has to exist before its text appears to be announced (S12's confirmation).
+  - **The permission ends *on* the default date** (`today < default_date`), so copy must say "before 27 Aug", not "by 27 Aug".
 
 ### AI process
 
@@ -701,6 +736,22 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **A working screen was rewritten whole without showing me the diff.** `Home.jsx` was replaced in one write (`d6c9c5a`) under an approved plan. `CLAUDE.md` asks for the diff first.
   - **Re-verifying against every doc paid off again.** It found the late dates showing "before due" wording, a display rule living in a screen, copy that pulls against my read's reason for the reminder, and stale docs.
   - **A check that already passed was shown failing on purpose.** "A delay is ignored where it doesn't apply" passed before the code existed, so the AI removed the guard to prove the check catches it.
+- *Added at the end of chat 5:*
+  - **Alignment passes before each late-path screen.** For S11, S12 and S13 the AI checked my brief against my Assumptions, Scope, the audit and `CLAUDE.md` first, and dropped what didn't line up. The drops included:
+    - four causes when my Scope shows one,
+    - a payroll report dated against my Assumption,
+    - a placeholder reminder cadence stated as fact,
+    - "the amount stays Rs 10,300" after default,
+    - a "talk to someone" route.
+  - **Copy measured in the live screen before building, then matched exactly.** S12's and S13's drafts were measured at 390 and 360 with the action area included. The built screens came out at the same heights.
+  - **The AI found flaws in its own S11 proposal when asked to verify.**
+    - "Moved to a bank" claimed knowledge NovaPay doesn't have.
+    - "We can't take it automatically again" overstated my Assumption.
+    - A Toast had no `aria-live`.
+    - "As long as that's by 27 Aug" was off by a day.
+  - **A tone check changed accurate copy.** "…as long as that's before 27 Aug" was true but read as a deadline. Option A put the reassurance first and the end date as a plain fact.
+  - **The AI put its own reasoning into my read, then took it out.** Updating my Scope, it added "because it isn't the user's fault…", a reason I never gave, and removed it before committing.
+  - **Correct isn't the same as kind (S13).** Every check passed and I still rejected it. The table that replaced it keeps the 20 Aug notice to two sentences.
 
 ### Reminder table (chat 5)
 
@@ -740,9 +791,24 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-Built and committed: the accept moment (S3–S9) and the late path up to S12. Home's balance and activity follow the date, and the reviewer panel sets persona, date and payroll delay. S13 (notice before default) was built and rejected.
+Built and committed (nothing pushed):
+- the accept moment (S3–S9),
+- the late path up to S12 (S10, S11, S12),
+- persona B's home (S2),
+- Home's later dates,
+- the reviewer panel.
 
-1. **My read's Scope and Assumptions still end the late path at "notice before default".** It's my file to update if the notice stays without a screen.
-2. ~~**Persona B's home card**~~ *Built in chat 5.*
+S13 was built and rejected. The lock-screen previews are deferred, with their copy in the Write-up inbox.
+
+1. **Chat 6 (planned): the reviewer panel's URL state, notes and narrow-screen drawer.** The drawer also fixes the panel needing a window about 1,060px wide.
+2. **My read, mine to update:**
+   - Scope and Assumptions still end the late path at "notice before default", which has no screen now.
+   - The critique table (line 213) says "new money" where my Assumption says salary.
+3. **Small items noted in Open questions:**
+   - renaming `PayYourselfPlaceholder.jsx` (needs my OK),
+   - the reviewer panel assuming its date exists,
+   - Start again keeping the payroll-delay state,
+   - `role="alert"` re-announcing on S11.
+4. **Before the write-up:** a review agent re-checks every built screen against every doc, as after each chat 4 screen.
 
 One state per request, each with a plan I approve first. Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
