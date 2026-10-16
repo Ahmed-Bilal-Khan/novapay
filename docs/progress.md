@@ -487,6 +487,10 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 
 **Reviewer panel (L1–L3):** two review-only components (`SegmentedControl`, `DateSteps`) in `src/review/`, logged in `DESIGN_SYSTEM.md`, and After Accept merged into the one panel.
 
+### Chat 6: reviewer controls, README, deploy
+
+- **NovaKit changes page dropped; the Figma sheet shows v0 next to v1; DESIGN_SYSTEM.md is the written record.**
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
