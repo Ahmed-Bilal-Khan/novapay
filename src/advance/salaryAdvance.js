@@ -274,7 +274,15 @@ export function getStatus(advance, today) {
   if (repaid_on) {
     const days_late = Math.max(0, daysBetween(advance.due_date, repaid_on));
     const repayment_status = days_late === 0 ? "on_time" : days_late >= DEFAULT_AFTER_DAYS ? "default" : "late";
-    return { phase: "repaid", repayment_status, days_late, days_until_due: null, days_until_default: null, ...common };
+    return {
+      phase: "repaid",
+      repayment_status,
+      days_late,
+      days_until_due: null,
+      days_until_default: null,
+      before_due_reminder_sent: false,
+      ...common,
+    };
   }
 
   const sinceDue = daysBetween(advance.due_date, today);
@@ -291,6 +299,11 @@ export function getStatus(advance, today) {
     days_late,
     days_until_due: sinceDue <= 0 ? -sinceDue : null,
     days_until_default: phase === "default" ? null : daysBetween(today, advance.default_date),
+    // S10: the reminder before the due date has gone out and the advance isn't due yet, so
+    // Home's advance card becomes that reminder in the app. Decided here, not in the screen.
+    before_due_reminder_sent:
+      phase === "before_due" &&
+      getReminders(advance, today).some((r) => r.type === "before_due" && r.status === "sent"),
     ...common,
   };
 }

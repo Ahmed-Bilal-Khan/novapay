@@ -12,7 +12,7 @@ import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salar
  *
  * Money and dates come from the module: `offer` (getOffer: no new offer while an advance
  * is open), `wallet` (getWallet), `activity` (getActivity: sample rows, the balance adds
- * up from them), `status` (getStatus), `reminders` (getReminders) and `advance`. A missing balance says so, never
+ * up from them), `status` (getStatus) and `advance`. A missing balance says so, never
  * "Rs 0". Every activity row says its direction in words and with a sign: + in, − out.
  */
 export default function Home({
@@ -24,15 +24,13 @@ export default function Home({
   activity,
   advance,
   status,
-  reminders,
   onStartAdvance,
   onSeeAdvance,
 }) {
-  // S10: once the reminder before the due date has gone out (getReminders), and while the
-  // advance is still before its due date (getStatus), the card is that reminder in the app:
-  // it adds how soon, and that nothing is needed. Calm on purpose (principle 4).
-  const reminded =
-    status?.phase === "before_due" && reminders.some((r) => r.type === "before_due" && r.status === "sent");
+  // S10: once the module says the reminder before the due date has gone out (and the advance
+  // isn't due yet), the card is that reminder in the app: it adds how soon, and that nothing
+  // is needed. Calm on purpose (principle 4).
+  const reminded = status?.before_due_reminder_sent === true;
   const dueIn = status?.days_until_due === 1 ? "tomorrow" : `in ${status?.days_until_due} days`;
   const salaryIntoNovaPay = persona.salary_destination === "novapay";
 

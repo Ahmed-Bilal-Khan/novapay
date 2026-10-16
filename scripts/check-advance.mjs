@@ -146,6 +146,21 @@ check('Before the due date: 3 days to go on 25 Jul, not late', () => {
   assert.equal(s.days_late, 0);
 });
 
+check('Before-due reminder sent: true from 25 Jul until the due date, never after or once repaid', () => {
+  const adv = accept();
+  const sent = (a, d) => SA.getStatus(a, d).before_due_reminder_sent;
+  assert.equal(sent(adv, '2026-07-07'), false); // S9: scheduled, not sent
+  assert.equal(sent(adv, '2026-07-24'), false);
+  assert.equal(sent(adv, '2026-07-25'), true); // S10
+  assert.equal(sent(adv, '2026-07-27'), true);
+  const late = notCollected(adv);
+  assert.equal(sent(late, '2026-07-28'), false); // not collected: no longer before due
+  assert.equal(sent(late, '2026-08-02'), false);
+  const repaid = notCollected(adv, { salary_landed: true, salary_amount: 68000, balance: 70000 });
+  assert.equal(sent(repaid, '2026-07-28'), false);
+  assert.equal(sent(SA.scenario('S10').advance, SA.scenario('S10').today), true);
+});
+
 check('Not collected on payday: 0 days late on 28 Jul, the event is recorded', () => {
   const s = SA.getStatus(notCollected(accept()), '2026-07-28');
   assert.equal(s.phase, 'not_collected');
