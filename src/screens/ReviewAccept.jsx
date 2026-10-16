@@ -126,8 +126,7 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
             </li>
             <li>We won't freeze your wallet.</li>
             <li>
-              If it's still unpaid on {until}, the advance is in default.{" "}
-              <span className="text-neutral-700">(Placeholder)</span> New advances are paused and automatic
+              If it's still unpaid on {until}, the advance is in default. New advances are paused and automatic
               collection stops.
             </li>
           </ul>
