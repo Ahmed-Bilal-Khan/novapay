@@ -360,20 +360,101 @@ export function getReminders(advance, today) {
     .map(({ priority, ...reminder }) => reminder);
 }
 
-// ---- Wallet ----------------------------------------------------------------
+// ---- Recent activity and wallet (sample data) ------------------------------
 
-// Decided: show the real balance, with "Includes Rs X from your advance" beneath it,
-// on home after accepting only. Spending isn't modelled ("with more time"), so after
-// the payout day the balance is unknown: null, never a guess. Elsewhere the advance
-// card reads from the advance itself (disbursed_amount, received_on, total, due_date).
+// SAMPLE DATA, decided in chat 5: the money that moves in and out of persona A's wallet,
+// so the balance on every reviewer date is explained by rows, never guessed. These are a
+// story for the prototype, not policy. Amounts are positive; `direction` says which way.
+// `order` sorts rows within a day (higher is later).
+// Before the advance: persona.wallet_balance (4,250) is the balance after these rows.
+const ROWS_BEFORE = [
+  { id: "topup-jun", date: "2026-06-27", order: 1, title: "Paid for mobile top-up", direction: "out", amount: 500 },
+  { id: "salary-jun", date: "2026-06-28", order: 1, title: "Salary credited", direction: "in", salary: true },
+  { id: "sent-jul-7", date: "2026-07-07", order: 1, title: "Sent to Ahmed K.", direction: "out", amount: 1500 },
+];
+// After the advance, the same in every cause: 14,250 on 7 Jul → 1,800 on 25 Jul.
+const ROWS_AFTER_ADVANCE = [
+  { id: "groceries-jul", date: "2026-07-12", order: 1, title: "Paid for groceries", direction: "out", amount: 6200 },
+  { id: "electricity-jul", date: "2026-07-15", order: 1, title: "Paid electricity bill", direction: "out", amount: 3750 },
+  { id: "sent-jul-21", date: "2026-07-21", order: 1, title: "Sent to Ahmed K.", direction: "out", amount: 2500 },
+];
+// Leading up to 6pm on payday, by cause. The salary row's amount is the cause's
+// salary_amount, so it can't drift from the collection inputs below.
+const ROWS_BY_CAUSE = {
+  salary_not_arrived: [],
+  salary_short: [
+    { id: "topup-jul", date: "2026-07-27", order: 1, title: "Paid for mobile top-up", direction: "out", amount: 1200 },
+    { id: "salary-jul", date: "2026-07-28", order: 1, title: "Salary credited", direction: "in", salary: true },
+  ],
+  balance_dropped: [
+    { id: "salary-jul", date: "2026-07-28", order: 1, title: "Salary credited", direction: "in", salary: true },
+    { id: "rent-jul", date: "2026-07-28", order: 2, title: "Paid rent", direction: "out", amount: 45000 },
+    { id: "sent-jul-28", date: "2026-07-28", order: 3, title: "Sent to Ahmed K.", direction: "out", amount: 18300 },
+  ],
+  salary_moved_to_bank: [],
+};
+export const ACTIVITY_LIMIT = 4; // recent activity shows the latest rows only
+
+// The cause comes from the advance itself: its failed attempt on the due date, if any.
+// Nothing after payday is modelled, so later dates carry 28 Jul's rows and balance forward.
+function causeOf(advance) {
+  return (
+    advance?.collection_attempts.find((a) => a.date === advance.due_date && a.result === "not_collected")?.reason ?? null
+  );
+}
+
+// Every sample row for this persona and advance, oldest first, with whole amounts.
+function allRows(persona, advance, cause) {
+  const paidIntoNovaPay = persona.salary_destination === "novapay" && persona.salary_amount != null;
+  const salaryFor = (row) => (row.date === "2026-06-28" ? persona.salary_amount : NOT_COLLECTED_INPUTS[cause].salary_amount);
+  const list = [...ROWS_BEFORE];
+  if (advance) {
+    list.push({
+      id: "advance",
+      date: advance.received_on,
+      order: 2,
+      title: "Advance received",
+      direction: "in",
+      amount: advance.disbursed_amount,
+    });
+    list.push(...ROWS_AFTER_ADVANCE);
+    if (cause) list.push(...ROWS_BY_CAUSE[cause]);
+  }
+  return list
+    .filter((row) => !row.salary || paidIntoNovaPay)
+    .map(({ salary, ...row }) => (salary ? { ...row, amount: salaryFor(row) } : row))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.order - b.order);
+}
+
+// The balance at the end of `day`: persona.wallet_balance on the prototype's first day,
+// plus every row after it. Unknown before that day: null, never a guess.
+function balanceOn(persona, advance, cause, day) {
+  if (persona.wallet_balance == null || day < PROTOTYPE_TODAY) return null;
+  return allRows(persona, advance, cause)
+    .filter((row) => (row.date > PROTOTYPE_TODAY || row.id === "advance") && row.date <= day)
+    .reduce((sum, row) => sum + (row.direction === "in" ? row.amount : -row.amount), persona.wallet_balance);
+}
+
+/**
+ * Recent activity as of today: the latest ACTIVITY_LIMIT rows, newest first.
+ * Only money that moved. A failed collection isn't a row (decided: it's shown on the
+ * advance card and the late screens, not in the person's history).
+ */
+export function getActivity(persona, advance, today) {
+  return allRows(persona, advance, causeOf(advance))
+    .filter((row) => row.date <= today)
+    .reverse()
+    .slice(0, ACTIVITY_LIMIT)
+    .map(({ order, ...row }) => row);
+}
+
+// Decided: show the real balance, from the activity rows. "Includes Rs X from your
+// advance" is shown on the payout day only: once money is spent, how much of the
+// balance is borrowed can't be said.
 export function getWallet(persona, advance, today) {
-  if (persona.wallet_balance == null) return { balance: null, includes_advance: null };
-  if (!advance) return { balance: persona.wallet_balance, includes_advance: null };
-  if (today !== advance.received_on) return { balance: null, includes_advance: null };
-  return {
-    balance: persona.wallet_balance + advance.disbursed_amount,
-    includes_advance: advance.disbursed_amount,
-  };
+  const balance = balanceOn(persona, advance, causeOf(advance), today);
+  const payoutDay = advance != null && today === advance.received_on && balance != null;
+  return { balance, includes_advance: payoutDay ? advance.disbursed_amount : null };
 }
 
 // ---- Formatting dates and times --------------------------------------------
@@ -409,11 +490,12 @@ const SCENARIO_DATES = {
 };
 
 // Inputs for each "not collected" cause. Scenario data only; screens don't show these.
+// The 6pm balance isn't listed: it comes from the activity rows (1,800 / 9,600 / 6,500 / 1,800).
 const NOT_COLLECTED_INPUTS = {
-  salary_not_arrived: { salary_landed: false, salary_amount: null, balance: 1800, salary_destination: "novapay" },
-  salary_short: { salary_landed: true, salary_amount: 9000, balance: 9600, salary_destination: "novapay" },
-  balance_dropped: { salary_landed: true, salary_amount: 68000, balance: 6500, salary_destination: "novapay" },
-  salary_moved_to_bank: { salary_landed: false, salary_amount: null, balance: 1800, salary_destination: "bank" },
+  salary_not_arrived: { salary_landed: false, salary_amount: null, salary_destination: "novapay" },
+  salary_short: { salary_landed: true, salary_amount: 9000, salary_destination: "novapay" },
+  balance_dropped: { salary_landed: true, salary_amount: 68000, salary_destination: "novapay" },
+  salary_moved_to_bank: { salary_landed: false, salary_amount: null, salary_destination: "bank" },
 };
 
 export const SCENARIO_IDS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"];
@@ -438,6 +520,7 @@ export function scenario(id, { reason = "salary_not_arrived" } = {}) {
     advance = collectionOutcome(advance, {
       date: advance.due_date,
       time: COLLECTION_TIME,
+      balance: balanceOn(A, advance, reason, advance.due_date),
       ...NOT_COLLECTED_INPUTS[reason],
     });
   }

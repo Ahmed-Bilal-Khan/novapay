@@ -276,9 +276,100 @@ check('Wallet: real balance, and "includes" the advance only on the payout day',
   assert.deepEqual(SA.getWallet(A, null, TODAY), { balance: 4250, includes_advance: null });
   assert.deepEqual(SA.getWallet(B, null, TODAY), { balance: 4250, includes_advance: null });
   assert.deepEqual(SA.getWallet(A, accept(), TODAY), { balance: 14250, includes_advance: 10000 });
-  // Spending isn't modelled, so later balances are unknown, never a guess.
-  for (const day of ['2026-07-08', '2026-07-25', '2026-08-02']) {
-    assert.deepEqual(SA.getWallet(A, accept(), day), { balance: null, includes_advance: null }, day);
+  // Before the prototype's first day nothing is known: null, never a guess.
+  assert.deepEqual(SA.getWallet(A, accept(), '2026-07-01'), { balance: null, includes_advance: null });
+});
+
+check('Wallet: later balances come from the activity rows (8,050 on 12 Jul, 1,800 on 25 Jul)', () => {
+  assert.deepEqual(SA.getWallet(A, accept(), '2026-07-12'), { balance: 8050, includes_advance: null });
+  assert.deepEqual(SA.getWallet(A, accept(), '2026-07-25'), { balance: 1800, includes_advance: null });
+  const s10 = SA.scenario('S10');
+  assert.equal(SA.getWallet(s10.persona, s10.advance, s10.today).balance, 1800);
+});
+
+const BALANCE_AT_6PM = { salary_not_arrived: 1800, salary_short: 9600, balance_dropped: 6500, salary_moved_to_bank: 1800 };
+
+check('Wallet: on payday each cause has its 6pm balance, carried to 2 Aug and 20 Aug', () => {
+  for (const reason of SA.NOT_COLLECTED_REASONS) {
+    const { persona, advance } = SA.scenario('S11', { reason });
+    for (const day of ['2026-07-28', '2026-08-02', '2026-08-20']) {
+      assert.equal(SA.getWallet(persona, advance, day).balance, BALANCE_AT_6PM[reason], `${reason} on ${day}`);
+    }
+  }
+});
+
+// ---- Recent activity (sample rows) ----
+
+const rows = (persona, advance, today) =>
+  SA.getActivity(persona, advance, today).map((r) => `${r.date} ${r.title} ${r.direction} ${r.amount}`);
+
+check('Activity on 7 Jul: newest first, at most 4, the advance first once accepted', () => {
+  assert.deepEqual(rows(A, null, TODAY), [
+    '2026-07-07 Sent to Ahmed K. out 1500',
+    '2026-06-28 Salary credited in 68000',
+    '2026-06-27 Paid for mobile top-up out 500',
+  ]);
+  assert.deepEqual(rows(A, accept(), TODAY), [
+    '2026-07-07 Advance received in 10000',
+    '2026-07-07 Sent to Ahmed K. out 1500',
+    '2026-06-28 Salary credited in 68000',
+    '2026-06-27 Paid for mobile top-up out 500',
+  ]);
+});
+
+check('Activity: persona B never has a salary row (paid into a bank)', () => {
+  assert.deepEqual(rows(B, null, TODAY), [
+    '2026-07-07 Sent to Ahmed K. out 1500',
+    '2026-06-27 Paid for mobile top-up out 500',
+  ]);
+});
+
+check('Activity on 25 Jul: the July spending that explains 1,800', () => {
+  assert.deepEqual(rows(A, accept(), '2026-07-25'), [
+    '2026-07-21 Sent to Ahmed K. out 2500',
+    '2026-07-15 Paid electricity bill out 3750',
+    '2026-07-12 Paid for groceries out 6200',
+    '2026-07-07 Advance received in 10000',
+  ]);
+});
+
+check('Activity on payday: a salary row only for the salary that landed, the same rows on later days', () => {
+  const at = (reason, day) => {
+    const { persona, advance } = SA.scenario('S11', { reason });
+    return rows(persona, advance, day);
+  };
+  for (const day of ['2026-07-28', '2026-08-02', '2026-08-20']) {
+    for (const reason of ['salary_not_arrived', 'salary_moved_to_bank']) {
+      assert.deepEqual(at(reason, day), [
+        '2026-07-21 Sent to Ahmed K. out 2500',
+        '2026-07-15 Paid electricity bill out 3750',
+        '2026-07-12 Paid for groceries out 6200',
+        '2026-07-07 Advance received in 10000',
+      ], `${reason} on ${day}`);
+    }
+    assert.deepEqual(at('salary_short', day), [
+      '2026-07-28 Salary credited in 9000',
+      '2026-07-27 Paid for mobile top-up out 1200',
+      '2026-07-21 Sent to Ahmed K. out 2500',
+      '2026-07-15 Paid electricity bill out 3750',
+    ], `salary_short on ${day}`);
+    assert.deepEqual(at('balance_dropped', day), [
+      '2026-07-28 Sent to Ahmed K. out 18300',
+      '2026-07-28 Paid rent out 45000',
+      '2026-07-28 Salary credited in 68000',
+      '2026-07-21 Sent to Ahmed K. out 2500',
+    ], `balance_dropped on ${day}`);
+  }
+});
+
+check('Activity is money that moved: no row for the failed collection, no zero or missing amount', () => {
+  for (const reason of SA.NOT_COLLECTED_REASONS) {
+    const { persona, advance } = SA.scenario('S12', { reason });
+    for (const r of SA.getActivity(persona, advance, '2026-08-20')) {
+      assert.ok(Number.isInteger(r.amount) && r.amount > 0, `${reason}: ${r.title} ${r.amount}`);
+      assert.ok(['in', 'out'].includes(r.direction), `${reason}: ${r.title} ${r.direction}`);
+      assert.doesNotMatch(r.title, /repay|collect|not taken|late/i, `${reason}: ${r.title}`);
+    }
   }
 });
 
