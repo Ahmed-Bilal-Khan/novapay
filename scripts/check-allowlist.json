@@ -6,8 +6,6 @@
     { "file": "src/App.jsx", "match": "rounded-[28px]", "reason": "Phone frame" },
     { "file": "src/index.css", "match": "#e9eaee", "reason": "Page backdrop behind the phone frame" },
 
-    { "file": "src/novakit/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" },
-
     { "file": "src/review/novakit-v0/Card.jsx", "match": "border-[#E6E6E6]", "reason": "Frozen starter copy for before/after. Never edited, never imported." },
     { "file": "src/review/novakit-v0/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Frozen starter copy for before/after. Never edited, never imported." }
   ]
