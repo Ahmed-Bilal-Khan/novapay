@@ -84,13 +84,42 @@
 - **S3's card shortened to four lines** (`5f27328`). Each draft was measured in the live screen first. At 360×640, Rs 5,000 and Rs 10,000 are now above the fold, and Rs 15,000 is one scroll down.
 - **S4, terms + accept** (`8b1107e`, `3e1837b`):
   - the cost summary is first and fits without scrolling at 390×844 and 360×640,
-  - one line on what happens if it isn't collected, then a native `<details>`,
+  - one line on what happens if it isn't collected, then a native `<details>` (moved to a BottomSheet later in the chat, see below),
   - the collection permission is its own unticked checkbox, with its end date,
   - "Accept Rs 10,000 / Repay Rs 10,300 on 28 Jul" stays enabled,
   - "Change amount" and "Back to home" are equal secondary buttons,
   - Accept calls `acceptTerms` and goes to a labelled receipt placeholder.
 - **S3's lower-payout line now matches the flow:** "If we can only pay a lower amount, we'll ask you again before paying anything."
 - Every control was clicked through in the running app. `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
+
+### Chat 4, continued: S4 made calmer, then re-verified (not committed yet)
+
+Everything below is in the working tree, waiting for my "Commit now".
+- **My read:** the fee line in the predatory list now says the fee is a fixed 3% of the amount, charged once per advance, and isn't an annual rate. "Annualised rate" is gone from What I'd want to know. The default-consequences Assumption and the Scope line now say the consequences are shown as stated, with no placeholder label.
+- **S4 redesigned for calm:**
+  - the late consequences moved from `<details>` into a BottomSheet,
+  - the checkbox no longer repeats the amounts: "I allow NovaPay to take the repayment above automatically.", with "This ends automatically when it's repaid, or on 27 Aug at the latest." underneath,
+  - the "tick the box" message sits in the action area, above Accept, and focus still moves to the checkbox.
+- **BottomSheet rebuilt as an accessible dialog** (logged in `DESIGN_SYSTEM.md`):
+  - dialog role, `aria-modal` and a title,
+  - focus moves to the title on open,
+  - the rest of the frame is `inert`, and Tab stays inside,
+  - Escape, a visible Close or the backdrop closes it, and focus returns to the opener,
+  - no grab handle, and long content scrolls.
+  The frame has a `sheet` slot, so the modal covers the actions too.
+- **A review agent re-checked S4 against every doc.** Its six code problems are fixed:
+  - the retry promise was untrue for most causes, so it now reads "If we can't take it on 28 Jul, we'll tell you at 6pm. If your salary is late, we'll try again when it arrives.",
+  - "6pm" comes from the terms instead of a hard-coded "that evening",
+  - Accept now passes the checkbox's real state to `acceptTerms`, instead of always `true`,
+  - the sheet makes the screen behind it `inert` and pulls stray focus back in,
+  - "What happens if it's late" has a 44px target,
+  - the receipt is S8, not S5 (S5 is processing).
+- **All action-area buttons on S3 and S4 are medium.** On S4, "Change amount" and "Back to home" sit side by side. Large secondaries wrapped onto two lines.
+- **Checked at 390×844 and 360×640:**
+  - On S4 at 390×844, the cost and the checkbox are visible without scrolling.
+  - On S4 at 360×640, the cost is visible.
+  - On S3 at 360×640, Rs 5,000 and Rs 10,000 are visible.
+- **The audit's S4, S13, BottomSheet, details, 6.8, 6.11 and Q2 rows** carry dated "Updated 16 Oct (chat 4)" notes.
 
 ## Decisions
 
@@ -125,7 +154,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **Button evolves:** a second line in brand-100, a minimum height, a loading state, and secondary text in neutral-900. The "no" option must be as clear as "yes".
 - **One new component, `Choice`** (native checkbox and radio). The blocked tier stays visible, with its reason in neutral-700.
 - **Choosing the amount and terms + accept are two screens,** so the full cost is visible without scrolling.
-- **Accept stays enabled.** Tapping it without the permission shows a neutral inline message at the checkbox. A disabled button doesn't explain itself, and nothing has failed.
+- **Accept stays enabled.** Tapping it without the permission shows a neutral inline message at the checkbox. A disabled button doesn't explain itself, and nothing has failed. *Chat 4: the message moved to the action area, above Accept.*
 - **AmountText:** a missing amount renders nothing and the screen says "not available yet". It inherits its colour, and gets a caption size and an optional sign.
 - **accent is renamed to attention:**
   - body text is neutral-900 on attention-50,
@@ -134,7 +163,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - 100 is kept, documented as not for text.
 - **New tokens `danger` #B42318 and `danger-50` #FEF3F2.** Card gets a tone (default, attention or danger). Failures are inline Cards with `role="alert"`, never a Toast.
 - **Retune at the source:** neutral-500 to #6B6B6B, which fixes every caption at once, and success to #15803D.
-- **Late details use native `<details>`.** The reduced payout is a full screen. BottomSheet is unused.
+- **Late details use native `<details>`.** The reduced payout is a full screen. BottomSheet is unused. *Chat 4: superseded. The late details are in a fixed, accessible BottomSheet; S7 is still a full screen.*
 - **ListRow** gets wrap, a danger event row and a hidden icon. Borders become neutral-200 for Card and neutral-300 for ListRow. Components forward props and get a focus ring. The back button grows to 44px. Panel becomes an alias of Card.
 - **Fixed 390×844 frame:**
   - `main` scrolls inside it, with the actions stuck to the bottom,
@@ -188,17 +217,28 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **Leaving resets the chosen amount,** so nothing is pre-selected next time. Going to S4 and back keeps it.
 
 **S4**
-- **No annual rate.** The fee is a fixed 3% of the amount borrowed.
+- **No annual rate.** The fee is a fixed 3% of the amount paid out, charged once.
 - **"Paid into your NovaPay wallet",** without saying when.
 - **No late-fee line, and no "other consequences are being confirmed" line.**
 - **The default line has no placeholder label:** "If it's still unpaid on 27 Aug, the advance is in default. New advances are paused and automatic collection stops."
 - **The permission resets to unticked every time S4 opens,** including after "Change amount".
-- **Accept goes to a labelled receipt placeholder** until S5 exists, and a missing `terms` sends the user back to S3 (or home for persona B).
+- **Accept goes to a labelled receipt placeholder** until S8 exists, and a missing `terms` sends the user back to S3 (or home for persona B).
 
 **Calls the AI made during the build, flagged and not overruled**
 - **The shell moves focus to the `h1` only after a screen change,** not on the first page load.
 - **The receipt placeholder doesn't show the advance's ID,** because the ID contains the year.
 - **The blocked radio is dimmed except while it has keyboard focus,** so its focus ring isn't dimmed too.
+
+### Chat 4, continued: S4 made calmer
+
+- **The late consequences go in a bottom sheet,** not `<details>`, to make S4 less busy. BottomSheet was fixed first, because the audit found it unsafe as it was.
+- **The checkbox doesn't repeat what "Your advance" already shows.** It stays its own unticked permission and says when it ends: "I allow NovaPay to take the repayment above automatically." / "This ends automatically when it's repaid, or on 27 Aug at the latest." I kept it after the review flagged that it no longer names the later attempt or "never other money".
+- **The "tick the box" message goes in the action area,** above Accept, because at the checkbox it wasn't readable. Focus still moves to the checkbox.
+- **The retry line only promises what's true:** "If we can't take it on 28 Jul, we'll tell you at 6pm. If your salary is late, we'll try again when it arrives."
+- **S3 and S4 keep their different lower-payout wording:** S3 has "…we'll ask you again before paying anything." and S4 has "…we'll show you the new terms and ask you again before paying anything."
+- **Default consequences are shown without a placeholder label.** My Assumptions and the audit's S4 and S13 rows now say so.
+- **All action-area buttons on S3 and S4 are medium.** On S4, "Change amount" and "Back to home" sit side by side. The two names for going back from S4 stay: the AppBar's "Back to amounts" and the button "Change amount".
+- **Large secondaries were tried first and rejected:** side by side, "Change amount" wrapped onto two lines (70px tall).
 
 ## Open questions
 
@@ -227,11 +267,19 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 
 ### Added in chat 4
 
-- **The S4 default line contradicts two of my rules.** It's shown without a placeholder label, but my Assumptions say "default consequences shown in the prototype are placeholders", and `CLAUDE.md` says placeholder policy copy is labelled. One of them needs updating.
+- ~~**The S4 default line contradicts two of my rules.**~~ Resolved later in chat 4: my Assumptions now say default consequences are shown as stated, with no placeholder label, so the `CLAUDE.md` placeholder rule no longer applies to them. The audit's S4 and S13 rows are updated.
 - **"How is the limit set?"** I'm adding it to What I'd want to know in my read. It isn't there yet.
 - **"You can pay some or all of it yourself" (S4) is a stub.** Manual payment is only shown on the late screen, and early repayment is "with more time".
 - **Persona B's home card** still says "See amounts and costs" and would send them nowhere. Their S2 state isn't built yet.
 - **The radio's focus ring is a rounded square,** not a circle, because Chromium draws the ring box around a native radio. It's still visible, so it's flagged, not fixed.
+
+- *Added later in chat 4, from the S4 review:*
+  - **My read's Scope still quotes the old, long permission wording** (the "I allow NovaPay to collect Rs 10,300…" line). It's mine to update.
+  - **The default line reads the permission's end date** (`terms.permission.ends_by`), not `terms.default_date`. They're the same today but mean different things.
+  - **The receipt placeholder's heading is "Salary advance",** not a screen name. It goes away when S8 is built.
+  - **After Done, home still offers an advance.** Accepting the same terms again returns the first advance and shows "accepted" again. This waits for home after accepting (S9).
+  - **Home hard-codes the balance and transactions** instead of reading `PERSONAS`. The audit accepted fixing this (I17); it isn't done.
+  - **BottomSheet's `title` is required but not enforced.** Without one, the dialog has no name.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
@@ -245,7 +293,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
 - Collection is automatic, on payday at 6pm once salary has landed, with its own permission given at accept.
 - Automatic collection is full amount only; the user can choose to pay part manually.
 - The collection permission ends when the advance is repaid or at the default date, whichever comes first.
-- Default consequences shown in the prototype are placeholders.
+- Default consequences shown in the prototype are only: new advances paused, automatic collection stops, the wallet never frozen. Shown as stated, no placeholder label (changed in chat 4).
 - A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees, and it needs fresh consent.
 - Pushing for, pending finance and compliance: no late fees and no compounding.
 - *Added in chat 3, continued:*
@@ -265,7 +313,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
 The full list is in `docs/00-my-read.md` → What I'd want to know. The ones that most shape the build:
 
 - Is there a required cancellation window?
-- Is the fee legally interest? Do we need an annualised rate or a key facts statement?
+- Is the fee legally interest? Do we need a key facts statement?
 - What exactly happens at default (credit bureau, collections, legal steps)?
 - Can collection retry when funds are short, and is any amount protected?
 - How long can a collection permission legally last?
@@ -309,6 +357,9 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The dev server's file watcher missed edits twice** and served old files until it was restarted.
   - **The fixed 390×844 frame hid a small-phone problem.** At 360×640, S3's first card pushed every amount below the fold.
   - **Advance IDs contain the year,** so they can't be shown on screen.
+  - **The starter BottomSheet couldn't be used as it was.** It had no dialog role, focus handling or Escape, and its grab handle promised a swipe that didn't exist. It was rebuilt before S4 used it.
+  - **`aria-modal` alone doesn't stop focus leaving a sheet.** The rest of the frame had to be made `inert`.
+  - **Large buttons don't fit two to a row at 390px.** "Change amount" wrapped onto two lines.
 
 ### AI process
 
@@ -335,7 +386,10 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Copy measured, not guessed.** For the small-phone fold, the AI tried each card draft in the live screen at 360×640 and reported the pixels. The heading alone cost 22px.
   - **The AI caught my S3 copy contradicting my own flow.** "We'll confirm the final amount before you accept" didn't match a reduced payout arriving after the tap. I changed it.
   - **The AI found two issues in its own build:** the toast covered the way out, and the dimmed radio dimmed its own focus ring. Both were fixed before commit.
-  - **Overrides I made:** no annual rate on S4 (the fee is a fixed 3%), no late-fee or "being confirmed" lines, and no placeholder label on the default line. The last one now conflicts with my Assumptions (see Open questions).
+  - **Overrides I made:** no annual rate on S4 (the fee is a fixed 3%), no late-fee or "being confirmed" lines, and no placeholder label on the default line. I then updated my Assumptions and the audit to match.
+  - **The AI pushed back on my checkbox wording.** I asked for "I have read the terms stated above and accept". The AI pointed out that this is the bundled "I agree" on my own predatory list, and it breaks my `CLAUDE.md` rule. My real point was not repeating the amounts, so the checkbox now points at "the repayment above" and stays its own permission with an end date.
+  - **A review agent re-verified S4 against every doc.** It found a false promise (retrying "when your salary next arrives", which lands after default for most causes), the checkbox state never reaching the module, an incomplete focus trap, a 22px target, and the AI's own S5/S8 mislabel. All were fixed, and its other points became decisions or doc updates.
+  - **No commits until I say "Commit now".** The AI kept the S4 redesign in the working tree while I iterated.
 
 ### Deferred from the S3 critique
 
@@ -355,17 +409,17 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 and S4 are built. The rest of the accept moment, the reviewer switcher and the late path come next.
+S3 and S4 are built. The S4 redesign and fixes are in the working tree, waiting for my "Commit now". After that come the rest of the accept moment, the reviewer switcher and the late path.
 
 1. **Loose ends in my read:**
    - principle 4's stale wording ("provisional", "the audit confirms it", "accent"),
    - whether the payout lands on the day it's accepted, as an assumption,
    - "How is the limit set?" in What I'd want to know,
-   - the default line vs "default consequences are placeholders" (see Open questions).
+   - the old permission wording quoted in Scope.
 2. **The rest of the accept moment, one state per request, each with a plan I approve first:**
-   - after the tap: processing and double-tap protection, then a network failure,
+   - after the tap: S5, processing and double-tap protection, then S6, a network failure,
    - S7, the reduced payout, with fresh consent,
-   - S5, the receipt, which replaces the placeholder and has to say where the lasting record lives.
+   - S8, the receipt, which replaces the placeholder and has to say where the lasting record lives.
 3. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
 4. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
 
