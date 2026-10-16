@@ -1,0 +1,497 @@
+     1	# Progress
+     2	
+     3	## Done
+     4	
+     5	### Chat 1: project setup
+     6	
+     7	- Unzipped the NovaKit Lite starter into the repo root. All 22 files are byte-for-byte the same as in the zip (checked with checksums).
+     8	- Added `.gitattributes` (`* text=auto eol=lf`) and added `_inputs/` to `.gitignore`.
+     9	- Ran `git init` on `main`, committed the starter as "NovaKit Lite starter, as received" (`b9a1427`), tagged it `starter`, and pushed `main` and the tag to `Ahmed-Bilal-Khan/novapay`.
+    10	- Created and pushed `feature/salary-advance`.
+    11	- `npm install` and `npm run build` both pass, and the dev server runs at `http://localhost:5173` with no console errors.
+    12	- Converted the case brief PDF to `_inputs/brief.md`. A word-level diff against the PDF text found no differences.
+    13	- Compared the product reference PDF with `PRODUCT_REFERENCE.md`: the wording and formatting are the same, and only the quote style differs (the PDF uses curly quotes, the repo file straight ones).
+    14	- Added a Stop hook (`.claude/settings.json` → `.claude/hooks/log-prompt.mjs`) that logs each prompt to `docs/ai-log/prompts.md`, numbered and grouped by session. It's tested and live, and interrupted prompts are not logged.
+    15	
+    16	### Chat 2: critique of my read, and rails
+    17	
+    18	- Wrote my own read, `docs/00-my-read.md` v1, without AI (`e0847f4`).
+    19	- Round 1: the AI critiqued v1 against the brief, the product reference and the NovaKit code. I rewrote it as v2, with a table of what I accepted, adapted and rejected (`14cf4bc`).
+    20	- Round 2: the AI argued against my two rejections and found 11 remaining issues in v2. I decided each one, then fixed three stale points (`502ff05`). Both tables are at the end of `00-my-read.md`.
+    21	- Restored Session 3 prompts in `docs/ai-log/prompts.md`. An editor save had overwritten them a minute after a commit, so the hook itself wasn't at fault.
+    22	- Added `CLAUDE.md` with my working rules, plus pointers to the brief, product rules, my read and this file.
+    23	- Added `npm run check` (`scripts/check-tokens.mjs`, plain Node, nothing installed). It fails on hex colours and arbitrary Tailwind values in `src/`, with an allow-list I control (`scripts/check-allowlist.json`). Shown failing on a deliberate violation, then passing once it was removed. `npm run build` passes (`eb55cbc`).
+    24	
+    25	### Chat 3: system audit
+    26	
+    27	- Wrote `docs/01-system-audit.md`, an audit of NovaKit Lite against my scope. It covers:
+    28	  - the UI each scope state needs (S1–S13, plus the reviewer switcher),
+    29	  - every component and token,
+    30	  - contrast for every text and boundary pair, using the WCAG formula on the config's hex values,
+    31	  - what's inconsistent, duplicated or hard-coded,
+    32	  - the trust and accessibility shortcomings in my flows.
+    33	- Confirmed the two things my read left to the audit:
+    34	  - **The Button change.** The one-line label needs about 480px but only 318px is available. The two-line label needs about 64px of height, and Button is fixed at 56px.
+    35	  - **The attention colour.** accent-600 on accent-50 is 4.71:1, with conditions.
+    36	- Triaged every row. The AI sorted them into 26 safe defaults and 14 merged questions. I answered each question, and the answers are in the audit's "My decision" column (`92ddcbb`).
+    37	- Updated `00-my-read.md` to v2.3 with the tier-drop assumption and the attention wording (`68e2681`).
+    38	- No code changed. `npm run build` and `npm run check` pass.
+    39	
+    40	### Chat 3, continued: the module and the system changes
+    41	
+    42	- **Salary-advance module:** `src/advance/salaryAdvance.js` is now the one place for money and dates. It covers personas, offer, terms, reduced payout, accept, collection, status, reminders, wallet, date formatting and reviewer scenarios S1–S13.
+    43	  - `scripts/check-advance.mjs` has 28 checks and runs as part of `npm run check`.
+    44	  - The check was shown failing on deliberate mutations: default on day 31, and the never-paused rule removed.
+    45	  - Commits: `fae6a48`, `4532811`.
+    46	- **My read** is updated to v2.4 with this chat's assumptions and questions (`c6a2bb1`).
+    47	- **Frozen copy:** `src/review/novakit-v0/` keeps the starter components for before/after. It isn't exported, and its two hard-coded borders are allow-listed (`24957d7`).
+    48	- **Tokens:**
+    49	  - neutral-500 → #6B6B6B and success → #15803D,
+    50	  - `danger` and `danger-50` added,
+    51	  - `accent` renamed to `attention`, with DEFAULT removed,
+    52	  - the font stack moved to `fontFamily.sans`, and the root colour now reads neutral-900.
+    53	
+    54	  `DESIGN_SYSTEM.md` is created with an entry per change and before-and-after contrast (`eca45f1`).
+    55	- **The check** now also fails on Tailwind's default colour names, except `white`, `black` and `transparent`. It was shown failing on five deliberate violations (`eca45f1`).
+    56	- **Components, one commit each,** every one checked in the running app (before-and-after measurements) or in rendered HTML:
+    57	  - `Choice` is new (`68bcaeb`),
+    58	  - Button (`46271be`), AmountText with `formatAmount` (`06696de`), Card tones (`bf4a4b3`), ListRow (`27e5692`),
+    59	  - AppBar (`2b3ad3a`, then a larger glyph in `c421ee3`),
+    60	  - Panel as an alias of Card (`e1171a8`).
+    61	- **Phone frame:** fixed at 390×844, `main` scrolls, a sticky action area, a neutral-50 screen background (`8199d1e`), and the desktop scrollbar hidden (`9f0367c`).
+    62	- **The allow-list is down to 6:** three for the phone frame, the backdrop, and two for the frozen copy. Every starter-debt entry is gone.
+    63	- `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
+    64	
+    65	### Chat 4: S3 (choose an amount) and S4 (terms + accept)
+    66	
+    67	- **Module:** `getOffer` now returns `collection_time`, so S3 can say "6pm" without reaching for a constant. The check was changed first and failed until the field existed (`41e94a1`).
+    68	- **S3, first version** (`b50c6eb`): the tiers as unselected radios, the over-limit reason, a neutral inline message, "Review terms" wired to a labelled placeholder, and home's button wired to S3.
+    69	- **Critique of S3 three ways** (regulator, low-literacy borrower on a small Android phone, screen-reader user), then my triage: fix, reject, defer. The rejections are in Pushback below (`de6bfe0`).
+    70	- **The accessible names were checked in Edge's real accessibility tree** (headless Edge over the DevTools protocol, nothing installed). The browser pane's tree was wrong: it named radios by their `value` and gave buttons no name.
+    71	- **NovaKit changes, logged in `DESIGN_SYSTEM.md`** (`5c2e023`):
+    72	  - Choice uses `aria-disabled`, so a blocked option stays focusable and its reason is heard,
+    73	  - Button adds a stop between its two lines for screen readers,
+    74	  - AppBar gets `backLabel`, and its `h1` can take focus,
+    75	  - Toast gets a `neutral` variant.
+    76	- **S3 revised after triage, and the shell** (`c4f284e`):
+    77	  - new copy and hierarchy: "You repay Rs X on 28 Jul" is the strong line and the fee is secondary,
+    78	  - the question and limit hint are the legend,
+    79	  - the "choose an amount" message sits next to the button and is announced on every tap,
+    80	  - tapping Rs 15,000 shows a neutral toast,
+    81	  - home's button says "See amounts and costs",
+    82	  - every screen sets the page title and moves focus to its `h1` on a screen change,
+    83	  - overlays sit above the action area, so a toast never hides the way out.
+    84	- **S3's card shortened to four lines** (`5f27328`). Each draft was measured in the live screen first. At 360×640, Rs 5,000 and Rs 10,000 are now above the fold, and Rs 15,000 is one scroll down.
+    85	- **S4, terms + accept** (`8b1107e`, `3e1837b`):
+    86	  - the cost summary is first and fits without scrolling at 390×844 and 360×640,
+    87	  - one line on what happens if it isn't collected, then a native `<details>` (moved to a BottomSheet later in the chat, see below),
+    88	  - the collection permission is its own unticked checkbox, with its end date,
+    89	  - "Accept Rs 10,000 / Repay Rs 10,300 on 28 Jul" stays enabled (the second line was dropped later in the chat, see below),
+    90	  - "Change amount" and "Back to home" are equal secondary buttons,
+    91	  - Accept calls `acceptTerms` and goes to a labelled receipt placeholder.
+    92	- **S3's lower-payout line now matches the flow:** "If we can only pay a lower amount, we'll ask you again before paying anything."
+    93	- Every control was clicked through in the running app. `npm run build` and `npm run check` pass after every commit. Nothing is pushed.
+    94	
+    95	### Chat 4, continued: S4 made calmer, then re-verified (not committed yet)
+    96	
+    97	Everything below is in the working tree, waiting for my "Commit now".
+    98	- **My read:** the fee line in the predatory list now says the fee is a fixed 3% of the amount, charged once per advance, and isn't an annual rate. "Annualised rate" is gone from What I'd want to know. The default-consequences Assumption and the Scope line now say the consequences are shown as stated, with no placeholder label.
+    99	- **S4 redesigned for calm:**
+   100	  - the late consequences moved from `<details>` into a BottomSheet,
+   101	  - the checkbox no longer repeats the amounts: "I allow NovaPay to take the repayment above automatically.", with "This ends automatically when it's repaid, or on 27 Aug at the latest." underneath,
+   102	  - the "tick the box" message sits in the action area, above Accept, and focus still moves to the checkbox.
+   103	- **BottomSheet rebuilt as an accessible dialog** (logged in `DESIGN_SYSTEM.md`):
+   104	  - dialog role, `aria-modal` and a title,
+   105	  - focus moves to the title on open,
+   106	  - the rest of the frame is `inert`, and Tab stays inside,
+   107	  - Escape, a visible Close or the backdrop closes it, and focus returns to the opener,
+   108	  - no grab handle, and long content scrolls.
+   109	  The frame has a `sheet` slot, so the modal covers the actions too.
+   110	- **A review agent re-checked S4 against every doc.** Its six code problems are fixed:
+   111	  - the retry promise was untrue for most causes, so it now reads "If we can't take it on 28 Jul, we'll tell you at 6pm. If your salary is late, we'll try again when it arrives.",
+   112	  - "6pm" comes from the terms instead of a hard-coded "that evening",
+   113	  - Accept now passes the checkbox's real state to `acceptTerms`, instead of always `true`,
+   114	  - the sheet makes the screen behind it `inert` and pulls stray focus back in,
+   115	  - "What happens if it's late" has a 44px target,
+   116	  - the receipt is S8, not S5 (S5 is processing).
+   117	- **All action-area buttons on S3 and S4 are medium.** On S4, "Change amount" and "Back to home" sit side by side. Large secondaries wrapped onto two lines.
+   118	- **Checked at 390×844 and 360×640:**
+   119	  - On S4 at 390×844, the cost and the checkbox are visible without scrolling.
+   120	  - On S4 at 360×640, the cost is visible.
+   121	  - On S3 at 360×640, Rs 5,000 and Rs 10,000 are visible.
+   122	- **The audit's S4, S13, BottomSheet, details, 6.8, 6.11 and Q2 rows** carry dated "Updated 16 Oct (chat 4)" notes.
+   123	
+   124	## Decisions
+   125	
+   126	### Chat 1: project setup
+   127	
+   128	- **Flattened the zip's `novakit-lite/` folder into the repo root** so the repo is the project itself, with no extra folder level.
+   129	- **Kept the zip out of the repo with `.git/info/exclude`, not `.gitignore`,** so the only change to the starter's `.gitignore` is the `_inputs/` line that was asked for.
+   130	- **Kept `brief.md` inside `_inputs/`** so it's covered by the same ignore rule and the brief is never published.
+   131	- **Did not run `npm audit fix`,** even though the install reported 14 vulnerabilities (4 moderate, 10 high). Fixing them would change the starter's lockfile.
+   132	- **Wrote `brief.md` as Markdown that follows the PDF's layout.** The boxed sections became blockquotes, the page footers were dropped, and the sentence split across pages 1 and 2 was joined.
+   133	- **Used a Stop hook rather than UserPromptSubmit for the prompt log.** Stop doesn't fire on an interrupt, so cancelled prompts stay out of the log.
+   134	- **Gave each logged prompt and session a hidden ID marker.** This means a prompt is never logged twice, and sessions stay grouped even when they alternate.
+   135	- **Wrote the hook in Node** because Python isn't installed on this machine.
+   136	
+   137	### Chat 2: critique of my read, and rails
+   138	
+   139	- **Scope is depth in two places:** terms + accept, and the late path (reminder before the due date → not collected on payday → late → notice before default). The home card (eligible vs needs verification) and home after accepting are thin. The credit decline, default screen, successful repayment and viewing the advance later are cut.
+   140	- **"Declined: income unverified" shouldn't exist.** Verification becomes a step on the home card before anyone applies. This rests on an assumption that verification status is known before applying.
+   141	- **Kept the receipt after accepting:** the accept moment isn't finished until the user knows it worked.
+   142	- **Kept the reminder before the due date:** it's the one chance to prevent two of the causes of lateness.
+   143	- **No grace rule:** days late are counted from the due date and shown truthfully.
+   144	- **Attention colour (provisional):** the existing amber ramp, soft background with dark text (accent-600 on accent-50). The system audit confirms it.
+   145	- **Change Button rather than loosen principle 1:** the accept button needs a secondary line for the repayment and date. The audit confirms it.
+   146	- **The check catches hex colours and arbitrary values only,** in `src/`. The phone frame and the page backdrop behind it are allowed.
+   147	- **The starter's hard-coded colours are allow-listed as starter debt, not fixed.** Fixing them is a token or component change, which is my call. Each entry is labelled to be removed once the fix lands.
+   148	- **The prompt log keeps every prompt,** including near-duplicate resends, so it matches its own "every prompt" claim.
+   149	
+   150	### Chat 3: system audit
+   151	
+   152	The full record is in the "My decision" column of `docs/01-system-audit.md`. None of these is built yet.
+   153	
+   154	- **Button evolves:** a second line in brand-100, a minimum height, a loading state, and secondary text in neutral-900. The "no" option must be as clear as "yes".
+   155	- **One new component, `Choice`** (native checkbox and radio). The blocked tier stays visible, with its reason in neutral-700.
+   156	- **Choosing the amount and terms + accept are two screens,** so the full cost is visible without scrolling.
+   157	- **Accept stays enabled.** Tapping it without the permission shows a neutral inline message at the checkbox. A disabled button doesn't explain itself, and nothing has failed. *Chat 4: the message moved to the action area, above Accept.*
+   158	- **AmountText:** a missing amount renders nothing and the screen says "not available yet". It inherits its colour, and gets a caption size and an optional sign.
+   159	- **accent is renamed to attention:**
+   160	  - body text is neutral-900 on attention-50,
+   161	  - attention-600 is only for the short status label,
+   162	  - DEFAULT is removed: nothing uses it, and removing it makes a solid amber fill impossible,
+   163	  - 100 is kept, documented as not for text.
+   164	- **New tokens `danger` #B42318 and `danger-50` #FEF3F2.** Card gets a tone (default, attention or danger). Failures are inline Cards with `role="alert"`, never a Toast.
+   165	- **Retune at the source:** neutral-500 to #6B6B6B, which fixes every caption at once, and success to #15803D.
+   166	- **Late details use native `<details>`.** The reduced payout is a full screen. BottomSheet is unused. *Chat 4: superseded. The late details are in a fixed, accessible BottomSheet; S7 is still a full screen.*
+   167	- **ListRow** gets wrap, a danger event row and a hidden icon. Borders become neutral-200 for Card and neutral-300 for ListRow. Components forward props and get a focus ring. The back button grows to 44px. Panel becomes an alias of Card.
+   168	- **Fixed 390×844 frame:**
+   169	  - `main` scrolls inside it, with the actions stuck to the bottom,
+   170	  - the screen background is neutral-50, so cards stand apart,
+   171	  - the reviewer switcher sits outside the frame,
+   172	  - allow-list changes come to me first.
+   173	- **Lock-screen preview** is scaffolding outside NovaKit, on neutral-900, with its copy kept in one place.
+   174	- **A reduced payout always drops to a lower tier,** so fees stay whole and there's no rounding policy to invent. Now in my Assumptions.
+   175	- **Type and the check:**
+   176	  - the font stack and root text colour move into tokens,
+   177	  - built-in font weights and `tabular-nums` are allowed,
+   178	  - the check will fail on every Tailwind default colour name except `white`, `black` and `transparent`. Those are absolutes, not palette choices.
+   179	
+   180	### Chat 3, continued: the module and the system changes
+   181	
+   182	**The module**
+   183	- **Conventions:** `today` is always passed in, unknown values are `null` and never 0, and dates stay strings. Every state is reproducible, and no screen does date maths.
+   184	- **Default on day 30 (27 Aug),** because "30+ days" read literally includes day 30.
+   185	- **Collection only when salary lands, never from other incoming money.** That's what the user agrees to. Collecting from any money drifts towards sweeping funds.
+   186	- **Reminders:**
+   187	  - before the due date: 25 Jul at 10:00,
+   188	  - the not-collected notice: 6pm, when the attempt fails. 10:00 would go out before the attempt,
+   189	  - late reminders every 7 days (a placeholder cadence),
+   190	  - at most 2 in any 7 days in a row.
+   191	- **The notice before default (20 Aug) is never paused,** even after a payroll delay is reported, because a material consequence must always be announced. Whether a delay should move the default date is a question, not a rule.
+   192	- **`acceptTerms` is idempotent:** accepting the same terms twice returns the same advance, never a second one.
+   193	- **The wallet shows the real balance,** with "Includes Rs 10,000 from your advance" on home after accepting only. On later days the balance is `null`, because spending isn't modelled. Elsewhere the advance card says "Received Rs 10,000 on 7 Jul · Rs 10,300 to repay on 28 Jul".
+   194	- **The late state (S12) is viewed on 2 Aug** (5 days late).
+   195	
+   196	**The system**
+   197	- **The frozen copy is allow-listed rather than skipped by the check,** so the exception stays narrow and visible.
+   198	- **`formatAmount` in AmountText is the single money formatter,** so money in strings and in components always matches.
+   199	- **Card tone borders:** attention-100 for attention, and neutral-200 for danger. Both are as faint against the page as the default edge (1.17 and 1.18:1). Full danger red would be an alarm line.
+   200	- **Panel is a deprecated alias of Card,** so imports keep working and the duplicate is gone.
+   201	- **The desktop scrollbar is hidden inside the frame,** because phones overlay theirs.
+   202	
+   203	**Calls the AI made during the build, flagged and not overruled**
+   204	- **Button keeps its colours while loading,** because it's working, not unavailable. Its second line stays visible, so the height never changes.
+   205	- **The AppBar glyph uses `text-display`, not the suggested `text-title`.** Measured, `text-title` only took it from 5px to 7px wide.
+   206	- **A real zero still formats as "Rs 0".** Only missing data returns `null`, and a number passed as a string counts as missing.
+   207	
+   208	### Chat 4: S3 and S4
+   209	
+   210	**S3**
+   211	- **The over-limit reason is only the fact:** "Above your limit of Rs 10,000." Explaining how the limit is set would be invented policy, and "how you use NovaPay" hints that activity earns a bigger limit.
+   212	- **No wallet balance on S3.** Showing it next to the amounts could push people to borrow more.
+   213	- **The blocked tier stays visible and focusable.** Tapping it shows a neutral toast: "Rs 15,000 is above your Rs 10,000 limit. Choose Rs 5,000 or Rs 10,000."
+   214	- **The 3% stays on S3,** alongside the fee in rupees per tier.
+   215	- **The card is option A,** with no heading: "A short-term loan with a 3% fee, charged once. If you accept, we take the full amount from your NovaPay wallet automatically at 6pm on 28 Jul, once your salary arrives." It keeps the precise wallet, date and "the full amount" rather than the product name.
+   216	- **The AppBar names the screen** ("Choose an amount", "Review and accept"), so the heading that gets focus tells screen-reader users where they are.
+   217	- **Leaving resets the chosen amount,** so nothing is pre-selected next time. Going to S4 and back keeps it.
+   218	
+   219	**S4**
+   220	- **No annual rate.** The fee is a fixed 3% of the amount paid out, charged once.
+   221	- **"Paid into your NovaPay wallet",** without saying when.
+   222	- **No late-fee line, and no "other consequences are being confirmed" line.**
+   223	- **The default line has no placeholder label:** "If it's still unpaid on 27 Aug, the advance is in default. New advances are paused and automatic collection stops."
+   224	- **The permission resets to unticked every time S4 opens,** including after "Change amount".
+   225	- **Accept goes to a labelled receipt placeholder** until S8 exists, and a missing `terms` sends the user back to S3 (or home for persona B).
+   226	
+   227	**Calls the AI made during the build, flagged and not overruled**
+   228	- **The shell moves focus to the `h1` only after a screen change,** not on the first page load.
+   229	- **The receipt placeholder doesn't show the advance's ID,** because the ID contains the year.
+   230	- **The blocked radio is dimmed except while it has keyboard focus,** so its focus ring isn't dimmed too.
+   231	
+   232	### Chat 4, continued: S4 made calmer
+   233	
+   234	- **The late consequences go in a bottom sheet,** not `<details>`, to make S4 less busy. BottomSheet was fixed first, because the audit found it unsafe as it was.
+   235	- **The checkbox doesn't repeat what "Your advance" already shows.** It stays its own unticked permission and says when it ends: "I allow NovaPay to take the repayment above automatically." / "This ends automatically when it's repaid, or on 27 Aug at the latest." I kept it after the review flagged that it no longer names the later attempt or "never other money".
+   236	- **The "tick the box" message goes in the action area,** above Accept, because at the checkbox it wasn't readable. Focus still moves to the checkbox.
+   237	- **The retry line only promises what's true:** "If we can't take it on 28 Jul, we'll tell you at 6pm. If your salary is late, we'll try again when it arrives."
+   238	- **S3 and S4 keep their different lower-payout wording:** S3 has "…we'll ask you again before paying anything." and S4 has "…we'll show you the new terms and ask you again before paying anything."
+   239	- **Default consequences are shown without a placeholder label.** My Assumptions and the audit's S4 and S13 rows now say so.
+   240	- **All action-area buttons on S3 and S4 are medium.** On S4, "Change amount" and "Back to home" sit side by side. The two names for going back from S4 stay: the AppBar's "Back to amounts" and the button "Change amount".
+   241	- **Large secondaries were tried first and rejected:** side by side, "Change amount" wrapped onto two lines (70px tall).
+   242	- **S4's Accept button is one line: "Accept Rs 10,000".** "Your advance" already shows "You repay on 28 Jul" and Rs 10,300 without scrolling, so a second line would only repeat it. Exceptions like this are allowed when the rest of the screen gives enough context. The rule is updated in `CLAUDE.md`, principle 1 and Scope in my read, and the audit's S4 and 6.5 rows. Button's `subLabel` stays: S3's "Review terms" still uses "Nothing is borrowed yet".
+   243	
+   244	## Open questions
+   245	
+   246	- The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
+   247	- The decision is called "Declined" in the text but `decision (approved/denied)` with `denial_reason` in the glossary.
+   248	- The decline reason is `income_unverified`, but the glossary field is `income_verified`.
+   249	- The glossary lists `income_source (salaried/freelance)`, but the product is described as only for salaried users.
+   250	- `DESIGN_SYSTEM.md` doesn't exist yet. `CLAUDE.md` says every token or component change is logged there, including the check's `white`/`black`/`transparent` exception.
+   251	- Principle 4 in `00-my-read.md` still says "(provisional)", "The system audit confirms it" and "accent". All three are stale after the audit. The read is mine to update.
+   252	- Where does the lasting record of the agreement live? The receipt has to say where.
+   253	
+   254	### Added in chat 3, continued
+   255	
+   256	- **The module states something my read doesn't:** "the payout lands in the wallet when it's accepted" (`received_on = accepted_on`). Its comment marks it as from my read, but it isn't there yet. I either add it to my Assumptions, or it changes.
+   257	- **Is a real "Rs 0" acceptable?** For example, nothing left to repay. The rule only covers missing data.
+   258	- **Button loading keeps the brand colour.** I haven't confirmed that, or chosen the disabled grey instead.
+   259	- **Should the danger card get a pink edge?** That would need a new `danger-100` token. Today it uses neutral-200.
+   260	- **Should `Choice` insist on a `disabledReason`?** Today a disabled option can have none.
+   261	- **The check doesn't catch a colour name that doesn't exist.** A leftover `text-accent-600` would build silently with no colour.
+   262	- **How do I show colours before the change?** The frozen v0 copy freezes component code, not token values, so it now shows the new colours. A true "before" needs the `starter` tag.
+   263	- **The frame plus padding is 892px tall,** so on shorter laptop screens the page scrolls and the action area can sit below the browser's fold. Do I scale the frame to fit?
+   264	- **Toast sits over the sticky action area** when both show.
+   265	- **The transcript export from this chat includes the brief's full text,** because it was read in the chat. `_inputs/` is ignored so the brief is never published, so the export shouldn't be committed or pushed as it is.
+   266	
+   267	**Resolved since:** `DESIGN_SYSTEM.md` now exists (`eca45f1`), including the check's `white`/`black`/`transparent` exception.
+   268	
+   269	### Added in chat 4
+   270	
+   271	- ~~**The S4 default line contradicts two of my rules.**~~ Resolved later in chat 4: my Assumptions now say default consequences are shown as stated, with no placeholder label, so the `CLAUDE.md` placeholder rule no longer applies to them. The audit's S4 and S13 rows are updated.
+   272	- **"How is the limit set?"** I'm adding it to What I'd want to know in my read. It isn't there yet.
+   273	- **"You can pay some or all of it yourself" (S4) is a stub.** Manual payment is only shown on the late screen, and early repayment is "with more time".
+   274	- **Persona B's home card** still says "See amounts and costs" and would send them nowhere. Their S2 state isn't built yet.
+   275	- **The radio's focus ring is a rounded square,** not a circle, because Chromium draws the ring box around a native radio. It's still visible, so it's flagged, not fixed.
+   276	
+   277	- *Added later in chat 4, from the S4 review:*
+   278	  - **My read's Scope still quotes the old, long permission wording** (the "I allow NovaPay to collect Rs 10,300…" line). It's mine to update.
+   279	  - **The default line reads the permission's end date** (`terms.permission.ends_by`), not `terms.default_date`. They're the same today but mean different things.
+   280	  - **The receipt placeholder's heading is "Salary advance",** not a screen name. It goes away when S8 is built.
+   281	  - **After Done, home still offers an advance.** Accepting the same terms again returns the first advance and shows "accepted" again. This waits for home after accepting (S9).
+   282	  - **Home hard-codes the balance and transactions** instead of reading `PERSONAS`. The audit accepted fixing this (I17); it isn't done.
+   283	  - **BottomSheet's `title` is required but not enforced.** Without one, the dialog has no name.
+   284	
+   285	**Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
+   286	
+   287	## Write-up inbox
+   288	
+   289	### Assumptions
+   290	
+   291	The full list is in `docs/00-my-read.md` → Assumptions. The ones that most need defending:
+   292	
+   293	- Verification status is known before anyone applies (the product reference says it may be checked at application).
+   294	- Collection is automatic, on payday at 6pm once salary has landed, with its own permission given at accept.
+   295	- Automatic collection is full amount only; the user can choose to pay part manually.
+   296	- The collection permission ends when the advance is repaid or at the default date, whichever comes first.
+   297	- Default consequences shown in the prototype are only: new advances paused, automatic collection stops, the wallet never frozen. Shown as stated, no placeholder label (changed in chat 4).
+   298	- A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees, and it needs fresh consent.
+   299	- Pushing for, pending finance and compliance: no late fees and no compounding.
+   300	- *Added in chat 3, continued:*
+   301	  - Collection is attempted only when salary lands, never from other incoming money.
+   302	  - Reminders:
+   303	    - 25 Jul at 10:00,
+   304	    - the not-collected notice at 6pm when the attempt fails,
+   305	    - late reminders every 7 days (placeholder cadence),
+   306	    - the notice before default on 20 Aug, never paused,
+   307	    - default on day 30 (27 Aug).
+   308	  - Wallet balance is Rs 4,250 for both personas.
+   309	  - A reduced payout can't go below Rs 5,000. That case isn't designed.
+   310	  - Not yet in my read: the payout lands in the wallet on the day it's accepted.
+   311	
+   312	### What I'd want to know
+   313	
+   314	The full list is in `docs/00-my-read.md` → What I'd want to know. The ones that most shape the build:
+   315	
+   316	- Is there a required cancellation window?
+   317	- Is the fee legally interest? Do we need a key facts statement?
+   318	- What exactly happens at default (credit bureau, collections, legal steps)?
+   319	- Can collection retry when funds are short, and is any amount protected?
+   320	- How long can a collection permission legally last?
+   321	- *Added in chat 3, continued:*
+   322	  - Should a reported payroll delay move the default date?
+   323	  - What happens if a reduced payout is needed from the lowest tier?
+   324	- *Added in chat 4:*
+   325	  - How is the limit set?
+   326	
+   327	### System flags
+   328	
+   329	- Card and Panel are the same component; only the border differs.
+   330	- Hard-coded colours: Card's border `#E6E6E6`, ListRow's border `#DADADA`, and `#1a1a1a` in `index.css` (duplicates neutral-900).
+   331	- The secondary button's grey text (neutral-500) makes it look disabled, so the "no" option on an accept screen would look unavailable. It's also 3.95:1 on white, which fails WCAG AA at 15px. Captions and placeholders use the same grey, so the fine print on the accept screen would be the least readable text.
+   332	- The only status colour is success. There's no warning, error or info, and the amber accent has no defined meaning.
+   333	- Toast is success-only and has no `aria-live`. White on the success green is 3.45:1, which fails AA. (Correction: the 2.2s dismiss is in `App.jsx:25`, not in Toast.)
+   334	- TextField has no label, error state or helper text, and its border is 1.41:1, too faint to show where the input is.
+   335	- BottomSheet has no dialog role, focus trap or Escape handling, and tapping the backdrop closes it. Its grab handle suggests a swipe that isn't built.
+   336	- Button has a fixed height, 56px at large size, so the two-line accept label (about 64px) doesn't fit. It's also always full-width, has no loading state and no designed focus style.
+   337	- AmountText renders "Rs 0" when the amount is missing, which breaks my own rule. It forces `text-neutral-900`, so an amount inside a primary button would be 2.77:1. It has no caption size and no sign.
+   338	- There's no checkbox or radio button.
+   339	- Colours sit under `extend`, so Tailwind's whole default palette (`red-500`, `amber-400`…) is still available, and the first version of the check didn't see it. The starter also uses `bg-white`, `text-white`, `bg-black/40` and `shadow-xl`.
+   340	- No component forwards extra props, so none can take an `id`, `role` or `aria-*` attribute without being edited.
+   341	- ListRow truncates its title and subtitle, which would cut cost and due-date lines.
+   342	- The phone frame grows with its content, so "visible without scrolling" can't be tested, and Toast and BottomSheet can end up off-screen.
+   343	- The amber ramp: accent-600 on accent-50 is 4.71:1, a pass by 0.21. accent-600 fails on accent-100 (4.31) and neutral-100 (4.49). accent DEFAULT fails as text (2.15).
+   344	- After the accent → attention rename, the README's example `text-accent-600` will be out of date.
+   345	- *Added in chat 3, continued, found while changing the system:*
+   346	  - **The dev server keeps the old Tailwind config.** After a change to `tailwind.config.js` it served stale CSS until it was restarted.
+   347	  - **The check only knows the names it's given.** It catches Tailwind's default colour names but not ones that don't exist, which build silently.
+   348	  - **Exporting a helper from a `.jsx` file** (`formatAmount` from `AmountText.jsx`) costs Vite's fast refresh for that file, so edits reload the whole page.
+   349	  - **Native checkbox and radio rendering varies by browser,** so check `Choice`'s 24px control and focus ring on each.
+   350	  - **The "‹" glyph was about 5px wide at the inherited 16px,** even inside a 44px target.
+   351	  - **On Windows the frame's scroll area showed a classic scrollbar.** It's now hidden.
+   352	  - **The README prose still says "a warm amber accent"** after the rename. Only its example was updated.
+   353	- *Added in chat 4, found while building S3 and S4:*
+   354	  - **The browser pane's accessibility tree isn't the browser's.** It named radios by their `value` and gave buttons no name. Real names came from Edge's tree over the DevTools protocol.
+   355	  - **A natively disabled radio is invisible to keyboard users.** Tab and the arrow keys skip it, so its reason is never heard. Choice now uses `aria-disabled`.
+   356	  - **A button's two lines ran together as one name** ("Review terms Nothing is borrowed yet"). Button now adds a stop between them.
+   357	  - **Toast was success-only,** so "you can't choose that" would have worn a green tick. It now has a `neutral` variant. It still has no `aria-live`.
+   358	  - **The dev server's file watcher missed edits twice** and served old files until it was restarted.
+   359	  - **The fixed 390×844 frame hid a small-phone problem.** At 360×640, S3's first card pushed every amount below the fold.
+   360	  - **Advance IDs contain the year,** so they can't be shown on screen.
+   361	  - **The starter BottomSheet couldn't be used as it was.** It had no dialog role, focus handling or Escape, and its grab handle promised a swipe that didn't exist. It was rebuilt before S4 used it.
+   362	  - **`aria-modal` alone doesn't stop focus leaving a sheet.** The rest of the frame had to be made `inert`.
+   363	  - **Large buttons don't fit two to a row at 390px.** "Change amount" wrapped onto two lines.
+   364	
+   365	### AI process
+   366	
+   367	- **Stopped the AI working ahead.** I opened chat 3 by only saying what it would cover. The AI started reading every file and was about to run the build. I stopped it and said not to start the audit yet.
+   368	- **Triage by short codes.** The AI sorted 122 audit rows into 26 safe defaults and 14 questions with lettered options. I answered with codes and one-line reasons.
+   369	- **Overrode the AI's recommendation on accent DEFAULT.** It said keep it, documented as never for text. I removed it, so a solid amber fill can't happen.
+   370	- **The AI flagged a gap in my own answer.** My first answer on the check (14A) didn't say whether `white` and `black` count. The AI recorded it as open instead of guessing, and I decided it: `white`, `black` and `transparent` are allowed.
+   371	- **The audit narrowed my read.** The attention-colour wording in principle 4 became "body text neutral-900, accent-600 only for the label". I accepted it and updated the read.
+   372	- *Added in chat 3, continued:*
+   373	  - **Rejected AI output (candidate for the write-up).** The AI's first module paused every reminder after a payroll delay, including the notice before default. I changed it: that notice is never paused, because a material consequence must always be announced. A check now guards it.
+   374	  - **Reworked AI output.** The AI's wallet said "Includes Rs 10,000 from your advance" on every day. I limited it to home after accepting, because once money is spent the claim isn't true and spending isn't modelled.
+   375	  - **The AI caught a contradiction in my spec.** I asked for every reminder at 10:00, but the not-collected notice can't go out before the 6pm attempt. I confirmed 6pm.
+   376	  - **The AI's own suggestion failed when measured.** `text-title` for the back glyph barely helped, so it used `text-display` and said why.
+   377	  - **Proving the rails work:**
+   378	    - each check was shown failing on a deliberate mutation,
+   379	    - each component change was measured before and after in the running app,
+   380	    - every temporary probe was removed.
+   381	  - **The AI attributed a rule to my read that isn't there:** "the payout lands when accepted". It was caught while writing this file and is now an open question.
+   382	- *Added in chat 4:*
+   383	  - **Rejected AI output (candidate for the write-up).** The AI's first over-limit reason added a placeholder about how the limit is set ("based on your salary and how you use NovaPay"). I cut it: it's invented policy, and it hints that activity earns a bigger limit.
+   384	  - **A three-way critique, then triage by codes.** The AI critiqued S3 as a regulator, a low-literacy borrower and a screen-reader user. I sorted every point into fix, reject or defer, with reasons. The rejections are in Pushback.
+   385	  - **"Check first" paid off.** I asked for the accessible names before any fix. The browser pane's tree said the radios were named "5000"; Edge's real tree said "Rs 5,000". Fixing the pane's reading would have been wasted work.
+   386	  - **The AI asked before using the existing Toast.** It was green with a tick, which would have contradicted the message. I chose a neutral variant.
+   387	  - **Copy measured, not guessed.** For the small-phone fold, the AI tried each card draft in the live screen at 360×640 and reported the pixels. The heading alone cost 22px.
+   388	  - **The AI caught my S3 copy contradicting my own flow.** "We'll confirm the final amount before you accept" didn't match a reduced payout arriving after the tap. I changed it.
+   389	  - **The AI found two issues in its own build:** the toast covered the way out, and the dimmed radio dimmed its own focus ring. Both were fixed before commit.
+   390	  - **Overrides I made:** no annual rate on S4 (the fee is a fixed 3%), no late-fee or "being confirmed" lines, and no placeholder label on the default line. I then updated my Assumptions and the audit to match.
+   391	  - **The AI pushed back on my checkbox wording.** I asked for "I have read the terms stated above and accept". The AI pointed out that this is the bundled "I agree" on my own predatory list, and it breaks my `CLAUDE.md` rule. My real point was not repeating the amounts, so the checkbox now points at "the repayment above" and stays its own permission with an end date.
+   392	  - **A review agent re-verified S4 against every doc.** It found a false promise (retrying "when your salary next arrives", which lands after default for most causes), the checkbox state never reaching the module, an incomplete focus trap, a 22px target, and the AI's own S5/S8 mislabel. All were fixed, and its other points became decisions or doc updates.
+   393	  - **No commits until I say "Commit now".** The AI kept the S4 redesign in the working tree while I iterated.
+   394	
+   395	### Deferred from the S3 critique
+   396	
+   397	- **R9:** lender name, key facts and cancellation. It's a "want to know"; a placeholder lender line on S4 comes later.
+   398	- **B3:** a test at 200% text size.
+   399	- **B10:** Urdu. The prototype is English only for now.
+   400	- **SR9:** how abbreviations ("Rs", "Jul", "6pm") are read aloud.
+   401	
+   402	### Pushback
+   403	
+   404	Critique points I rejected, with my reasons.
+   405	
+   406	- **S3 critique, R6: say what happens if salary doesn't land.** S4 is the commitment point and covers it. Putting it here makes S3 longer, which the critique's own B2 says is already a problem.
+   407	- **S3 critique, R7: the blocked Rs 15,000 works as an anchor.** Showing the limit honestly is the over-limit moment the brief asks for. There's no "unlock" language, and it sits last, in ascending order. Hiding it would be less transparent.
+   408	- **S3 critique, R8: "Nothing is borrowed yet" lowers resistance.** It's true, and it sits on "Review terms", not on the commit button. Saying what hasn't happened yet lowers pressure; it doesn't lower scrutiny.
+   409	- **S3 critique, SR6: the terms sit outside the form.** Reading order reaches the card before the choices. Moving the card into the form wouldn't help anyone.
+   410	
+   411	## Next step
+   412	
+   413	S3 and S4 are built. The S4 redesign and fixes are in the working tree, waiting for my "Commit now". After that come the rest of the accept moment, the reviewer switcher and the late path.
+   414	
+   415	1. **Loose ends in my read:**
+   416	   - principle 4's stale wording ("provisional", "the audit confirms it", "accent"),
+   417	   - whether the payout lands on the day it's accepted, as an assumption,
+   418	   - "How is the limit set?" in What I'd want to know,
+   419	   - the old permission wording quoted in Scope.
+   420	2. **The rest of the accept moment, one state per request, each with a plan I approve first:**
+   421	   - after the tap: S5, processing and double-tap protection, then S6, a network failure,
+   422	   - S7, the reduced payout, with fresh consent,
+   423	   - S8, the receipt, which replaces the placeholder and has to say where the lasting record lives.
+   424	3. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
+   425	4. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
+   426	
+   427	Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
+   428	
+=====
+     1	# Design system log
+     2	
+     3	Every token or component change in NovaKit Lite: what changed, why (one line), and the file it lives in. Newest first. The decisions behind each change are in `docs/01-system-audit.md`.
+     4	
+     5	## Changes
+     6	
+     7	| Date | What changed | Why | File | Audit |
+     8	|---|---|---|---|---|
+     9	| 16 Oct 2026 | BottomSheet is a real dialog: `role="dialog"`, `aria-modal`, named by a required `title` (its `<h2>`). Focus moves to the title on open, everything else in the frame is `inert` while it's open, Tab stays inside (and is pulled back if focus falls off the sheet), Escape, a visible Close button or the backdrop closes it, and focus returns to the opener. The grab handle is removed. Long content scrolls inside the sheet. The phone frame gets a `sheet` slot, so the modal covers the actions too | S4's late consequences move into a sheet, and the starter sheet had no role, focus handling or Escape, and a handle that promised a swipe | `src/novakit/BottomSheet.jsx`, `src/App.jsx` | BottomSheet row, gaps (1)–(4). Reverses "S4's details use native `<details>`" |
+    10	| 16 Oct 2026 | Toast `variant`: `success` (default, unchanged) or `neutral` (neutral-900 fill, white text, 17.40:1, no icon). The no-`aria-live` gap is now documented in the component | A message about something that didn't happen (tapping the tier above the limit) can't wear a green ✓. Failures still never use a Toast | `src/novakit/Toast.jsx` | S3 critique B8 |
+    11	| 16 Oct 2026 | AppBar `backLabel` (default "Back") names where back goes. The `<h1>` takes programmatic focus (`tabIndex={-1}`, no outline), so the shell can move focus to it on a screen change | "Back" didn't say where it goes, and a screen change was silent to screen readers | `src/novakit/AppBar.jsx` | S3 critique SR1, SR10 |
+    12	| 16 Oct 2026 | Button with a `subLabel` adds a stop that's heard but not seen (`sr-only`) between the two lines. Edge's tree now reads "Review terms . Nothing is borrowed yet" (the space comes from `sr-only` being positioned; the stop still makes the pause) | The name was read as one run-on phrase, "Review terms Nothing is borrowed yet" | `src/novakit/Button.jsx` | S3 critique SR7 |
+    13	| 16 Oct 2026 | Choice disabled uses `aria-disabled` instead of the native attribute. The option stays focusable and its reason is heard; a tap is cancelled, `onChange` never fires, and a caller's `onClick` still runs. The control is dimmed (`opacity-50`) except while it has keyboard focus, so its focus ring is never dimmed; the label and reason stay neutral-700 | A natively disabled option is skipped by Tab and arrow keys, so keyboard and screen-reader users never heard that Rs 15,000 exists or why it's blocked | `src/novakit/Choice.jsx` | S3 critique SR2 |
+    14	| 16 Oct 2026 | Panel: deprecated alias of Card (same component, same props). It keeps its export in `index.js`, so imports still work. Its border changes from neutral-300 to Card's neutral-200, and it gains Card's tones. Nothing in `src/` uses it | It duplicated Card apart from its border | `src/novakit/Panel.jsx` | 10B, Q11, I1 |
+    15	| 16 Oct 2026 | AppBar back glyph "‹" set in `text-display` (28px bold), up from the inherited 16px. `text-title` was tried first, but only took it from 5px to 7px wide | At 16px the glyph was about 5px wide and easy to miss, even with a 44px target | `src/novakit/AppBar.jsx` | 10B |
+    16	| 16 Oct 2026 | AppBar back button: target `h-9 w-9` (36px) → `h-11 w-11` (44px), a `brand` focus-visible ring with an offset, and the "‹" glyph `aria-hidden` (the button keeps `aria-label="Back"`). No icon library | 36px was under the 44px touch target, and keyboard focus depended on the browser default | `src/novakit/AppBar.jsx` | 10B, 6.17 |
+    17	| 16 Oct 2026 | ListRow forwards other props to the row's `<div>` | Screens need to add `id`, `aria-*` or a test hook without editing the component | `src/novakit/ListRow.jsx` | I13 |
+    18	| 16 Oct 2026 | ListRow's icon slot is `aria-hidden`. The meaning goes in the title or subtitle. Rows are still `<div>`s, not list items (flagged, not fixed) | The glyphs (↑ ↓) were read aloud as "upwards arrow" and carried the direction of money on their own | `src/novakit/ListRow.jsx` | I14, 6.18 |
+    19	| 16 Oct 2026 | ListRow `wrap` (default `false`): title and subtitle wrap instead of truncating. Existing rows still truncate | Cutting "Repay on 28 Jul at 6pm, once your salary lands" hides the terms | `src/novakit/ListRow.jsx` | 10B, 6.12 |
+    20	| 16 Oct 2026 | ListRow divider `#DADADA` → `neutral-300` (#D9D9D9). Starter-debt allow-list entry removed. Rows measure the same | Hard-coded colour, not a token. The last starter-debt border is gone | `src/novakit/ListRow.jsx`, `scripts/check-allowlist.json` | 10B, I2 |
+    21	| 16 Oct 2026 | Card forwards other props (`role`, `aria-live`, `id`…) to its `<div>`. Card adds no role by itself | A screen showing a failure has to be able to add `role="alert"`, and only the screen knows when that's right | `src/novakit/Card.jsx` | 6.10, I13 |
+    22	| 16 Oct 2026 | Card `tone="danger"`: `danger-50` background, inherited neutral-900 text, no icons, `neutral-200` border. **Rule: danger is only for a failed event** ("We couldn't collect on 28 Jul", a network failure), never for a person's status | Red belongs on the event that failed. The border is neutral-200 because there's no light danger step, and full `danger` (6.57:1) would be an alarm line | `src/novakit/Card.jsx` | 7A, 6.10, 6.13 |
+    23	| 16 Oct 2026 | Card `tone="attention"`: `attention-50` background, inherited neutral-900 text, no icons, `attention-100` border. **Rule: attention is for a person's status** (late, notice before default) | Late states need a calm, distinct surface. attention-100 is as faint against the page (1.17:1) as the default edge (1.18:1), so the tone never shouts | `src/novakit/Card.jsx` | 7A, 6.14 |
+    24	| 16 Oct 2026 | Card border `#E6E6E6` → `neutral-200` (#ECECEC). Starter-debt allow-list entry removed. Everything else about the default card measures the same | Hard-coded colour, not a token | `src/novakit/Card.jsx`, `scripts/check-allowlist.json` | 10B, I2 |
+    25	| 16 Oct 2026 | AmountText adds `tabular-nums` | Amounts in a cost summary should line up digit for digit | `src/novakit/AmountText.jsx` | 3b |
+    26	| 16 Oct 2026 | AmountText and `formatAmount` take an optional `sign`: "+" for money in, "−" (U+2212, a real minus) for money out. A negative amount always shows "−" | The advance in and the collection out must be impossible to confuse | `src/novakit/AmountText.jsx` | 6.18 |
+    27	| 16 Oct 2026 | AmountText adds a `caption` size, alongside display, title and body | Amounts inside fine print and second lines need the caption size | `src/novakit/AmountText.jsx` | 5A |
+    28	| 16 Oct 2026 | AmountText no longer forces `text-neutral-900`. The colour is inherited | Inside a primary button the amount was 2.77:1 on brand | `src/novakit/AmountText.jsx` | C2, 6.4 |
+    29	| 16 Oct 2026 | AmountText renders nothing when the amount is missing, and warns in development | It showed "Rs 0" for missing data, which is a false statement about money | `src/novakit/AmountText.jsx` | 6.1 |
+    30	| 16 Oct 2026 | Added `formatAmount(amount, { sign })`, the single money formatter: "Rs 10,300" with a non-breaking space, or `null` for null, undefined, NaN or a non-number. AmountText uses it, and it's exported from the barrel too | Money inside strings (a button's second line, an `aria-label`) must format exactly like AmountText, from one place | `src/novakit/AmountText.jsx`, `src/novakit/index.js` | 5A, Q8 (3.2) |
+    31	| 16 Oct 2026 | Button forwards other props (`aria-*`, `id`, `form`…) to the `<button>` | Accessibility wiring (for example `aria-describedby` to the cost summary) needs them, and no prop could be added before | `src/novakit/Button.jsx` | 6.16, I13 |
+    32	| 16 Oct 2026 | Button gets a `focus-visible` ring in `brand` with an offset | Keyboard users need to see where they are. Before, it depended on the browser's default | `src/novakit/Button.jsx` | 6.17 |
+    33	| 16 Oct 2026 | Secondary Button text neutral-500 → neutral-900. The border stays neutral-300 | The "no" option must be as clear as "yes". It looked disabled (3.95:1 at the audit, 5.33:1 after the token change, now 17.40:1) | `src/novakit/Button.jsx` | 1A, 6.3 |
+    34	| 16 Oct 2026 | Button `loading`: disabled, `aria-busy`, and an optional `loadingLabel` that replaces the label. The original label stays in place invisibly, so the size never changes. It keeps its own colours while loading | A second tap must not be possible, and a working button shouldn't look unavailable or jump in size | `src/novakit/Button.jsx` | 1A, 6.6 |
+    35	| 16 Oct 2026 | Button `h-11`/`h-14` → `min-h-11`/`min-h-14`, plus `py-2`. Single-line buttons measure the same as before (56px for large) | Fixed heights couldn't fit a second line | `src/novakit/Button.jsx` | 1A, 6.5 |
+    36	| 16 Oct 2026 | Button `subLabel`: an optional second line in `text-caption`, brand-100 on primary (5.10:1), neutral-700 on secondary (8.45:1), and the disabled text colour when disabled | The accept button names the repayment and its date on a second line (principle 1). A large two-line button is 60px | `src/novakit/Button.jsx` | 1A, 6.5 |
+    37	| 16 Oct 2026 | Added `Choice`: one component for checkbox and radio. A native input inside a label, controlled only (never pre-checked), 24px control in `accent-brand`, the whole row tappable at 44px or more, label in neutral-900, description and disabled reason in neutral-700 linked by `aria-describedby`, a `brand` focus-visible ring, extra props forwarded to the input. Radio groups are a caller's `<fieldset>` and `<legend>`, not a component | The collection permission has to be its own unticked control and the tiers a single choice with a readable blocked reason, and nothing in NovaKit renders a form control with a label | `src/novakit/Choice.jsx`, `src/novakit/index.js` | 2A, 6.7, 6.9 |
+    38	| 16 Oct 2026 | `npm run check` also fails on Tailwind's default colour names (`text-red-500`, `bg-neutral-400`, `border-current`, `theme("colors.red.500")`…). A family we define, like `neutral`, passes only for our own shades | Our colours sit under `extend`, so Tailwind's whole default palette still builds and the check didn't see it | `scripts/check-tokens.mjs` | 14A, I6, Q10 |
+    39	| 16 Oct 2026 | Root text colour reads `theme("colors.neutral.900")` instead of `#1a1a1a`. Its starter-debt allow-list entry is removed | It duplicated neutral-900 as a hard-coded value | `src/index.css`, `scripts/check-allowlist.json` | 14A, I3 |
+    40	| 16 Oct 2026 | Font stack moved to `fontFamily.sans` (same fonts, no new ones). Tailwind's base styles apply it | Type should come only from the config | `tailwind.config.js`, `src/index.css` | 14A, I4 |
+    41	| 16 Oct 2026 | `accent` renamed to `attention` (50, 100, 600). DEFAULT (#F59E0B) removed. 100 documented as not for text. README example updated | Gives amber one meaning (attention). Nothing used DEFAULT, and removing it makes a solid amber fill impossible | `tailwind.config.js`, `README.md` | 6A, Q4 |
+    42	| 16 Oct 2026 | Added `danger` #B42318 and `danger-50` #FEF3F2 | Red only on the event that failed, and nothing red existed | `tailwind.config.js` | 7A, Q5 |
+    43	| 16 Oct 2026 | `success` #1E9E5A → #15803D | White on success was 3.45:1, which fails AA | `tailwind.config.js` | 8A |
+    44	| 16 Oct 2026 | `neutral-500` #808080 → #6B6B6B | Every caption, subtitle and secondary label was 3.95:1 on white, which fails AA. One value fixes them all | `tailwind.config.js` | 8A, Q3 |
+    45	
+    46	## Contrast, before and after
+    47	
+    48	| Pair | Before | After |
+    49	|---|---|---|
+    50	| neutral-500 on white | 3.95 ✗ | 5.33 ✓ |
+    51	| neutral-500 on neutral-50 | 3.78 ✗ | 5.11 ✓ |
+    52	| neutral-500 on neutral-100 | 3.53 ✗ | 4.76 ✓ |
+    53	| neutral-500 on attention-50 | 3.70 ✗ | 5.00 ✓ |
+    54	| neutral-500 on neutral-300 (disabled button) | 2.80 | 3.78 (disabled, exempt) |
+    55	| White on success, success on white | 3.45 ✗ | 5.02 ✓ |
+    56	| danger on white / on danger-50 | — | 6.57 ✓ / 6.05 ✓ |
+    57	| neutral-900 / neutral-700 on danger-50 | — | 16.01 ✓ / 7.78 ✓ |
+    58	| attention-600 on attention-50 (unchanged values) | 4.71 ✓ | 4.71 ✓ |
+    59	| attention-600 on attention-100 (not for text) | 4.31 ✗ | 4.31 ✗ |
+    60	| White on accent DEFAULT, DEFAULT on white | 2.15 ✗ | Removed |
+    61	
+    62	## Exceptions to `npm run check`
+    63	
+    64	| Exception | Why | Where |
+    65	|---|---|---|
+    66	| Tailwind's `white`, `black` and `transparent` | They're absolutes, not palette choices: white surfaces and text on fills, black only as the base of the scrim, transparent for resets. A token would only rename them | `scripts/check-tokens.mjs` |
+    67	| Phone frame size and radius, page backdrop | Scaffolding around the prototype, not the product | `scripts/check-allowlist.json` |
+    68	| `src/review/novakit-v0/` borders | Frozen starter copy for before/after. Never edited, never imported | `scripts/check-allowlist.json` |

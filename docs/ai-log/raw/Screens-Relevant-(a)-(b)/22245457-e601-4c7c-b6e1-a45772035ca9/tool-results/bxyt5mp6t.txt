@@ -1,0 +1,715 @@
+     1	/**
+     2	 * Salary advance: the one source of truth for money and dates.
+     3	 * Screens read from here. They never calculate money or dates themselves.
+     4	 *
+     5	 * Conventions
+     6	 * - Money is whole rupees (integers).
+     7	 * - Dates are "YYYY-MM-DD" strings and times are "HH:mm" (local time).
+     8	 *   No Date object leaves this module.
+     9	 * - `today` is always passed in. There is no hidden clock.
+    10	 * - Unknown is null, never 0. An invalid request returns null, never a guess.
+    11	 *
+    12	 * Sources: PR = PRODUCT_REFERENCE.md, MR = docs/00-my-read.md (Assumptions and principles).
+    13	 * "Decided" marks a call made while planning this module.
+    14	 */
+    15	
+    16	// ---- Rules -----------------------------------------------------------------
+    17	
+    18	export const TIERS = [5000, 10000, 15000]; // PR: loan tiers
+    19	export const FEE_PERCENT = 3; // PR: 3% of the amount paid out, charged once
+    20	export const COLLECTION_TIME = "18:00"; // MR: payday at 6pm, once salary has landed
+    21	export const DEFAULT_AFTER_DAYS = 30; // PR: default at 30+ days past due; day 30 counts
+    22	export const NOT_COLLECTED_REASONS = [
+    23	  "salary_not_arrived",
+    24	  "salary_short",
+    25	  "balance_dropped",
+    26	  "salary_moved_to_bank",
+    27	];
+    28	
+    29	// Reminders. MR principle 4: at most 2 a week, none between 10pm and 8am.
+    30	export const REMINDER_TIME = "10:00";
+    31	export const QUIET_HOURS = { from: "22:00", to: "08:00" };
+    32	export const MAX_REMINDERS_PER_7_DAYS = 2;
+    33	export const REMINDER_DAYS_BEFORE_DUE = 3; // 25 Jul for persona A
+    34	export const NOTICE_DAYS_BEFORE_DEFAULT = 7; // 20 Aug for persona A
+    35	export const LATE_REMINDER_EVERY_DAYS = 7; // PLACEHOLDER: the cadence isn't decided yet
+    36	
+    37	export const PROTOTYPE_TODAY = "2026-07-07"; // MR: today is 7 Jul. The year is never shown
+    38	
+    39	// MR: persona A is paid into NovaPay, persona B into a bank account.
+    40	// The 4,250 balance comes from the starter home screen (decided for both).
+    41	export const PERSONAS = {
+    42	  A: {
+    43	    id: "A",
+    44	    income_source: "salaried",
+    45	    income_verified: true,
+    46	    salary_destination: "novapay",
+    47	    salary_amount: 68000,
+    48	    payday: 28,
+    49	    limit: 10000,
+    50	    wallet_balance: 4250,
+    51	  },
+    52	  B: {
+    53	    id: "B",
+    54	    income_source: "salaried",
+    55	    income_verified: false,
+    56	    salary_destination: "bank",
+    57	    salary_amount: null,
+    58	    payday: null,
+    59	    limit: null,
+    60	    wallet_balance: 4250,
+    61	  },
+    62	};
+    63	
+    64	// ---- Date helpers (private) ------------------------------------------------
+    65	
+    66	const DAY_MS = 24 * 60 * 60 * 1000;
+    67	const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    68	
+    69	const pad = (n) => String(n).padStart(2, "0");
+    70	
+    71	function toUtc(date) {
+    72	  const [y, m, d] = date.split("-").map(Number);
+    73	  return Date.UTC(y, m - 1, d);
+    74	}
+    75	
+    76	function addDays(date, days) {
+    77	  return new Date(toUtc(date) + days * DAY_MS).toISOString().slice(0, 10);
+    78	}
+    79	
+    80	function daysBetween(from, to) {
+    81	  return Math.round((toUtc(to) - toUtc(from)) / DAY_MS);
+    82	}
+    83	
+    84	// The next payday strictly after today. Payday 28 exists in every month.
+    85	function nextPayday(payday, today) {
+    86	  const [y, m, d] = today.split("-").map(Number);
+    87	  const [year, month] = d < payday ? [y, m] : m === 12 ? [y + 1, 1] : [y, m + 1];
+    88	  return `${year}-${pad(month)}-${pad(payday)}`;
+    89	}
+    90	
+    91	// ---- Money helpers (private) -----------------------------------------------
+    92	
+    93	function feeFor(amount) {
+    94	  const fee = (amount * FEE_PERCENT) / 100;
+    95	  if (!Number.isInteger(fee)) throw new Error(`Fee for ${amount} is not whole rupees`);
+    96	  return fee;
+    97	}
+    98	
+    99	// Only events up to and including today count.
+   100	const upTo = (events, today) => events.filter((e) => e.date <= today);
+   101	
+   102	function paidBy(advance, today) {
+   103	  return upTo(advance.payments, today).reduce((sum, p) => sum + p.amount, 0);
+   104	}
+   105	
+   106	function repaidOn(advance, today) {
+   107	  let paid = 0;
+   108	  for (const p of upTo(advance.payments, today)) {
+   109	    paid += p.amount;
+   110	    if (paid >= advance.total) return p.date;
+   111	  }
+   112	  return null;
+   113	}
+   114	
+   115	function failedAttemptOn(advance, date, today) {
+   116	  return (
+   117	    upTo(advance.collection_attempts, today).find(
+   118	      (a) => a.date === date && a.result === "not_collected"
+   119	    ) ?? null
+   120	  );
+   121	}
+   122	
+   123	// ---- Offer, terms, accept --------------------------------------------------
+   124	
+   125	export function getOffer(persona, today) {
+   126	  if (!persona.income_verified || persona.limit == null || persona.payday == null) {
+   127	    return {
+   128	      eligibility: "needs_verification",
+   129	      limit: null,
+   130	      due_date: null,
+   131	      days_until_due: null,
+   132	      collection_time: null,
+   133	      tiers: null,
+   134	    };
+   135	  }
+   136	  const due_date = nextPayday(persona.payday, today);
+   137	  return {
+   138	    eligibility: "eligible",
+   139	    limit: persona.limit,
+   140	    due_date,
+   141	    days_until_due: daysBetween(today, due_date),
+   142	    collection_time: COLLECTION_TIME, // so the offer screen can say "at 6pm" without reaching for a constant
+   143	    tiers: TIERS.map((amount) =>
+   144	      amount <= persona.limit
+   145	        ? { amount, fee: feeFor(amount), total: amount + feeFor(amount), available: true, blocked_reason: null }
+   146	        : { amount, fee: null, total: null, available: false, blocked_reason: "over_limit" }
+   147	    ),
+   148	  };
+   149	}
+   150	
+   151	function buildTerms({ persona_id, offered_on, applied_amount, disbursed_amount, due_date, reduced_from }) {
+   152	  const fee = feeFor(disbursed_amount);
+   153	  const total = disbursed_amount + fee;
+   154	  const default_date = addDays(due_date, DEFAULT_AFTER_DAYS);
+   155	  return {
+   156	    id: `${persona_id}-${offered_on}-${applied_amount}-${disbursed_amount}`,
+   157	    persona_id,
+   158	    offered_on,
+   159	    applied_amount,
+   160	    disbursed_amount,
+   161	    fee,
+   162	    total,
+   163	    due_date,
+   164	    collection: { date: due_date, time: COLLECTION_TIME, from: "novapay_wallet" },
+   165	    default_date,
+   166	    // MR: the permission ends when repaid or at the default date, whichever comes first.
+   167	    permission: { amount: total, from_date: due_date, ends_by: default_date },
+   168	    reduced_from,
+   169	  };
+   170	}
+   171	
+   172	// Null if the amount isn't a tier, is over the limit, or the persona isn't eligible.
+   173	export function getTerms(persona, applied_amount, today) {
+   174	  const offer = getOffer(persona, today);
+   175	  const tier = offer.tiers?.find((t) => t.amount === applied_amount);
+   176	  if (!tier || !tier.available) return null;
+   177	  return buildTerms({
+   178	    persona_id: persona.id,
+   179	    offered_on: today,
+   180	    applied_amount,
+   181	    disbursed_amount: applied_amount,
+   182	    due_date: offer.due_date,
+   183	    reduced_from: null,
+   184	  });
+   185	}
+   186	
+   187	// MR: a reduced payout always drops to a lower tier, so the fee stays whole.
+   188	// Null when there's no lower tier (from Rs 5,000): not shown in the prototype.
+   189	export function reducePayout(terms) {
+   190	  const lower = TIERS.filter((t) => t < terms.disbursed_amount).pop();
+   191	  if (lower == null) return null;
+   192	  return buildTerms({
+   193	    persona_id: terms.persona_id,
+   194	    offered_on: terms.offered_on,
+   195	    applied_amount: terms.applied_amount,
+   196	    disbursed_amount: lower,
+   197	    due_date: terms.due_date,
+   198	    reduced_from: { disbursed_amount: terms.disbursed_amount, fee: terms.fee, total: terms.total },
+   199	  });
+   200	}
+   201	
+   202	// Accepting the same terms twice returns the same advance, never a second one.
+   203	const accepted = new Map();
+   204	
+   205	export function acceptTerms(terms, { permission_granted }, today) {
+   206	  if (permission_granted !== true) return { error: "permission_required" };
+   207	  if (accepted.has(terms.id)) return accepted.get(terms.id);
+   208	  const advance = {
+   209	    id: terms.id,
+   210	    applied_amount: terms.applied_amount,
+   211	    disbursed_amount: terms.disbursed_amount,
+   212	    fee: terms.fee,
+   213	    total: terms.total,
+   214	    accepted_on: today,
+   215	    received_on: today, // MR: the payout lands in the wallet when accepted
+   216	    due_date: terms.due_date,
+   217	    default_date: terms.default_date,
+   218	    permission_granted: true,
+   219	    payments: [],
+   220	    collection_attempts: [],
+   221	    payroll_delay_reported_on: null,
+   222	  };
+   223	  accepted.set(terms.id, advance);
+   224	  return advance;
+   225	}
+   226	
+   227	// ---- After accept ----------------------------------------------------------
+   228	
+   229	// MR: collection is full amount only, from the NovaPay wallet, once salary has landed.
+   230	// After payday, it's attempted again only when salary lands (decided, not any incoming money).
+   231	export function collectionOutcome(advance, { date, time, salary_landed, salary_amount = null, balance, salary_destination = "novapay" }) {
+   232	  const owed = advance.total - paidBy(advance, date);
+   233	  if (owed <= 0) return advance;
+   234	  let reason = null;
+   235	  if (salary_destination !== "novapay") reason = "salary_moved_to_bank";
+   236	  else if (!salary_landed) reason = "salary_not_arrived";
+   237	  else if (balance < owed && salary_amount < owed) reason = "salary_short";
+   238	  else if (balance < owed) reason = "balance_dropped";
+   239	  return {
+   240	    ...advance,
+   241	    collection_attempts: [
+   242	      ...advance.collection_attempts,
+   243	      { date, time, result: reason ? "not_collected" : "collected", reason },
+   244	    ],
+   245	    payments: reason ? advance.payments : [...advance.payments, { date, amount: owed, method: "auto" }],
+   246	  };
+   247	}
+   248	
+   249	// MR: the user can report a payroll delay, and reminders pause. Days late still count.
+   250	export function reportPayrollDelay(advance, date) {
+   251	  return { ...advance, payroll_delay_reported_on: advance.payroll_delay_reported_on ?? date };
+   252	}
+   253	
+   254	export function getStatus(advance, today) {
+   255	  const repaid_on = repaidOn(advance, today);
+   256	  const attempts = upTo(advance.collection_attempts, today);
+   257	  const reported = advance.payroll_delay_reported_on;
+   258	  const common = {
+   259	    outstanding: advance.total - paidBy(advance, today),
+   260	    repaid_on,
+   261	    permission: {
+   262	      active: repaid_on == null && today < advance.default_date,
+   263	      ends_on: repaid_on != null && repaid_on < advance.default_date ? repaid_on : advance.default_date,
+   264	    },
+   265	    last_attempt: attempts.length ? attempts[attempts.length - 1] : null,
+   266	    reminders_paused: reported != null && reported <= today,
+   267	  };
+   268	
+   269	  // Days late are counted from the due date and shown truthfully. No grace rule.
+   270	  if (repaid_on) {
+   271	    const days_late = Math.max(0, daysBetween(advance.due_date, repaid_on));
+   272	    const repayment_status = days_late === 0 ? "on_time" : days_late >= DEFAULT_AFTER_DAYS ? "default" : "late";
+   273	    return { phase: "repaid", repayment_status, days_late, days_until_due: null, days_until_default: null, ...common };
+   274	  }
+   275	
+   276	  const sinceDue = daysBetween(advance.due_date, today);
+   277	  const days_late = Math.max(0, sinceDue);
+   278	  let phase;
+   279	  if (sinceDue < 0) phase = "before_due";
+   280	  else if (sinceDue === 0) phase = failedAttemptOn(advance, advance.due_date, today) ? "not_collected" : "due_today";
+   281	  else if (days_late >= DEFAULT_AFTER_DAYS) phase = "default";
+   282	  else phase = "late";
+   283	
+   284	  return {
+   285	    phase,
+   286	    repayment_status: phase === "late" || phase === "default" ? phase : null,
+   287	    days_late,
+   288	    days_until_due: sinceDue <= 0 ? -sinceDue : null,
+   289	    days_until_default: phase === "default" ? null : daysBetween(today, advance.default_date),
+   290	    ...common,
+   291	  };
+   292	}
+   293	
+   294	// ---- Reminders -------------------------------------------------------------
+   295	
+   296	// True if adding `date` keeps every 7-day window at or under the cap.
+   297	function fitsCap(kept, date) {
+   298	  for (let start = addDays(date, -6); start <= date; start = addDays(start, 1)) {
+   299	    const end = addDays(start, 6);
+   300	    const inWindow = kept.filter((r) => r.date >= start && r.date <= end).length;
+   301	    if (inWindow >= MAX_REMINDERS_PER_7_DAYS) return false;
+   302	  }
+   303	  return true;
+   304	}
+   305	
+   306	// Decided: a material consequence must always be announced, so this is never paused.
+   307	const NEVER_PAUSED = ["before_default"];
+   308	
+   309	/**
+   310	 * Every reminder for this advance as known today, each with a status:
+   311	 * "sent" (on or before today), "scheduled" (later, if nothing changes) or "paused".
+   312	 * Notices about events win over routine late reminders when the 2-a-week cap bites.
+   313	 * Nothing is sent on or after the default date.
+   314	 */
+   315	export function getReminders(advance, today) {
+   316	  const repaid_on = repaidOn(advance, today);
+   317	  const owedOn = (date) => repaid_on == null || repaid_on >= date;
+   318	  const due = advance.due_date;
+   319	  const failed = failedAttemptOn(advance, due, today);
+   320	  const lateKnown = failed != null || (today > due && owedOn(due));
+   321	  const candidates = [];
+   322	
+   323	  const beforeDue = addDays(due, -REMINDER_DAYS_BEFORE_DUE);
+   324	  if (beforeDue >= advance.accepted_on && owedOn(beforeDue)) {
+   325	    candidates.push({ type: "before_due", date: beforeDue, time: REMINDER_TIME, priority: 1 });
+   326	  }
+   327	  if (failed) {
+   328	    // Sent when the collection fails, not at 10:00: the attempt is at 6pm. Inside 8am–10pm.
+   329	    candidates.push({ type: "not_collected", date: due, time: failed.time, priority: 0 });
+   330	  }
+   331	  if (lateKnown) {
+   332	    for (let d = addDays(due, LATE_REMINDER_EVERY_DAYS); d < advance.default_date; d = addDays(d, LATE_REMINDER_EVERY_DAYS)) {
+   333	      if (owedOn(d)) candidates.push({ type: "late", date: d, time: REMINDER_TIME, priority: 2 });
+   334	    }
+   335	    const beforeDefault = addDays(advance.default_date, -NOTICE_DAYS_BEFORE_DEFAULT);
+   336	    if (owedOn(beforeDefault)) {
+   337	      candidates.push({ type: "before_default", date: beforeDefault, time: REMINDER_TIME, priority: 0 });
+   338	    }
+   339	  }
+   340	
+   341	  const reported = advance.payroll_delay_reported_on;
+   342	  const pausedAfter = reported != null && reported <= today ? reported : null;
+   343	  const kept = [];
+   344	  const out = [];
+   345	  candidates.sort((a, b) => a.priority - b.priority || a.date.localeCompare(b.date));
+   346	  for (const c of candidates) {
+   347	    if (pausedAfter && c.date > pausedAfter && !NEVER_PAUSED.includes(c.type)) {
+   348	      out.push({ ...c, status: "paused" });
+   349	    } else if (fitsCap(kept, c.date)) {
+   350	      kept.push(c);
+   351	      out.push({ ...c, status: c.date <= today ? "sent" : "scheduled" });
+   352	    }
+   353	  }
+   354	  return out
+   355	    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+   356	    .map(({ priority, ...reminder }) => reminder);
+   357	}
+   358	
+   359	// ---- Wallet ----------------------------------------------------------------
+   360	
+   361	// Decided: show the real balance, with "Includes Rs X from your advance" beneath it,
+   362	// on home after accepting only. Spending isn't modelled ("with more time"), so after
+   363	// the payout day the balance is unknown: null, never a guess. Elsewhere the advance
+   364	// card reads from the advance itself (disbursed_amount, received_on, total, due_date).
+   365	export function getWallet(persona, advance, today) {
+   366	  if (persona.wallet_balance == null) return { balance: null, includes_advance: null };
+   367	  if (!advance) return { balance: persona.wallet_balance, includes_advance: null };
+   368	  if (today !== advance.received_on) return { balance: null, includes_advance: null };
+   369	  return {
+   370	    balance: persona.wallet_balance + advance.disbursed_amount,
+   371	    includes_advance: advance.disbursed_amount,
+   372	  };
+   373	}
+   374	
+   375	// ---- Formatting dates and times --------------------------------------------
+   376	
+   377	export function formatDate(date) {
+   378	  if (date == null) return null;
+   379	  const [, m, d] = date.split("-").map(Number);
+   380	  return `${d} ${MONTHS[m - 1]}`;
+   381	}
+   382	
+   383	export function formatTime(time) {
+   384	  if (time == null) return null;
+   385	  const [h, min] = time.split(":").map(Number);
+   386	  const suffix = h < 12 ? "am" : "pm";
+   387	  const hour = h % 12 || 12;
+   388	  return min ? `${hour}:${pad(min)}${suffix}` : `${hour}${suffix}`;
+   389	}
+   390	
+   391	// ---- Reviewer scenarios ----------------------------------------------------
+   392	
+   393	// The date each state is viewed on. Everything else is 7 Jul.
+   394	const SCENARIO_DATES = {
+   395	  S10: "2026-07-25", // reminder before the due date
+   396	  S11: "2026-07-28", // not collected on payday
+   397	  S12: "2026-08-02", // late, 5 days
+   398	  S13: "2026-08-20", // notice before default
+   399	};
+   400	
+   401	// Inputs for each "not collected" cause. Scenario data only; screens don't show these.
+   402	const NOT_COLLECTED_INPUTS = {
+   403	  salary_not_arrived: { salary_landed: false, salary_amount: null, balance: 1800, salary_destination: "novapay" },
+   404	  salary_short: { salary_landed: true, salary_amount: 9000, balance: 9600, salary_destination: "novapay" },
+   405	  balance_dropped: { salary_landed: true, salary_amount: 68000, balance: 6500, salary_destination: "novapay" },
+   406	  salary_moved_to_bank: { salary_landed: false, salary_amount: null, balance: 1800, salary_destination: "bank" },
+   407	};
+   408	
+   409	export const SCENARIO_IDS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"];
+   410	
+   411	export function scenario(id, { reason = "salary_not_arrived" } = {}) {
+   412	  if (!SCENARIO_IDS.includes(id)) throw new Error(`Unknown scenario ${id}`);
+   413	  const today = SCENARIO_DATES[id] ?? PROTOTYPE_TODAY;
+   414	  if (id === "S2") {
+   415	    const B = PERSONAS.B;
+   416	    return { id, persona: B, today, offer: getOffer(B, today), terms: null, advance: null };
+   417	  }
+   418	
+   419	  const A = PERSONAS.A;
+   420	  const offer = getOffer(A, PROTOTYPE_TODAY);
+   421	  const terms = getTerms(A, 10000, PROTOTYPE_TODAY);
+   422	  const base = { id, persona: A, today, offer, terms, advance: null };
+   423	  if (["S1", "S3", "S4", "S5", "S6"].includes(id)) return base;
+   424	  if (id === "S7") return { ...base, terms: reducePayout(terms) };
+   425	
+   426	  let advance = acceptTerms(terms, { permission_granted: true }, PROTOTYPE_TODAY);
+   427	  if (["S11", "S12", "S13"].includes(id)) {
+   428	    advance = collectionOutcome(advance, {
+   429	      date: advance.due_date,
+   430	      time: COLLECTION_TIME,
+   431	      ...NOT_COLLECTED_INPUTS[reason],
+   432	    });
+   433	  }
+   434	  return { ...base, advance };
+   435	}
+=== Choice
+     1	import { useId } from "react";
+     2	
+     3	/**
+     4	 * Choice — NovaKit Lite
+     5	 * One component for a checkbox or a radio: a native <input> inside a <label>.
+     6	 * Types: checkbox | radio
+     7	 * States: unchecked, checked, focus-visible, disabled (with a visible reason)
+     8	 *
+     9	 * - Controlled only. It never defaults to checked: pass `checked` and `onChange`.
+    10	 * - The whole row is the tap target, at least 44px tall.
+    11	 * - The accessible name is the label only. The description and the disabled reason
+    12	 *   are read as descriptions (aria-describedby), so they're heard but not repeated.
+    13	 * - Disabled uses aria-disabled, not the native attribute, so the option stays
+    14	 *   focusable and its reason is heard. It can't be checked: a tap is cancelled and
+    15	 *   onChange is never called. A caller's onClick still runs, so a screen can say why.
+    16	 *   The control is dimmed; the label and reason stay readable in neutral-700.
+    17	 * - Any other props (aria-*, required, form, onClick…) go to the <input>.
+    18	 *
+    19	 * Radio groups: the caller wraps the options in a <fieldset> with a <legend>
+    20	 * that names the choice, and gives every option the same `name`. For example:
+    21	 *
+    22	 *   <fieldset>
+    23	 *     <legend>How much do you need?</legend>
+    24	 *     <Choice type="radio" name="amount" value="5000" checked={…} onChange={…} label="Rs 5,000" />
+    25	 *     <Choice type="radio" name="amount" value="10000" checked={…} onChange={…} label="Rs 10,000" />
+    26	 *   </fieldset>
+    27	 */
+    28	export default function Choice({
+    29	  type = "checkbox",
+    30	  name,
+    31	  value,
+    32	  checked = false,
+    33	  onChange,
+    34	  label,
+    35	  description = null,
+    36	  disabled = false,
+    37	  disabledReason = null,
+    38	  id,
+    39	  onClick,
+    40	  ...rest
+    41	}) {
+    42	  const autoId = useId();
+    43	  const inputId = id ?? `choice-${autoId}`;
+    44	  const labelId = `${inputId}-label`;
+    45	  const descriptionId = description ? `${inputId}-description` : null;
+    46	  const reasonId = disabled && disabledReason ? `${inputId}-reason` : null;
+    47	  const describedBy =
+    48	    [rest["aria-describedby"], descriptionId, reasonId].filter(Boolean).join(" ") || undefined;
+    49	
+    50	  function handleClick(event) {
+    51	    if (disabled) event.preventDefault(); // cancels the check, by tap, click or Space
+    52	    onClick?.(event);
+    53	  }
+    54	
+    55	  return (
+    56	    <label
+    57	      htmlFor={inputId}
+    58	      className={
+    59	        "flex items-start gap-3 min-h-11 py-2.5 " +
+    60	        (disabled ? "cursor-not-allowed" : "cursor-pointer")
+    61	      }
+    62	    >
+    63	      <input
+    64	        {...rest}
+    65	        id={inputId}
+    66	        type={type}
+    67	        name={name}
+    68	        value={value}
+    69	        checked={disabled ? false : checked === true}
+    70	        // Disabled: a no-op, so a change by arrow key is undone by React's controlled value.
+    71	        onChange={disabled ? () => {} : onChange}
+    72	        onClick={handleClick}
+    73	        aria-disabled={disabled || undefined}
+    74	        aria-labelledby={labelId}
+    75	        aria-describedby={describedBy}
+    76	        className={
+    77	          // Dimmed when disabled, but full strength while focused, so the ring isn't dimmed too.
+    78	          "h-6 w-6 shrink-0 accent-brand aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 aria-disabled:cursor-not-allowed " +
+    79	          "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 " +
+    80	          (type === "radio" ? "rounded-full" : "")
+    81	        }
+    82	      />
+    83	      <span className="min-w-0 flex-1 pt-px">
+    84	        <span id={labelId} className={`block text-body ${disabled ? "text-neutral-700" : "text-neutral-900"}`}>
+    85	          {label}
+    86	        </span>
+    87	        {description ? (
+    88	          <span id={descriptionId} className="block text-caption text-neutral-700 mt-0.5">
+    89	            {description}
+    90	          </span>
+    91	        ) : null}
+    92	        {reasonId ? (
+    93	          <span id={reasonId} className="block text-caption text-neutral-700 mt-0.5">
+    94	            {disabledReason}
+    95	          </span>
+    96	        ) : null}
+    97	      </span>
+    98	    </label>
+    99	  );
+   100	}
+=== Button
+     1	/**
+     2	 * Button — NovaKit Lite
+     3	 * Variants: primary | secondary
+     4	 * Sizes: md | lg (minimum heights, so a second line fits)
+     5	 * States: default, pressed (active), focus-visible, disabled, loading
+     6	 *
+     7	 * - subLabel: an optional second line, e.g. "Repay Rs 10,300 on 28 Jul". Screen readers
+     8	 *   hear a stop between the lines: "Accept Rs 10,000. Repay Rs 10,300 on 28 Jul".
+     9	 * - loading: the button is disabled and aria-busy. loadingLabel, if given, replaces
+    10	 *   the label; the original label stays in place invisibly, so the size never changes.
+    11	 * - Any other props (aria-*, id, form…) go to the <button>.
+    12	 */
+    13	export default function Button({
+    14	  children,
+    15	  variant = "primary",
+    16	  size = "md",
+    17	  disabled = false,
+    18	  loading = false,
+    19	  loadingLabel = null,
+    20	  subLabel = null,
+    21	  onClick,
+    22	  type = "button",
+    23	  className = "",
+    24	  ...rest
+    25	}) {
+    26	  const base =
+    27	    "inline-flex flex-col items-center justify-center text-center rounded-md font-semibold transition-colors select-none w-full py-2 " +
+    28	    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2";
+    29	
+    30	  const sizes = {
+    31	    md: "min-h-11 px-4 text-body",
+    32	    lg: "min-h-14 px-5 text-title",
+    33	  };
+    34	
+    35	  // While loading, the button keeps its own colours: it's working, not unavailable.
+    36	  const variants = {
+    37	    primary: {
+    38	      enabled: "bg-brand text-white active:bg-brand-pressed",
+    39	      disabled: "bg-neutral-300 text-neutral-500",
+    40	      loading: "bg-brand text-white cursor-progress",
+    41	      subLabel: "text-brand-100",
+    42	    },
+    43	    secondary: {
+    44	      enabled: "bg-white text-neutral-900 border border-neutral-300 active:bg-neutral-100",
+    45	      disabled: "bg-white text-neutral-300 border border-neutral-300",
+    46	      loading: "bg-white text-neutral-900 border border-neutral-300 cursor-progress",
+    47	      subLabel: "text-neutral-700",
+    48	    },
+    49	  };
+    50	  const v = variants[variant];
+    51	  const state = loading ? "loading" : disabled ? "disabled" : "enabled";
+    52	  const showLoadingLabel = loading && loadingLabel != null;
+    53	
+    54	  return (
+    55	    <button
+    56	      {...rest}
+    57	      type={type}
+    58	      disabled={disabled || loading}
+    59	      aria-busy={loading || undefined}
+    60	      onClick={onClick}
+    61	      className={`${base} ${sizes[size]} ${v[state]} ${className}`}
+    62	    >
+    63	      <span className="grid">
+    64	        <span className={`col-start-1 row-start-1 ${showLoadingLabel ? "invisible" : ""}`}>{children}</span>
+    65	        {showLoadingLabel ? <span className="col-start-1 row-start-1">{loadingLabel}</span> : null}
+    66	        {/* A stop heard but not seen, so the two lines aren't read as one phrase. */}
+    67	        {subLabel ? <span className="sr-only">.</span> : null}
+    68	      </span>
+    69	      {subLabel ? (
+    70	        <span className={`text-caption ${state === "disabled" ? "" : v.subLabel}`}>{subLabel}</span>
+    71	      ) : null}
+    72	    </button>
+    73	  );
+    74	}
+=== ListRow
+     1	/**
+     2	 * ListRow / TransactionRow — NovaKit Lite
+     3	 * leading icon · title + subtitle · trailing amount
+     4	 *
+     5	 * - wrap (default false): title and subtitle wrap instead of truncating. Use it
+     6	 *   wherever cutting the text would hide a term, a date or an amount.
+     7	 * - The icon is decorative and hidden from screen readers. Put any meaning it
+     8	 *   carries ("Received", "Collected") in the title or subtitle.
+     9	 * - Any other props go to the row's <div>.
+    10	 * - Known gap, flagged not fixed: rows are <div>s, not list or description-list items.
+    11	 */
+    12	export default function ListRow({
+    13	  icon = null,
+    14	  title,
+    15	  subtitle,
+    16	  trailing = null,
+    17	  wrap = false,
+    18	  className = "",
+    19	  ...rest
+    20	}) {
+    21	  const text = wrap ? "" : "truncate";
+    22	  return (
+    23	    <div
+    24	      {...rest}
+    25	      className={
+    26	        "flex items-center gap-3 py-3 border-b border-neutral-300 last:border-b-0 " +
+    27	        className
+    28	      }
+    29	    >
+    30	      {icon ? (
+    31	        <div
+    32	          aria-hidden="true"
+    33	          className="h-9 w-9 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-700 shrink-0"
+    34	        >
+    35	          {icon}
+    36	        </div>
+    37	      ) : null}
+    38	      <div className="min-w-0 flex-1">
+    39	        <div className={`text-body text-neutral-900 ${text}`}>{title}</div>
+    40	        {subtitle ? (
+    41	          <div className={`text-caption text-neutral-500 ${text}`}>{subtitle}</div>
+    42	        ) : null}
+    43	      </div>
+    44	      {trailing ? <div className="shrink-0">{trailing}</div> : null}
+    45	    </div>
+    46	  );
+    47	}
+=== AppBar
+     1	/**
+     2	 * AppBar — NovaKit Lite
+     3	 * title + optional back affordance
+     4	 *
+     5	 * - backLabel names where back goes ("Back to home"). It defaults to "Back".
+     6	 * - The title is the screen's <h1>. It takes programmatic focus (tabIndex -1), so a
+     7	 *   screen change can move focus to it, but it isn't in the Tab order.
+     8	 */
+     9	export default function AppBar({ title, onBack = null, backLabel = "Back" }) {
+    10	  return (
+    11	    <header className="h-14 flex items-center gap-2 px-3 border-b border-neutral-100 bg-white">
+    12	      {onBack ? (
+    13	        <button
+    14	          onClick={onBack}
+    15	          aria-label={backLabel}
+    16	          className="h-11 w-11 -ml-1 flex items-center justify-center rounded-full text-neutral-700 active:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+    17	        >
+    18	          <span aria-hidden="true" className="text-display">‹</span>
+    19	        </button>
+    20	      ) : null}
+    21	      <h1 tabIndex={-1} className="text-title text-neutral-900 focus:outline-none">
+    22	        {title}
+    23	      </h1>
+    24	    </header>
+    25	  );
+    26	}
+=== Card
+     1	/**
+     2	 * Card — NovaKit Lite
+     3	 * A surface container for grouping content.
+     4	 * Tones: default | attention | danger
+     5	 *
+     6	 * - attention is for a person's status (late, notice before default).
+     7	 * - danger is only for a failed event ("We couldn't collect on 28 Jul", a network
+     8	 *   failure), never for a person's status.
+     9	 * - Both are a soft background with inherited dark text (neutral-900). No icons,
+    10	 *   no solid fills. Every tone's border is as faint as the default card's edge.
+    11	 * - Card adds no role by itself. A screen that shows a failure passes
+    12	 *   role="alert" (or aria-live), which goes to the <div> with any other props.
+    13	 */
+    14	export default function Card({ children, tone = "default", className = "", ...rest }) {
+    15	  const tones = {
+    16	    default: "bg-white border-neutral-200",
+    17	    attention: "bg-attention-50 border-attention-100",
+    18	    danger: "bg-danger-50 border-neutral-200",
+    19	  };
+    20	  return (
+    21	    <div
+    22	      {...rest}
+    23	      className={`rounded-lg border shadow-card p-4 ${tones[tone] || tones.default} ${className}`}
+    24	    >
+    25	      {children}
+    26	    </div>
+    27	  );
+    28	}
