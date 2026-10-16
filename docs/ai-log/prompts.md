@@ -75,3 +75,21 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 <!-- prompt:d0f2c120-b541-4c37-a736-b3802215789a -->
 
 > Read docs/progress.md. Phase is Critique of my read and setting up rails. My intent: I want to use this session as a critique of how I understood the problem, my impressions and some rules I have set. Propose a plan before touching code.
+
+### Prompt 2
+
+<!-- prompt:273ab08d-42c6-4bb9-b345-ea2570abe67f -->
+
+> Read _inputs/brief.md, PRODUCT_REFERENCE.md and docs/00-my-read.md. Don't design anything and don't write code.
+>
+> 1.  Where is my reasoning weak or unsupported?
+>
+> 2.  What does the brief ask for that my plan doesn't cover?
+>
+> 3. Which of my assumptions would a lending compliance person or regulator challenge, and why?
+>
+> 4.  Which of my principles are vague enough that they couldn't fail a screen?
+>
+> 5. Does my scope cover the necessary areas and does it follow the Depth over breadth rule set in the breif?
+>
+> Be blunt and specific.
