@@ -81,11 +81,11 @@ export default function ChooseAmount({ Frame, offer, amount, onAmountChange, onC
             <div role="status" className={message ? "text-body text-neutral-900 pb-3" : ""}>
               {message}
             </div>
-            <Button size="lg" subLabel="Nothing is borrowed yet" onClick={handleContinue}>
+            <Button subLabel="Nothing is borrowed yet" onClick={handleContinue}>
               Review terms
             </Button>
           </div>
-          <Button size="lg" variant="secondary" onClick={onLeave}>
+          <Button variant="secondary" onClick={onLeave}>
             Back to home
           </Button>
         </>

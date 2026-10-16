@@ -14,13 +14,14 @@ import { PERSONAS, PROTOTYPE_TODAY, acceptTerms, getOffer, getTerms } from "./ad
 // so it stays visible while the content scrolls. Nothing is shown when it's empty.
 // `overlay` is for things that sit above the content, like a Toast. It's placed at the
 // bottom of the content area, just above the action area, never over the actions.
+// `sheet` is for a modal BottomSheet: it covers the whole frame, actions included.
 //
 // Every screen gets the same arrival: the page title becomes `title`, and after a screen
 // change focus moves to the screen's <h1>, so a screen reader announces where you are.
 // The first screen on page load keeps the browser's own focus.
 let hasChangedScreen = false; // set by App's navigation, never during render
 
-function PhoneFrame({ title, appBar, actions = null, overlay = null, children }) {
+function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = null, children }) {
   const frameRef = useRef(null);
 
   useEffect(() => {
@@ -44,6 +45,8 @@ function PhoneFrame({ title, appBar, actions = null, overlay = null, children })
       {actions ? (
         <footer className="shrink-0 bg-white border-t border-neutral-200 p-4 space-y-3">{actions}</footer>
       ) : null}
+
+      {sheet}
     </div>
   );
 }
@@ -74,11 +77,11 @@ export default function App() {
     go("home");
   }
 
-  function accept() {
-    // The permission was ticked on screen. acceptTerms is idempotent: a second tap
-    // returns the same advance, never a second one.
-    const result = acceptTerms(terms, { permission_granted: true }, today);
-    if (result.error) return;
+  function accept(consent) {
+    // The screen passes what was actually ticked; the module refuses without it.
+    // acceptTerms is idempotent: a second tap returns the same advance, never a second one.
+    const result = acceptTerms(terms, consent, today);
+    if (result.error) return; // unreachable: the screen only calls this once the box is ticked
     setAdvance(result);
     go("receipt");
   }
@@ -165,7 +168,7 @@ function Home({ Frame, onStartAdvance }) {
   );
 }
 
-// PLACEHOLDER until S5 (the receipt) is built. It exists so "Accept" leads somewhere
+// PLACEHOLDER until S8 (the receipt) is built. It exists so "Accept" leads somewhere
 // honest. There's no back: the advance has been accepted.
 function ReceiptPlaceholder({ Frame, advance, onDone }) {
   return (

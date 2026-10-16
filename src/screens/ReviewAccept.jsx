@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { AppBar, Card, ListRow, Choice, Button, AmountText, formatAmount } from "../novakit";
+import { AppBar, Card, ListRow, Choice, Button, AmountText, BottomSheet, formatAmount } from "../novakit";
 import {
   FEE_PERCENT,
   MAX_REMINDERS_PER_7_DAYS,
@@ -17,14 +17,17 @@ const TIMES = { 1: "once", 2: "twice" };
  * screen when terms exist.
  *
  * - The cost summary is first, so it's visible without scrolling (principle 1).
- * - The permission to collect is its own unticked checkbox. It starts unticked every
- *   time the screen opens.
- * - "Accept" stays enabled. Without the permission it shows a neutral message at the
- *   checkbox, announced on every tap, and moves focus to the checkbox.
+ * - What happens if it's late is one line, with the details in a BottomSheet.
+ * - The permission to collect is its own unticked checkbox. It points at the
+ *   repayment above instead of repeating it, and says when it ends. It starts
+ *   unticked every time the screen opens.
+ * - "Accept" stays enabled. Without the permission it shows a neutral message in the
+ *   action area, above the button, announced on every tap, and moves focus to the checkbox.
  */
 export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, onLeave }) {
   const [permission, setPermission] = useState(false);
   const [message, setMessage] = useState("");
+  const [lateOpen, setLateOpen] = useState(false);
   const timer = useRef(null);
   const permissionId = `${useId()}-permission`;
 
@@ -33,7 +36,6 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
   const due = formatDate(terms.due_date);
   const time = formatTime(terms.collection.time);
   const until = formatDate(terms.permission.ends_by);
-  const owed = formatAmount(terms.permission.amount);
 
   function handlePermission(event) {
     setPermission(event.target.checked);
@@ -43,7 +45,7 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
 
   function handleAccept() {
     if (permission) {
-      onAccept();
+      onAccept({ permission_granted: permission });
       return;
     }
     // Clear, then set again, so the status is announced on every tap, after the
@@ -57,16 +59,42 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
   return (
     <Frame
       title="Review and accept: NovaPay"
+      sheet={
+        <BottomSheet open={lateOpen} onClose={() => setLateOpen(false)} title="What happens if it's late">
+          <ul className="list-disc pl-5 space-y-1 text-body text-neutral-900">
+            <li>Days late are counted from {due}.</li>
+            <li>You can pay some or all of it yourself.</li>
+            <li>
+              If your salary is delayed, tell us and we'll pause reminders. We'll still tell you before it goes into
+              default.
+            </li>
+            <li>
+              Reminders come at most {TIMES[MAX_REMINDERS_PER_7_DAYS] ?? `${MAX_REMINDERS_PER_7_DAYS} times`} a week,
+              never between {formatTime(QUIET_HOURS.from)} and {formatTime(QUIET_HOURS.to)}, and only to you.
+            </li>
+            <li>We won't freeze your wallet.</li>
+            <li>
+              If it's still unpaid on {until}, the advance is in default. New advances are paused and automatic
+              collection stops.
+            </li>
+          </ul>
+        </BottomSheet>
+      }
       appBar={<AppBar title="Review and accept" onBack={onChangeAmount} backLabel="Back to amounts" />}
       actions={
         <>
-          <Button
-            size="lg"
-            subLabel={`Repay ${formatAmount(terms.total)} on ${due}`}
-            onClick={handleAccept}
-          >
-            Accept {formatAmount(terms.disbursed_amount)}
-          </Button>
+          {/* Next to the button, so it's seen where the tap happened. */}
+          <div>
+            <div role="status" className={message ? "text-body text-neutral-900 pb-3" : ""}>
+              {message}
+            </div>
+            <Button
+              subLabel={`Repay ${formatAmount(terms.total)} on ${due}`}
+              onClick={handleAccept}
+            >
+              Accept {formatAmount(terms.disbursed_amount)}
+            </Button>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Button variant="secondary" onClick={onChangeAmount}>
               Change amount
@@ -107,30 +135,17 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
 
       <Card className="space-y-2">
         <p className="text-body text-neutral-900">
-          If we can't take it on {due}, we'll tell you that evening and try again when your salary next arrives.
+          If we can't take it on {due}, we'll tell you at {time}. If your salary is late, we'll try again when it
+          arrives.
         </p>
-        <details>
-          <summary className="cursor-pointer rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
-            What happens if it's late
-          </summary>
-          <ul className="mt-2 list-disc pl-5 space-y-1 text-body text-neutral-900">
-            <li>Days late are counted from {due}.</li>
-            <li>You can pay some or all of it yourself.</li>
-            <li>
-              If your salary is delayed, tell us and we'll pause reminders. We'll still tell you before it goes into
-              default.
-            </li>
-            <li>
-              Reminders come at most {TIMES[MAX_REMINDERS_PER_7_DAYS] ?? `${MAX_REMINDERS_PER_7_DAYS} times`} a week,
-              never between {formatTime(QUIET_HOURS.from)} and {formatTime(QUIET_HOURS.to)}, and only to you.
-            </li>
-            <li>We won't freeze your wallet.</li>
-            <li>
-              If it's still unpaid on {until}, the advance is in default. New advances are paused and automatic
-              collection stops.
-            </li>
-          </ul>
-        </details>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => setLateOpen(true)}
+          className="inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          What happens if it's late
+        </button>
       </Card>
 
       <Card>
@@ -140,12 +155,9 @@ export default function ReviewAccept({ Frame, terms, onAccept, onChangeAmount, o
           name="collection-permission"
           checked={permission}
           onChange={handlePermission}
-          label={`I allow NovaPay to take ${owed} from my NovaPay wallet automatically at ${time} on ${due} once my salary arrives, or when it arrives after that.`}
-          description={`This permission ends when the advance is repaid, or on ${until} at the latest. It only applies when your salary arrives, never to other money in your wallet.`}
+          label="I allow NovaPay to take the repayment above automatically."
+          description={`This ends automatically when it's repaid, or on ${until} at the latest.`}
         />
-        <div role="status" className={message ? "text-body text-neutral-900 mt-2" : ""}>
-          {message}
-        </div>
       </Card>
     </Frame>
   );
