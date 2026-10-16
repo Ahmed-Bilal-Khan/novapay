@@ -120,7 +120,7 @@ The home card: eligible vs needs verification (the second persona's home-card st
 Home after accepting: the balance first, saying how much of it came from the advance ("Includes Rs 10,000 from your advance"), and the advance in its own card with what's owed and when. This is where the receipt's Done goes, and it makes principle 5 testable. The advance's details open from that card.
 
 **With more time**
-Credit-history decline, the default screen itself, successful repayment, early repayment. (Viewing the advance later is now built as its details, from the home card.) Modelling real spending, so the balance always shows how much of it is borrowed. (The prototype's later balances come from sample activity rows, which explain the balance but can't say how much of it is borrowed.)
+Credit-history decline, the default screen itself, successful repayment, early repayment, lock-screen previews (the reminder copy and lock-screen text are documented in the write-up). (Viewing the advance later is now built as its details, from the home card.) Modelling real spending, so the balance always shows how much of it is borrowed. (The prototype's later balances come from sample activity rows, which explain the balance but can't say how much of it is borrowed.)
 
 ## First impressions of NovaKit
 - Card and Panel are the same component; only the border differs, and Card's border is a hardcoded colour.
@@ -150,6 +150,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - Late reminders every 7 days (4, 11, 18 and 25 Aug). This cadence is a placeholder.
 - Notice before default: 20 Aug, never paused, even after a payroll delay is reported. Default happens on day 30 (27 Aug).
 - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
+- Reminders go by push and SMS, to the borrower only.
 - A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms. A reduced payout can't go below Rs 5,000, the lowest tier. That case isn't designed.
 - After a default, new advances are paused and the wallet is never frozen.
 - After default, automatic collection stops. We ask for permission again, or the user pays manually.

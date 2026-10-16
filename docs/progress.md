@@ -430,6 +430,12 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**Lock-screen previews (5.4): skipped, my call.**
+- Not asked for in the brief.
+- The reminder schedule is already checked in the module (`getReminders`: dates, times, the 2-a-week cap, quiet hours, pausing, and the never-paused notice before default).
+- S10 and S12 already show the reminders in the app (the advance card on Home is the in-app reminder).
+- Instead, the reminder copy and lock-screen text go in a table in the write-up. The audit's Q6 (12A) and 6.21 rows carry a dated note, and previews move to "With more time" in my read.
+
 **S13 (rejected):** the screen is dropped; it felt like a pile-on. 20 Aug is dropped from the reviewer, so it ends at 2 Aug. The notice itself still exists in the module (20 Aug, never paused), so my Assumption and Scope still name it, but no screen shows it.
 
 **S12:**
@@ -566,6 +572,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - The balance on 25 Jul is Rs 1,800. On payday at 6pm it's 1,800 / 9,600 / 6,500 / 1,800 by cause, and nothing moves after payday.
   - The July spending and the payday rows by cause are sample data.
   - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
+  - Reminders go by push and SMS, to the borrower only (added with the reminder table).
 
 ### What I'd want to know
 
@@ -679,6 +686,26 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Re-verifying against every doc paid off again.** It found the late dates showing "before due" wording, a display rule living in a screen, copy that pulls against my read's reason for the reminder, and stale docs.
   - **A check that already passed was shown failing on purpose.** "A delay is ignored where it doesn't apply" passed before the code existed, so the AI removed the guard to prove the check catches it.
 
+### Reminder table (chat 5)
+
+The lock-screen previews weren't built (with more time). This is their copy, and the in-app text each reminder points to. Persona A, from `getReminders`. Every row is sent only to the borrower, between 8am and 10pm, at most 2 in any 7 days (checked in the module). The SMS text is the lock-screen text, because an SMS preview shows the whole message.
+
+| Date and time | Type | Channel | Lock-screen / SMS text | In-app text (what the app shows that day) | After a payroll delay |
+|---|---|---|---|---|---|
+| 25 Jul, 10am | Before the due date | Push + SMS | NovaPay: a reminder about 28 Jul. Open the app to see the details. | **S10, built:** "Rs 10,300 to repay on 28 Jul, in 3 days. We take it from your NovaPay wallet at 6pm, once your salary arrives. Your salary is paid into NovaPay, so there's nothing you need to do." | — (sent before a delay can be reported) |
+| 28 Jul, 6pm | Not collected | Push + SMS | NovaPay: an update about today. Open the app to see the details. | **S11, built:** "We couldn't take your repayment on 28 Jul. Your salary hadn't arrived in your NovaPay wallet by 6pm. Nothing was taken and no fee was added." then "Rs 10,300 still to repay. The amount hasn't changed. When your salary arrives in NovaPay, we'll take it automatically, so there's nothing you need to do. The permission you gave us ends on 27 Aug." | — (sent before a delay can be reported) |
+| 4 Aug, 10am | Late | Push + SMS | NovaPay: a reminder for you. Open the app to see the details. | **S12, built:** "7 days late · Rs 10,300 still to repay. The amount hasn't changed and no fee was added. We couldn't take it on 28 Jul because your salary hadn't arrived." plus the retry line | Paused |
+| 11 Aug, 10am | Late | Push + SMS | *(same as 4 Aug)* | S12, "14 days late" *(otherwise the same)* | Paused |
+| 18 Aug, 10am | Late | Push + SMS | *(same as 4 Aug)* | S12, "21 days late" | Paused |
+| 20 Aug, 10am | Notice before default | Push + SMS | NovaPay: information about 27 Aug. Open the app to see the details. | **Not built** (S13 dropped). The copy it would use: "If it's still unpaid on 27 Aug, the advance is in default. New advances are paused and automatic collection stops." Two sentences on purpose, so it can't become the pile-on I rejected. | **Never paused** |
+| 25 Aug, 10am | Late | Push + SMS | *(same as 4 Aug)* | S12, "28 days late" | Paused |
+
+- **Days late:** 7 / 14 / 21 / 28 come from `getStatus` on each date. The reviewer only shows S12 on 2 Aug; the app renders the same card on these dates.
+- **The lock-screen text is stricter than my three banned words.** It also leaves out "repayment", "advance", "late" and "default", because my read lists "debt details on the lock screen" as predatory. Only the date shows.
+- **20 Aug in the app shows S12's card ("23 days late")**, so the notice's in-app copy has nowhere to appear until it's designed.
+- **25 Aug's in-app text doesn't mention default**, because S12's card doesn't. That's a gap left by dropping S13.
+- **The channel (push + SMS)** is in my Assumptions from chat 5.
+
 ### Deferred from the S3 critique
 
 - **R9:** lender name, key facts and cancellation. It's a "want to know"; a placeholder lender line on S4 comes later.
@@ -700,7 +727,6 @@ Critique points I rejected, with my reasons.
 Built and committed: the accept moment (S3–S9) and the late path up to S12. Home's balance and activity follow the date, and the reviewer panel sets persona, date and payroll delay. S13 (notice before default) was built and rejected.
 
 1. **My read's Scope and Assumptions still end the late path at "notice before default".** It's my file to update if the notice stays without a screen.
-2. **The lock-screen previews (5.4):** no amount, no "loan", no "overdue".
-3. **Persona B's home card** (S2, verify salary) is still not built.
+2. **Persona B's home card** (S2, verify salary) is still not built.
 
 One state per request, each with a plan I approve first. Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
