@@ -210,6 +210,7 @@ export function acceptTerms(terms, { permission_granted }, today) {
     fee: terms.fee,
     total: terms.total,
     accepted_on: today,
+    received_on: today, // MR: the payout lands in the wallet when accepted
     due_date: terms.due_date,
     default_date: terms.default_date,
     permission_granted: true,
@@ -300,6 +301,9 @@ function fitsCap(kept, date) {
   return true;
 }
 
+// Decided: a material consequence must always be announced, so this is never paused.
+const NEVER_PAUSED = ["before_default"];
+
 /**
  * Every reminder for this advance as known today, each with a status:
  * "sent" (on or before today), "scheduled" (later, if nothing changes) or "paused".
@@ -338,7 +342,7 @@ export function getReminders(advance, today) {
   const out = [];
   candidates.sort((a, b) => a.priority - b.priority || a.date.localeCompare(b.date));
   for (const c of candidates) {
-    if (pausedAfter && c.date > pausedAfter) {
+    if (pausedAfter && c.date > pausedAfter && !NEVER_PAUSED.includes(c.type)) {
       out.push({ ...c, status: "paused" });
     } else if (fitsCap(kept, c.date)) {
       kept.push(c);
@@ -352,11 +356,14 @@ export function getReminders(advance, today) {
 
 // ---- Wallet ----------------------------------------------------------------
 
-// Decided: show the real balance, with "Includes Rs X from your advance" beneath it.
-// Only true right after the payout: the prototype doesn't model spending.
-export function getWallet(persona, advance = null) {
+// Decided: show the real balance, with "Includes Rs X from your advance" beneath it,
+// on home after accepting only. Spending isn't modelled ("with more time"), so after
+// the payout day the balance is unknown: null, never a guess. Elsewhere the advance
+// card reads from the advance itself (disbursed_amount, received_on, total, due_date).
+export function getWallet(persona, advance, today) {
   if (persona.wallet_balance == null) return { balance: null, includes_advance: null };
   if (!advance) return { balance: persona.wallet_balance, includes_advance: null };
+  if (today !== advance.received_on) return { balance: null, includes_advance: null };
   return {
     balance: persona.wallet_balance + advance.disbursed_amount,
     includes_advance: advance.disbursed_amount,

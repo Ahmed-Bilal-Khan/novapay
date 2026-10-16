@@ -235,12 +235,26 @@ check('Reminders pause after a payroll delay is reported; days late still count'
     'late 2026-08-04 10:00 paused',
     'late 2026-08-11 10:00 paused',
     'late 2026-08-18 10:00 paused',
-    'before_default 2026-08-20 10:00 paused',
+    'before_default 2026-08-20 10:00 sent',
     'late 2026-08-25 10:00 paused',
   ]);
   const s = SA.getStatus(adv, '2026-08-02');
   assert.equal(s.reminders_paused, true);
   assert.equal(s.days_late, 5);
+});
+
+check('The pre-default notice is never paused, whenever the delay is reported', () => {
+  const base = notCollected(accept());
+  for (const reportedOn of ['2026-07-28', '2026-07-30', '2026-08-10', '2026-08-19']) {
+    const adv = SA.reportPayrollDelay(base, reportedOn);
+    for (const today of ['2026-08-19', '2026-08-20', '2026-08-26']) {
+      if (today < reportedOn) continue;
+      const notice = SA.getReminders(adv, today).filter((r) => r.type === 'before_default');
+      assert.equal(notice.length, 1, `reported ${reportedOn}, viewed ${today}`);
+      assert.notEqual(notice[0].status, 'paused', `reported ${reportedOn}, viewed ${today}`);
+      assert.equal(notice[0].date, '2026-08-20');
+    }
+  }
 });
 
 check('No late reminders once repaid', () => {
@@ -256,10 +270,23 @@ check('No late reminders once repaid', () => {
 
 // ---- Wallet ----
 
-check('Wallet: real balance, plus how much of it is the advance', () => {
-  assert.deepEqual(SA.getWallet(A), { balance: 4250, includes_advance: null });
-  assert.deepEqual(SA.getWallet(A, accept()), { balance: 14250, includes_advance: 10000 });
-  assert.deepEqual(SA.getWallet(B), { balance: 4250, includes_advance: null });
+check('Wallet: real balance, and "includes" the advance only on the payout day', () => {
+  assert.deepEqual(SA.getWallet(A, null, TODAY), { balance: 4250, includes_advance: null });
+  assert.deepEqual(SA.getWallet(B, null, TODAY), { balance: 4250, includes_advance: null });
+  assert.deepEqual(SA.getWallet(A, accept(), TODAY), { balance: 14250, includes_advance: 10000 });
+  // Spending isn't modelled, so later balances are unknown, never a guess.
+  for (const day of ['2026-07-08', '2026-07-25', '2026-08-02']) {
+    assert.deepEqual(SA.getWallet(A, accept(), day), { balance: null, includes_advance: null }, day);
+  }
+});
+
+check('The advance card has what it needs: received, when, what to repay, by when', () => {
+  const adv = accept();
+  assert.equal(adv.disbursed_amount, 10000);
+  assert.equal(adv.received_on, '2026-07-07');
+  assert.equal(adv.total, 10300);
+  assert.equal(adv.due_date, '2026-07-28');
+  assert.equal(SA.formatDate(adv.received_on), '7 Jul');
 });
 
 // ---- Formatting ----
