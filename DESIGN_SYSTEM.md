@@ -6,6 +6,10 @@ Every token or component change in NovaKit Lite: what changed, why (one line), a
 
 | Date | What changed | Why | File | Audit |
 |---|---|---|---|---|
+| 16 Oct 2026 | Card forwards other props (`role`, `aria-live`, `id`…) to its `<div>`. Card adds no role by itself | A screen showing a failure has to be able to add `role="alert"`, and only the screen knows when that's right | `src/novakit/Card.jsx` | 6.10, I13 |
+| 16 Oct 2026 | Card `tone="danger"`: `danger-50` background, inherited neutral-900 text, no icons, `neutral-200` border. **Rule: danger is only for a failed event** ("We couldn't collect on 28 Jul", a network failure), never for a person's status | Red belongs on the event that failed. The border is neutral-200 because there's no light danger step, and full `danger` (6.57:1) would be an alarm line | `src/novakit/Card.jsx` | 7A, 6.10, 6.13 |
+| 16 Oct 2026 | Card `tone="attention"`: `attention-50` background, inherited neutral-900 text, no icons, `attention-100` border. **Rule: attention is for a person's status** (late, notice before default) | Late states need a calm, distinct surface. attention-100 is as faint against the page (1.17:1) as the default edge (1.18:1), so the tone never shouts | `src/novakit/Card.jsx` | 7A, 6.14 |
+| 16 Oct 2026 | Card border `#E6E6E6` → `neutral-200` (#ECECEC). Starter-debt allow-list entry removed. Everything else about the default card measures the same | Hard-coded colour, not a token | `src/novakit/Card.jsx`, `scripts/check-allowlist.json` | 10B, I2 |
 | 16 Oct 2026 | AmountText adds `tabular-nums` | Amounts in a cost summary should line up digit for digit | `src/novakit/AmountText.jsx` | 3b |
 | 16 Oct 2026 | AmountText and `formatAmount` take an optional `sign`: "+" for money in, "−" (U+2212, a real minus) for money out. A negative amount always shows "−" | The advance in and the collection out must be impossible to confuse | `src/novakit/AmountText.jsx` | 6.18 |
 | 16 Oct 2026 | AmountText adds a `caption` size, alongside display, title and body | Amounts inside fine print and second lines need the caption size | `src/novakit/AmountText.jsx` | 5A |
@@ -49,5 +53,5 @@ Every token or component change in NovaKit Lite: what changed, why (one line), a
 |---|---|---|
 | Tailwind's `white`, `black` and `transparent` | They're absolutes, not palette choices: white surfaces and text on fills, black only as the base of the scrim, transparent for resets. A token would only rename them | `scripts/check-tokens.mjs` |
 | Phone frame size and radius, page backdrop | Scaffolding around the prototype, not the product | `scripts/check-allowlist.json` |
-| Card and ListRow hard-coded borders | Starter debt. Remove each entry when its border moves to a token | `scripts/check-allowlist.json` |
+| ListRow hard-coded border | Starter debt. Remove the entry when its border moves to a token (Card's was removed when it moved to neutral-200) | `scripts/check-allowlist.json` |
 | `src/review/novakit-v0/` borders | Frozen starter copy for before/after. Never edited, never imported | `scripts/check-allowlist.json` |
