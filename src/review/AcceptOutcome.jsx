@@ -1,9 +1,9 @@
-import { Card, Choice } from "../novakit";
+import SegmentedControl from "./SegmentedControl";
 
 // What happens after "Accept" is tapped. The prototype has no backend, so the reviewer picks.
 export const ACCEPT_OUTCOMES = [
   { id: "works", label: "Works", description: "Goes to the receipt." },
-  { id: "network", label: "Network failure", description: "The first attempt fails; Try again works." },
+  { id: "network", label: "Fails once", description: "Network failure: the first attempt fails; Try again works." },
   {
     id: "reduced",
     label: "Lower amount",
@@ -12,31 +12,19 @@ export const ACCEPT_OUTCOMES = [
 ];
 
 /**
- * Reviewer scaffolding, shown beside the phone frame, never inside it. Not part of the
- * product, so it may start with a selection. "Network failure" fails the first attempt of
- * each run (it resets when the flow goes back home). Shown only where Accept can be
- * reached: 7 Jul, persona A. "Start again" lives in the reviewer's who-and-when control.
+ * Reviewer scaffolding: the "After Accept" section of the reviewer panel (ReviewerState).
+ * Not part of the product, so it may start with a selection. "Fails once" fails the first
+ * attempt of each run (it resets when the flow goes back home). Shown only where Accept
+ * can be reached: 7 Jul, persona A.
  */
 export default function AcceptOutcome({ value, onChange }) {
   return (
-    <Card className="w-64 shrink-0">
-      <fieldset>
-        <legend className="text-body font-semibold text-neutral-900">Reviewer: after Accept</legend>
-        <div className="mt-1">
-          {ACCEPT_OUTCOMES.map((o) => (
-            <Choice
-              key={o.id}
-              type="radio"
-              name="accept-outcome"
-              value={o.id}
-              checked={value === o.id}
-              onChange={() => onChange(o.id)}
-              label={o.label}
-              description={o.description}
-            />
-          ))}
-        </div>
-      </fieldset>
-    </Card>
+    <SegmentedControl
+      legend="After Accept"
+      name="accept-outcome"
+      options={ACCEPT_OUTCOMES}
+      value={value}
+      onChange={onChange}
+    />
   );
 }

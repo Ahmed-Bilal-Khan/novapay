@@ -4,7 +4,6 @@ import ReviewAccept from "./screens/ReviewAccept";
 import Receipt from "./screens/Receipt";
 import Home from "./screens/Home";
 import AdvanceDetails from "./screens/AdvanceDetails";
-import AcceptOutcome from "./review/AcceptOutcome";
 import ReviewerState from "./review/ReviewerState";
 import {
   acceptTerms,
@@ -222,10 +221,17 @@ export default function App() {
           <AdvanceDetails Frame={PhoneFrame} advance={advance} onBack={() => go("home")} />
         ) : null}
 
-        <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6 space-y-4">
-          <ReviewerState value={review} options={reviewOptions} onChange={changeReview} onStartAgain={startAgain} />
-          {/* Accept can only be reached on 7 Jul with persona A. */}
-          {isLive ? <AcceptOutcome value={outcome} onChange={changeOutcome} /> : null}
+        <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">
+          <ReviewerState
+            value={review}
+            options={reviewOptions}
+            onChange={changeReview}
+            onStartAgain={startAgain}
+            // Accept can only be reached on 7 Jul with persona A.
+            showOutcome={isLive}
+            outcome={outcome}
+            onOutcomeChange={changeOutcome}
+          />
         </aside>
       </div>
     </div>

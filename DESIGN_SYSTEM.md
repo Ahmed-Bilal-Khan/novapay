@@ -43,6 +43,16 @@ Every token or component change in NovaKit Lite: what changed, why (one line), a
 | 16 Oct 2026 | `success` #1E9E5A → #15803D | White on success was 3.45:1, which fails AA | `tailwind.config.js` | 8A |
 | 16 Oct 2026 | `neutral-500` #808080 → #6B6B6B | Every caption, subtitle and secondary label was 3.95:1 on white, which fails AA. One value fixes them all | `tailwind.config.js` | 8A, Q3 |
 
+## Reviewer scaffolding (not NovaKit)
+
+Components that live in `src/review/`, beside the phone frame. They are never exported from `src/novakit/` and never used by a screen. They use existing tokens only.
+
+| Date | What changed | Why | File |
+|---|---|---|---|
+| 17 Oct 2026 | Added `SegmentedControl`: native radios (visually hidden, still focusable) drawn as segments on a neutral-200 track, the chosen one white with `shadow-card`, a 44px target each, a `brand` focus-visible ring, an optional 2×2 grid (`columns={2}`), and only the chosen option's description shown underneath | The reviewer panel was a long list of identical radio rows; segments make short either/or choices (persona, cause, after Accept) compact and scannable | `src/review/SegmentedControl.jsx` |
+| 17 Oct 2026 | Added `DateSteps`: a radio group drawn as a vertical timeline, a 24px brand radio per step joined by a neutral-300 line, one 44px row each, the date leading and the state's name trailing | The reviewer dates are a sequence (the late path), and the list didn't show it | `src/review/DateSteps.jsx` |
+| 17 Oct 2026 | The reviewer controls are one panel on neutral-100 with a neutral-300 border, titled "Reviewer tools / Not part of the app", with a "Now showing" summary first and "After Accept" merged in as its last section | Two white cards looked like product UI, had no summary, and were taller (1,003px) than the 844px phone | `src/review/ReviewerState.jsx`, `src/review/AcceptOutcome.jsx`, `src/App.jsx` |
+
 ## Contrast, before and after
 
 | Pair | Before | After |
