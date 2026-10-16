@@ -6,7 +6,7 @@ import Home from "./screens/Home";
 import AdvanceDetails from "./screens/AdvanceDetails";
 import PayYourselfPlaceholder from "./screens/PayYourselfPlaceholder";
 import ReviewerState from "./review/ReviewerState";
-import { REVIEW_STATES, START_STATE, currentReviewState } from "./review/reviewStates";
+import { currentReviewState, readStateFromUrl, stateSetup, writeStateToUrl } from "./review/reviewStates";
 import {
   acceptTerms,
   getActivity,
@@ -70,17 +70,17 @@ function PhoneFrame({ title, appBar, actions = null, overlay = null, sheet = nul
   );
 }
 
-// The reviewer's data: which module scenario the phone reads, and whether a payroll delay
-// was reported. Set by the reviewer index (src/review/reviewStates.js) and "My salary is late".
-const START_REVIEW = { data: "S1", payroll_delay: false };
-
 export default function App() {
-  const [review, setReview] = useState(START_REVIEW);
-  const [screen, setScreen] = useState("home");
-  const [amount, setAmount] = useState(null);
-  const [liveAdvance, setLiveAdvance] = useState(null); // accepted in the live flow on 7 Jul
+  // The app opens on the state its link names (?state=S11), or S1. See src/review/reviewStates.js.
+  const [opening] = useState(() => stateSetup(readStateFromUrl()));
+  // The reviewer's data: which module scenario the phone reads, and whether a payroll delay
+  // was reported. Set by the reviewer index and by "My salary is late".
+  const [review, setReview] = useState(opening.review);
+  const [screen, setScreen] = useState(opening.screen);
+  const [amount, setAmount] = useState(opening.amount);
+  const [liveAdvance, setLiveAdvance] = useState(opening.advance); // accepted in the live flow on 7 Jul
   const [reducedTerms, setReducedTerms] = useState(null);
-  const [outcome, setOutcome] = useState("works");
+  const [outcome, setOutcome] = useState(opening.outcome);
   const failedOnce = useRef(new Set()); // terms ids whose first attempt has already failed
 
   // Everything the screens see comes from the module's scenario(): persona B is S2 (7 Jul
@@ -131,18 +131,17 @@ export default function App() {
   // jump starts clean: the outcome, the payroll delay, a hidden notice and the live advance
   // are all set by the state, and a first attempt fails again. Focus stays in the panel.
   function jump(id) {
-    const target = REVIEW_STATES[id] ?? REVIEW_STATES[START_STATE];
-    const source = target.source ? scenario(target.source) : null;
-    setAmount(target.screen === "terms" ? source.terms.applied_amount : null);
+    const next = stateSetup(id);
+    setAmount(next.amount);
     setReducedTerms(null);
-    setLiveAdvance(source?.advance ?? null);
-    setOutcome(target.outcome ?? "works");
+    setLiveAdvance(next.advance);
+    setOutcome(next.outcome);
     setHiddenNotice(null);
     failedOnce.current.clear();
-    setReview({ data: target.data, payroll_delay: target.payroll_delay === true });
+    setReview(next.review);
     hasChangedScreen = true;
     quietArrival = true;
-    setScreen(target.screen);
+    setScreen(next.screen);
   }
 
   // Simulates sending the acceptance. Resolves to "failed" (the screen shows the failure and
@@ -169,6 +168,17 @@ export default function App() {
     go("receipt");
     return "moved";
   }
+
+  // Which state the phone shows: marked in the index, and named in the URL so a reload or a
+  // copied link opens it again.
+  const currentState = currentReviewState({
+    data: review.data,
+    payroll_delay: review.payroll_delay,
+    screen: current,
+    hasAdvance: advance != null,
+    outcome,
+  });
+  useEffect(() => writeStateToUrl(currentState), [currentState]);
 
   return (
     <div className="min-h-screen w-full flex justify-center items-start py-6">
@@ -262,13 +272,7 @@ export default function App() {
             below the phone; its index scrolls inside. */}
         <aside aria-labelledby="reviewer-controls-title" className="absolute left-full top-0 bottom-0 ml-6">
           <ReviewerState
-            current={currentReviewState({
-              data: review.data,
-              payroll_delay: review.payroll_delay,
-              screen: current,
-              hasAdvance: advance != null,
-              outcome,
-            })}
+            current={currentState}
             outcome={outcome}
             onJump={jump}
           />

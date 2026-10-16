@@ -135,7 +135,7 @@ function AfterAcceptEntry({ current, outcome, onJump }) {
   const isCurrent = onAccept && current !== "S4";
 
   return (
-    <li data-current={isCurrent || undefined} className={`rounded-sm px-2 py-1.5 ${isCurrent ? "bg-brand-50" : ""}`}>
+    <li data-current={isCurrent || undefined} aria-current={isCurrent ? "true" : undefined} className={`rounded-sm px-2 py-1.5 ${isCurrent ? "bg-brand-50" : ""}`}>
       <EntryText entry={AFTER_ACCEPT} isCurrent={isCurrent} noteId="review-note-after-accept" />
       <div className="mt-2">
         <SegmentedControl

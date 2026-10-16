@@ -130,6 +130,47 @@ export const REVIEW_GROUPS = [
 
 export const START_STATE = "S1";
 
+// ---- Links: ?state=S11 ------------------------------------------------------
+// Every state has a link, so the README and write-up can open it directly. The URL names
+// the state, not every detail: a reload opens the state as the index sets it up (a
+// Rs 5,000 advance chosen by hand comes back as the scenario's Rs 10,000 one, and the
+// permission comes back unticked). Details screens keep their state's link.
+
+const ALIASES = { S5: "S4" }; // S5 (processing) is reached from S4
+
+// A known state id, or the start for anything else (no value, S13, a typo).
+export function resolveState(id) {
+  const resolved = ALIASES[id] ?? id;
+  return Object.hasOwn(REVIEW_STATES, resolved) ? resolved : START_STATE;
+}
+
+// What App sets for a state, all from the module's scenario(): the reviewer's data, the
+// screen, the chosen amount (S4's terms), the accepted advance (S8, S9) and the outcome.
+export function stateSetup(id) {
+  const target = REVIEW_STATES[resolveState(id)];
+  const source = target.source ? scenario(target.source) : null;
+  return {
+    review: { data: target.data, payroll_delay: target.payroll_delay === true },
+    screen: target.screen,
+    amount: target.screen === "terms" ? source.terms.applied_amount : null,
+    advance: source?.advance ?? null,
+    outcome: target.outcome ?? "works",
+  };
+}
+
+export function readStateFromUrl() {
+  return resolveState(new URLSearchParams(window.location.search).get("state"));
+}
+
+// Replaces the URL rather than adding to history, so the browser's Back button doesn't
+// step through reviewer states. Other parts of the URL are kept.
+export function writeStateToUrl(id) {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("state") === id) return;
+  url.searchParams.set("state", id);
+  window.history.replaceState(window.history.state, "", url);
+}
+
 /**
  * Which state the phone is showing, so the index can mark it as the reviewer taps through
  * the flow. Reads the reviewer's data, the screen and the outcome; no money or dates.
