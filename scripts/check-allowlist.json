@@ -1,0 +1,13 @@
+{
+  "_about": "Exceptions for npm run check. Each entry allows one exact match in one file under src/. Owned by Ahmed: ask before adding or removing entries.",
+  "allow": [
+    { "file": "src/App.jsx", "match": "w-[390px]", "reason": "Phone frame (the exception in CLAUDE.md)" },
+    { "file": "src/App.jsx", "match": "min-h-[780px]", "reason": "Phone frame" },
+    { "file": "src/App.jsx", "match": "rounded-[28px]", "reason": "Phone frame" },
+    { "file": "src/index.css", "match": "#e9eaee", "reason": "Page backdrop behind the phone frame" },
+
+    { "file": "src/index.css", "match": "#1a1a1a", "reason": "Starter debt: root text colour duplicates neutral-900. Fix at the token, then remove this entry" },
+    { "file": "src/novakit/Card.jsx", "match": "border-[#E6E6E6]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" },
+    { "file": "src/novakit/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" }
+  ]
+}
