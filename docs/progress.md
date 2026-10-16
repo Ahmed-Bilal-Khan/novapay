@@ -278,6 +278,17 @@
 - **What 20 Aug shows now (checked in the app):** S12's card, with "23 days late". In the details, "My salary is late" is offered again and would be recorded as 2 Aug. If reported, the confirmation says "we'll still send you a notice on 20 Aug" on 20 Aug itself.
 - **Then 20 Aug was dropped from the reviewer** (my call). `REVIEW_DATES` ends at 2 Aug (S12); the dates check changed first and failed. The S13 scenario stays in the module, so the notice before default is still modelled and checked. Checked in the app: four dates, and S12 unchanged.
 
+### Chat 5, continued: S2, persona B's home
+
+- **Proposed with better-layout and better-writing, kit only, then built.**
+- **The card:** one card in the offer's place, "Verify your salary" (my Assumption's name for it).
+  - "Your salary is paid into a bank account, so your NovaPay wallet can't see it. A salary advance needs your salary to be verified first."
+  - The steps: 1. Share a recent payslip or bank statement (the product reference's documents). 2. We check it. 3. When it's verified, this card shows what you can do next.
+  - "Start verification" (primary).
+- **What it leaves out:** amounts, the offer, decline wording, "unlock", a reason for needing the salary (invented policy), and how long checking takes (unknown).
+- **The stub:** "Start verification" opens the existing placeholder screen, which now takes its wording as props: "Placeholder: verify your salary / This screen isn't built yet. Nothing has been shared." The file keeps the name `PayYourselfPlaceholder.jsx` (renaming means deleting a file, which needs my OK).
+- **Checked in the app:** persona B's card, the placeholder and back, and the pay placeholder unchanged. At 360×640 the button ends at 438px of 582px.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -430,6 +441,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**S2:** step 3 is option A ("this card shows what you can do next"), which doesn't promise an offer and doesn't hint at a decline. The placeholder screen is reused.
+
 **Lock-screen previews (5.4): skipped, my call.**
 - Not asked for in the brief.
 - The reminder schedule is already checked in the module (`getReminders`: dates, times, the 2-a-week cap, quiet hours, pausing, and the never-paused notice before default).
@@ -500,7 +513,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **BottomSheet's `title` is required but not enforced.** Without one, the dialog has no name.
 
 - *Added at the end of chat 4:*
-  - **Persona B's home now shows no advance card at all** (`getOffer` returns `needs_verification`, and S2 isn't built). This supersedes the "See amounts and costs would send them nowhere" entry above: nothing dead is shown, but B has no next step yet.
+  - ~~**Persona B's home now shows no advance card at all**~~ *Resolved in chat 5: S2 is built.* (`getOffer` returns `needs_verification`, and S2 isn't built). This supersedes the "See amounts and costs would send them nowhere" entry above: nothing dead is shown, but B has no next step yet.
   - **S7's Accept is one line too,** but the `CLAUDE.md` exception names only S4. I chose to leave the rule as it is; S7's rows show the repayment and date above the button.
   - **The advance card has only its "before due" state.** On later dates it would still say "to repay on 28 Jul", and after repayment "Rs 0 to repay". It needs late, not-collected and repaid states before the reviewer switcher shows Home on those dates.
   - ~~**Two reviewer controls to reconcile.**~~ *Resolved in chat 5: "who and when" (R) sets the data from `scenario()`, and "after Accept" (R2) shows only where Accept can be reached.*
@@ -528,6 +541,9 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The danger card's `role="alert"` is there when the screen opens**, so it re-announces on every visit (the cost of audit 6.10).
   - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
+- *From S2, noted, not fixed:*
+  - **`PayYourselfPlaceholder.jsx` now serves two placeholders**, so its name is narrower than its use. A rename needs my OK.
+  - **The reviewer panel crashed during the hot reload** that dropped 20 Aug: the open page still had 20 Aug selected. It isn't reachable from a fresh load, but the panel assumes its date exists.
 - *From the S13 rejection:*
   - ~~**20 Aug is still a reviewer date.**~~ *Resolved: dropped from the reviewer.*
   - **My Scope and Assumptions still list "notice before default"** as the end of the late path. The notice is still sent (module, 20 Aug), but no screen designs it now.
@@ -727,6 +743,6 @@ Critique points I rejected, with my reasons.
 Built and committed: the accept moment (S3–S9) and the late path up to S12. Home's balance and activity follow the date, and the reviewer panel sets persona, date and payroll delay. S13 (notice before default) was built and rejected.
 
 1. **My read's Scope and Assumptions still end the late path at "notice before default".** It's my file to update if the notice stays without a screen.
-2. **Persona B's home card** (S2, verify salary) is still not built.
+2. ~~**Persona B's home card**~~ *Built in chat 5.*
 
 One state per request, each with a plan I approve first. Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.

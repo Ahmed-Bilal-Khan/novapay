@@ -189,6 +189,7 @@ export default function App() {
             noticeHidden={noticeKey != null && hiddenNotice === noticeKey}
             onHideNotice={() => setHiddenNotice(noticeKey)}
             onStartAdvance={() => go("chooseAmount")}
+            onStartVerification={() => go("verifySalary")}
             onSeeAdvance={() => go("advanceDetails")}
           />
         ) : null}
@@ -239,6 +240,18 @@ export default function App() {
             // "My salary is late": the same review state as the reviewer checkbox, so the
             // scenario reports it on 2 Aug (my Assumption). Stays on this screen.
             onReportPayrollDelay={() => setReview({ ...review, payroll_delay: true })}
+          />
+        ) : null}
+
+        {/* S2's "Start verification": the same labelled placeholder, with its own words. */}
+        {current === "verifySalary" ? (
+          <PayYourselfPlaceholder
+            Frame={PhoneFrame}
+            onBack={() => go("home")}
+            title="Verify your salary"
+            backLabel="Back to home"
+            heading="Placeholder: verify your salary"
+            line="This screen isn't built yet. Nothing has been shared."
           />
         ) : null}
 

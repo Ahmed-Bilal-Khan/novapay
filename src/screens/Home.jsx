@@ -5,6 +5,8 @@ import { LateLabel, LateStatus, NotCollectedNotice, NotCollectedStatus } from ".
 
 /**
  * Home. Before an advance (S1): the balance and the card that starts one.
+ * Persona B (S2), salary paid into a bank: one "Verify your salary" card with the steps and
+ * "Start verification" (a labelled placeholder). No amounts, no offer, nothing like a decline.
  * After accepting (S9): the balance says how much of it is the advance, and a separate
  * advance card says what's owed and when, so borrowed money is never mistaken for the
  * person's own (principle 5).
@@ -33,6 +35,7 @@ export default function Home({
   noticeHidden,
   onHideNotice,
   onStartAdvance,
+  onStartVerification,
   onSeeAdvance,
 }) {
   // S10: once the module says the reminder before the due date has gone out (and the advance
@@ -140,6 +143,27 @@ export default function Home({
             </p>
           </div>
           <Button onClick={onStartAdvance}>See amounts and costs</Button>
+        </Card>
+      ) : offer.eligibility === "needs_verification" ? (
+        // S2: verification as a step to complete first, so no one applies and gets declined
+        // (principle 2). One card, in the offer's place. No amounts, no offer, no decline words.
+        <Card className="space-y-3">
+          <div>
+            <h2 className="text-title text-neutral-900">Verify your salary</h2>
+            <p className="text-body text-neutral-700 mt-1">
+              {persona.salary_destination === "bank"
+                ? "Your salary is paid into a bank account, so your NovaPay wallet can't see it. "
+                : null}
+              A salary advance needs your salary to be verified first.
+            </p>
+            {/* The documents are the product reference's (bank statement / payslip). */}
+            <ol className="list-decimal ps-5 mt-2 space-y-1 text-body text-neutral-900">
+              <li>Share a recent payslip or bank statement.</li>
+              <li>We check it.</li>
+              <li>When it's verified, this card shows what you can do next.</li>
+            </ol>
+          </div>
+          <Button onClick={onStartVerification}>Start verification</Button>
         </Card>
       ) : null}
 
