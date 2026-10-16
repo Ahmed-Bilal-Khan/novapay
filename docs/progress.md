@@ -147,7 +147,7 @@
 - **My read:** the payout landing at accept is now an Assumption.
 - **Checked in the app:** S8 for Rs 10,000 and Rs 5,000; the amount group sits in the middle of the screen with no scrolling at 390×844 and 360×640; focus lands on "Advance confirmed"; Done goes home.
 
-### Chat 4, continued: S9, home after accepting, then re-verified (not committed yet)
+### Chat 4, continued: S9, home after accepting, then re-verified (`97f27db`, `0dcf3f3`, `08f77ea`)
 
 - **Home moved to `src/screens/Home.jsx`.** The balance comes from `getWallet` before and after accepting: Rs 4,250, then Rs 14,250 with "Includes Rs 10,000 from your advance" (on the payout day only). An unknown balance says "Not available yet", never "Rs 0".
 - **One advance at a time, in the module:** `getOffer(persona, today, advance)` returns `has_advance` while one is open, and `getTerms` returns nothing. Home shows the advance card instead of the offer, and the offer screens send anyone without an offer home. Two new checks; both failed first (31 checks now).
@@ -336,6 +336,15 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - ~~**Home hard-codes the balance and transactions**~~ *Balance resolved with S9 (from `getWallet`); the other activity rows stay as sample data.*
   - **BottomSheet's `title` is required but not enforced.** Without one, the dialog has no name.
 
+- *Added at the end of chat 4:*
+  - **Persona B's home now shows no advance card at all** (`getOffer` returns `needs_verification`, and S2 isn't built). This supersedes the "See amounts and costs would send them nowhere" entry above: nothing dead is shown, but B has no next step yet.
+  - **S7's Accept is one line too,** but the `CLAUDE.md` exception names only S4. I chose to leave the rule as it is; S7's rows show the repayment and date above the button.
+  - **The advance card has only its "before due" state.** On later dates it would still say "to repay on 28 Jul", and after repayment "Rs 0 to repay". It needs late, not-collected and repaid states before the reviewer switcher shows Home on those dates.
+  - **Two reviewer controls to reconcile:** the "after Accept" control (audit R2) exists, and the planned state switcher (R) driven by `scenario()` doesn't yet.
+  - **S6's "Nothing was sent to your wallet and nothing was charged" and S7's "Nothing has been sent or charged"** rest on things I said in chat (a network failure always returns an error; the payout lands only at accept). The second is now an Assumption; the first isn't. I chose to leave it.
+  - **Home's sample rows** ("Sent to Ahmed K.", "Paid for mobile top-up", and the dates "Today, 2:14pm", "28 Jun", "27 Jun") are still fixed sample data, not module data.
+  - **Not checked in a real screen reader yet:** how the − sign (U+2212), "Rs" and "Jul" are read, and the BottomSheet's focus handling.
+
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
 
 ## Write-up inbox
@@ -379,6 +388,8 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - What happens if a reduced payout is needed from the lowest tier?
 - *Added in chat 4:*
   - How is the limit set?
+  - Besides the in-app details, is a copy of the agreement also sent (SMS, email), and in which languages?
+  - Can a network failure ever be ambiguous (the request reached us but the reply didn't)? The failure screen promises nothing was sent or charged.
 
 ### System flags
 
@@ -422,6 +433,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **`inert` is passed as `inert=""`,** which React 18 renders. React 19 expects a boolean, so it needs changing on an upgrade.
   - **Vite leaves `vite.config.js.timestamp-*.mjs` files** in the project root while the dev server starts. They're now ignored locally (`.git/info/exclude`).
   - **Rules can hide in screens.** "One advance at a time" lived only in Home's JSX until review. Limit logic belongs in the module, with a check.
+  - **A screen-level "today" comparison counts as date logic.** "Today" on the activity row now comes from the module's `formatDay`.
 
 ### AI process
 
@@ -461,6 +473,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **I redirected S8 from a record to a moment.** The AI's first receipt repeated the terms and the permission. I asked for the money they received to be centre stage, and cut what they'd just read; the terms moved to a details view.
   - **The AI argued for signs on every activity row** after I first said only the advance row. I agreed: + and − make direction clear for everyone, not just the advance.
   - **A third review agent found policy hiding in a screen.** Home quietly decided "one advance at a time", which nothing backed and the module didn't know. It's now an Assumption and a module rule with checks. It also caught the receipt pointing to "this" when "See details" opens something else, and the screens deciding "Today" and "now" themselves.
+  - **Repeated review agents kept finding real issues** after each build (three rounds in this chat). Reviewing against every doc after each screen is worth keeping.
 
 ### Deferred from the S3 critique
 
@@ -480,7 +493,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built. S9 and the details view are in the working tree, waiting for my "Commit now". After that come the reviewer switcher and the late path.
+S3 to S9 are built and committed. The reviewer switcher and the late path come next.
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
