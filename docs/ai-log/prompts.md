@@ -247,3 +247,21 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > - At the end of each chat, update docs/progress.md, including the Write-up inbox.
 >
 > Then add an "npm run check" script that fails if any file under src/ contains a hex colour or an arbitrary Tailwind value, with an allow-list I control. Prove it works by showing it fail on a deliberate violation, then remove the violation.
+
+### Prompt 13
+
+<!-- prompt:1f80a7b7-7355-4e20-bd41-17b0ec39920b -->
+
+> Commit CLAUDE.md, scripts/, package.json and docs/ai-log/prompts.md with a reason-giving message. Don't push.
+
+### Prompt 14
+
+<!-- prompt:17b78c20-4b52-4170-8934-a9ba4b0eb492 -->
+
+> Update docs/progress.md for this chat: Done, Decisions, Open questions, the Write-up inbox (Assumptions, What I'd want to know, System flags) and Next step. Show me the diff before saving.
+
+### Prompt 15
+
+<!-- prompt:298be19d-7cdc-4655-bfa0-eae8e62f501a -->
+
+> Save the proposal to docs/progress.md as shown, then delete .git/progress.proposed.md. Don't commit yet.
