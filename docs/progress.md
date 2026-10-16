@@ -276,6 +276,7 @@
 - **Rejected by me:** the message feels like a pile-on the person would face. Five things land in one card a week before default: the date, the consequences, the amount, what went wrong, and what happens next.
 - **Reverted as `CLAUDE.md` asks:** the build is the draft (`f4db1bd`), and `0113d65` is the "Reject:" commit. The code, the module field, its check (back to 44) and its doc entries are gone. This entry and the audit's S13 row keep the trace.
 - **What 20 Aug shows now (checked in the app):** S12's card, with "23 days late". In the details, "My salary is late" is offered again and would be recorded as 2 Aug. If reported, the confirmation says "we'll still send you a notice on 20 Aug" on 20 Aug itself.
+- **Then 20 Aug was dropped from the reviewer** (my call). `REVIEW_DATES` ends at 2 Aug (S12); the dates check changed first and failed. The S13 scenario stays in the module, so the notice before default is still modelled and checked. Checked in the app: four dates, and S12 unchanged.
 
 ## Decisions
 
@@ -429,7 +430,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
-**S13 (rejected):** the screen is dropped; it felt like a pile-on. The notice itself still exists in the module (20 Aug, never paused), so my Assumption and Scope still name it, but no screen shows it.
+**S13 (rejected):** the screen is dropped; it felt like a pile-on. 20 Aug is dropped from the reviewer, so it ends at 2 Aug. The notice itself still exists in the module (20 Aug, never paused), so my Assumption and Scope still name it, but no screen shows it.
 
 **S12:**
 - Build as structured.
@@ -522,7 +523,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
 - *From the S13 rejection:*
-  - **20 Aug is still a reviewer date**, and it shows S12's card. "My salary is late" there records 2 Aug, and the reported confirmation is in the wrong tense on that day.
+  - ~~**20 Aug is still a reviewer date.**~~ *Resolved: dropped from the reviewer.*
   - **My Scope and Assumptions still list "notice before default"** as the end of the late path. The notice is still sent (module, 20 Aug), but no screen designs it now.
 - *From S12, noted, not fixed:*
   - **After a report, the details still say "if it's still unpaid on 27 Aug…"**, which treats an open question in my read as answered (my choice to keep it).
@@ -698,7 +699,7 @@ Critique points I rejected, with my reasons.
 
 Built and committed: the accept moment (S3–S9) and the late path up to S12. Home's balance and activity follow the date, and the reviewer panel sets persona, date and payroll delay. S13 (notice before default) was built and rejected.
 
-1. **Decide what 20 Aug is now.** Either drop it from the reviewer dates, or redesign the notice so it isn't a pile-on. Until then it shows S12's card, with the report-date and tense problems noted above.
+1. **My read's Scope and Assumptions still end the late path at "notice before default".** It's my file to update if the notice stays without a screen.
 2. **The lock-screen previews (5.4):** no amount, no "loan", no "overdue".
 3. **Persona B's home card** (S2, verify salary) is still not built.
 

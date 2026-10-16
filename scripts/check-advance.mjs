@@ -462,13 +462,12 @@ check('Every reviewer scenario builds, on the right date', () => {
   assert.equal(SA.scenario('S8').advance, SA.scenario('S9').advance);
 });
 
-check('Reviewer dates: 7 Jul, then S10–S13 on their own dates', () => {
+check('Reviewer dates: 7 Jul, then S10–S12 on their own dates; 20 Aug dropped with S13', () => {
   assert.deepEqual(SA.REVIEW_DATES, [
     { scenario: 'S1', date: '2026-07-07' },
     { scenario: 'S10', date: '2026-07-25' },
     { scenario: 'S11', date: '2026-07-28' },
     { scenario: 'S12', date: '2026-08-02' },
-    { scenario: 'S13', date: '2026-08-20' },
   ]);
 });
 

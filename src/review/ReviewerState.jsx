@@ -15,7 +15,6 @@ const DATE_NAMES = {
   S10: "Reminder (S10)",
   S11: "Payday (S11)",
   S12: "Late (S12)",
-  S13: "Default notice (S13)",
 };
 
 // The cause isn't a reviewer choice (decided in chat 5): the late path is shown for

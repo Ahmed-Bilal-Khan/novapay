@@ -519,7 +519,9 @@ const NOT_COLLECTED_INPUTS = {
 export const SCENARIO_IDS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"];
 
 // The dates the reviewer control offers for persona A. 7 Jul runs the live flow (S1–S9).
-export const REVIEW_DATES = ["S1", "S10", "S11", "S12", "S13"].map((id) => ({
+// 20 Aug (S13) is dropped: its screen was rejected in chat 5. The scenario stays, so the
+// notice before default is still modelled and checked.
+export const REVIEW_DATES = ["S1", "S10", "S11", "S12"].map((id) => ({
   scenario: id,
   date: SCENARIO_DATES[id] ?? PROTOTYPE_TODAY,
 }));
