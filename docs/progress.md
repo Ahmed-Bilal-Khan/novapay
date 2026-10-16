@@ -194,7 +194,7 @@
   - then Who (segments), When (a timeline), "Why it wasn't collected" (a 2×2 segment grid), the payroll delay, and After Accept (segments),
   - Start again in a footer.
 - **Two review-only components** in `src/review/`, not NovaKit: `SegmentedControl` and `DateSteps`. Logged in `DESIGN_SYSTEM.md` under "Reviewer scaffolding".
-- **Measured:** 746px on 7 Jul and 834px at most (20 Aug with every option), with no sideways scroll at a 1024px window. Checked the arrow keys, focus rings, every option, persona B and Start again.
+- **Measured:** 746px on 7 Jul and 834px at most (20 Aug with every option), with no sideways scroll at a 1024px window *(at `w-64`; after the change to `w-80` below, it scrolls sideways a little at 1024px)*. Checked the arrow keys, focus rings, every option, persona B and Start again.
 - **Then simplified at my request:**
   - "Why it wasn't collected" is removed, so the late path is shown for "salary didn't arrive" (the scenario default). "Now showing" still names it from payday on.
   - The payroll delay is one checkbox, "Payroll delay reported on 2 Aug".
@@ -208,6 +208,15 @@
 - **The card is the in-app reminder.** It switches on once `getReminders` says the before-due reminder was sent and `getStatus` says the advance is before due, so S9 on 7 Jul is unchanged. "in 3 days" is `days_until_due` ("tomorrow" for 1). The salary line reads `persona.salary_destination`.
 - **The details view is unchanged on S10.**
 - **Checked in the app:** S10 copy; S9 unaffected; 28 Jul, 2 Aug and 20 Aug don't pick up the new lines; at 360×640 the whole card is above the fold.
+
+### Chat 5, continued: re-verification against every doc
+
+- **13 inconsistencies found and reported.** The largest: the reviewer reaches 28 Jul, 2 Aug and 20 Aug, but Home's card and the details still show the "before due" wording there. S11 is next.
+- **Fixed (mine):**
+  - item 5: when Home's card becomes the reminder is now decided in the module. `getStatus` returns `before_due_reminder_sent`, Home reads it, and a new check failed first (43 checks now),
+  - items 7–9: stale lines in the audit's R and I17 rows and in `progress.md`,
+  - items 11–13: recorded below.
+- **Left for me to decide:** items 2, 3, 4, 6 and 10 (see Open questions, Added in chat 5).
 
 ## Decisions
 
@@ -278,7 +287,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - at most 2 in any 7 days in a row.
 - **The notice before default (20 Aug) is never paused,** even after a payroll delay is reported, because a material consequence must always be announced. Whether a delay should move the default date is a question, not a rule.
 - **`acceptTerms` is idempotent:** accepting the same terms twice returns the same advance, never a second one.
-- **The wallet shows the real balance,** with "Includes Rs 10,000 from your advance" on home after accepting only. On later days the balance is `null`, because spending isn't modelled. Elsewhere the advance card says "Received Rs 10,000 on 7 Jul · Rs 10,300 to repay on 28 Jul".
+- **The wallet shows the real balance,** with "Includes Rs 10,000 from your advance" on home after accepting only. ~~On later days the balance is `null`, because spending isn't modelled.~~ *Superseded in chat 5: later balances come from sample activity rows (my Assumptions).* Elsewhere the advance card says "Received Rs 10,000 on 7 Jul · Rs 10,300 to repay on 28 Jul".
 - **The late state (S12) is viewed on 2 Aug** (5 days late).
 
 **The system**
@@ -416,7 +425,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The advance card has only its "before due" state.** On later dates it would still say "to repay on 28 Jul", and after repayment "Rs 0 to repay". It needs late, not-collected and repaid states before the reviewer switcher shows Home on those dates.
   - ~~**Two reviewer controls to reconcile.**~~ *Resolved in chat 5: "who and when" (R) sets the data from `scenario()`, and "after Accept" (R2) shows only where Accept can be reached.*
   - **S6's "Nothing was sent to your wallet and nothing was charged" and S7's "Nothing has been sent or charged"** rest on things I said in chat (a network failure always returns an error; the payout lands only at accept). The second is now an Assumption; the first isn't. I chose to leave it.
-  - **Home's sample rows** ("Sent to Ahmed K.", "Paid for mobile top-up", and the dates "Today, 2:14pm", "28 Jun", "27 Jun") are still fixed sample data, not module data.
+  - ~~**Home's sample rows** ("Sent to Ahmed K.", "Paid for mobile top-up", and the dates "Today, 2:14pm", "28 Jun", "27 Jun") are still fixed sample data, not module data.~~ *Resolved in chat 5: every row comes from `getActivity`.*
   - **Not checked in a real screen reader yet:** how the − sign (U+2212), "Rs" and "Jul" are read, and the BottomSheet's focus handling.
 
 ### Added in chat 5
@@ -428,6 +437,12 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **Nothing on screen reads the payroll delay yet.** It changes the advance (`payroll_delay_reported_on`, reminders paused), and the late screens will show it.
 - **The reviewer control has no URL state, notes or narrow-screen drawer** (planned for chat 6). At narrow widths it hangs off the right of the phone.
 - **At `w-80` the panel needs a window about 1,060px wide.** At 1,024px its right edge is at 1,043px, so the page scrolls sideways a little. The narrow-screen drawer (chat 6) is the fix.
+- *From the re-verification, mine to decide:*
+  - **2. S10 says "nothing you need to do"**, but my read says this reminder is the one chance to prevent money being spent before collection. Should it say anything about payday before 6pm?
+  - **3. My Scope lists four causes of "Not collected on payday"**, but the reviewer now shows only "salary didn't arrive".
+  - **4. Principle 5 says the balance says how much came from the advance**, but "Includes…" shows only on the payout day.
+  - **6. The S1 offer card says "We take it… on 28 Jul"**, which can read as the loan being taken. It also lacks "If you accept" and "at 6pm", which S3 has.
+  - **10. "With more time: Modelling spending"** in my read. Spending now exists as sample rows, but not how much of the balance is borrowed.
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
@@ -569,6 +584,9 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI corrected its own earlier claim.** It had said the 28 Jun salary row would show on later dates. With a 4-row cap it doesn't, and it said so before building.
   - **Policy questions stayed questions.** Whether a short salary or a move to a bank counts as a payroll delay isn't written, so the delay applies only when the salary didn't arrive (C6a).
   - **The AI's own estimate failed when measured.** It estimated the restructured panel at about 640px; the first build measured 904px. Wrapping names and descriptions cost the most. The AI shortened the date rows to one line, made the causes a 2×2 grid, and moved the delay's date into "Now showing", then measured again (834px at most).
+  - **Rejected AI output, twice, replaced rather than reverted.** I called the first reviewer control "hectic and confusing" (`70d22f3`), and it was rebuilt with better-layout (`1eeec89`). I then cut its "Why it wasn't collected" group as not worth its space (`84ba2eb`). Both went in as forward commits, not the "AI draft: …" / "Reject: …" pair `CLAUDE.md` asks for. The re-verification flagged it. Reverting now would undo work built on top, so the record is here.
+  - **A working screen was rewritten whole without showing me the diff.** `Home.jsx` was replaced in one write (`d6c9c5a`) under an approved plan. `CLAUDE.md` asks for the diff first.
+  - **Re-verifying against every doc paid off again.** It found the late dates showing "before due" wording, a display rule living in a screen, copy that pulls against my read's reason for the reminder, and stale docs.
   - **A check that already passed was shown failing on purpose.** "A delay is ignored where it doesn't apply" passed before the code existed, so the AI removed the guard to prove the check catches it.
 
 ### Deferred from the S3 critique
