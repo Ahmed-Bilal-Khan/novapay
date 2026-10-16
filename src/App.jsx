@@ -4,6 +4,7 @@ import ReviewAccept from "./screens/ReviewAccept";
 import Receipt from "./screens/Receipt";
 import Home from "./screens/Home";
 import AdvanceDetails from "./screens/AdvanceDetails";
+import PayYourselfPlaceholder from "./screens/PayYourselfPlaceholder";
 import ReviewerState from "./review/ReviewerState";
 import {
   acceptTerms,
@@ -105,7 +106,7 @@ export default function App() {
   if (OFFER_SCREENS.includes(screen) && offer.eligibility !== "eligible") current = "home";
   else if (screen === "terms" && terms == null) current = "chooseAmount";
   else if (screen === "reduced" && reducedTerms == null) current = "chooseAmount";
-  else if ((screen === "receipt" || screen === "advanceDetails") && advance == null) current = "home";
+  else if (["receipt", "advanceDetails", "payYourself"].includes(screen) && advance == null) current = "home";
 
   function go(next) {
     hasChangedScreen = true;
@@ -219,7 +220,17 @@ export default function App() {
         {current === "receipt" ? <Receipt Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
 
         {current === "advanceDetails" ? (
-          <AdvanceDetails Frame={PhoneFrame} advance={advance} onBack={() => go("home")} />
+          <AdvanceDetails
+            Frame={PhoneFrame}
+            advance={advance}
+            status={getStatus(advance, today)}
+            onBack={() => go("home")}
+            onPayYourself={() => go("payYourself")}
+          />
+        ) : null}
+
+        {current === "payYourself" ? (
+          <PayYourselfPlaceholder Frame={PhoneFrame} onBack={() => go("advanceDetails")} />
         ) : null}
 
         <aside aria-label="Reviewer controls" className="absolute left-full top-0 ml-6">

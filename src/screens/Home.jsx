@@ -1,5 +1,6 @@
 import { AppBar, Card, ListRow, Button, AmountText } from "../novakit";
 import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
+import { NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
 
 /**
  * Home. Before an advance (S1): the balance and the card that starts one.
@@ -9,6 +10,8 @@ import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salar
  *
  * Reminder before the due date (S10): the same advance card, plus how soon ("in 3 days")
  * and that nothing is needed. The card is the in-app reminder; no other surface.
+ * Not collected on payday (S11): a danger card for the event, then the advance card with
+ * what's still owed and when it'll be taken. Nothing is required: it's automatic.
  *
  * Money and dates come from the module: `offer` (getOffer: no new offer while an advance
  * is open), `wallet` (getWallet), `activity` (getActivity: sample rows, the balance adds
@@ -33,6 +36,9 @@ export default function Home({
   const reminded = status?.before_due_reminder_sent === true;
   const dueIn = status?.days_until_due === 1 ? "tomorrow" : `in ${status?.days_until_due} days`;
   const salaryIntoNovaPay = persona.salary_destination === "novapay";
+  // S11: payday's collection didn't go through (getStatus). The event gets its own danger
+  // card above the advance card, which stays calm and in its usual place (principle 4).
+  const notCollected = status?.phase === "not_collected";
 
   return (
     <Frame title="NovaPay" appBar={<AppBar title="NovaPay" />}>
@@ -52,7 +58,22 @@ export default function Home({
         ) : null}
       </Card>
 
-      {advance && offer.eligibility === "has_advance" ? (
+      {advance && offer.eligibility === "has_advance" && notCollected ? (
+        <>
+          <NotCollectedNotice attempt={status.last_attempt} />
+          <Card className="space-y-3">
+            <div>
+              <h2 className="text-body font-semibold text-neutral-900">Your salary advance</h2>
+              <div className="mt-1">
+                <NotCollectedStatus status={status} />
+              </div>
+            </div>
+            <Button variant="secondary" onClick={onSeeAdvance}>
+              See details
+            </Button>
+          </Card>
+        </>
+      ) : advance && offer.eligibility === "has_advance" ? (
         <Card className="space-y-3">
           <div>
             <h2 className="text-body font-semibold text-neutral-900">Your salary advance</h2>

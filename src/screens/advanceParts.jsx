@@ -1,5 +1,5 @@
 import { Card, ListRow, AmountText, BottomSheet, formatAmount } from "../novakit";
-import { FEE_PERCENT, MAX_REMINDERS_PER_7_DAYS, QUIET_HOURS, formatTime } from "../advance/salaryAdvance";
+import { FEE_PERCENT, MAX_REMINDERS_PER_7_DAYS, QUIET_HOURS, formatDate, formatTime } from "../advance/salaryAdvance";
 
 /**
  * Pieces the accept screen (S4), the lower offer (S7) and the advance's details share, so what
@@ -18,11 +18,23 @@ function withWas(text, was) {
  * "Your advance": what you get, the fee and what you repay, and when and from where.
  * `before` (S7 only) is the offer it replaces, so each row also says what it was.
  * `received` (the details, after accepting) says "You received" instead of "You get".
+ * `heading`: from payday on, the details call it "What you agreed", so the terms read as
+ * the agreement, not as a promise that still stands.
  */
-export function AdvanceSummary({ disbursed, fee, total, due, time, before = null, received = false, children = null }) {
+export function AdvanceSummary({
+  disbursed,
+  fee,
+  total,
+  due,
+  time,
+  before = null,
+  received = false,
+  heading = "Your advance",
+  children = null,
+}) {
   return (
     <Card>
-      <h2 className="text-body font-semibold text-neutral-900">Your advance</h2>
+      <h2 className="text-body font-semibold text-neutral-900">{heading}</h2>
       <div className="mt-1">
         <ListRow
           wrap
@@ -54,6 +66,20 @@ export function AdvanceSummary({ disbursed, fee, total, due, time, before = null
   );
 }
 
+// The button that opens "What happens if it's late" (the sheet below).
+export function LateLink({ onOpen }) {
+  return (
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      onClick={onOpen}
+      className="inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+    >
+      What happens if it's late
+    </button>
+  );
+}
+
 // The one line on what happens if it isn't collected, and the button that opens the details.
 export function LateLine({ due, time, onOpen }) {
   return (
@@ -62,14 +88,50 @@ export function LateLine({ due, time, onOpen }) {
         If we can't take it on {due}, we'll tell you at {time}. If your salary is late, we'll try again when it
         arrives.
       </p>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        onClick={onOpen}
-        className="inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-      >
-        What happens if it's late
-      </button>
+      <LateLink onOpen={onOpen} />
+    </>
+  );
+}
+
+// S11, why it wasn't collected, in plain words. The prototype shows one cause (my Scope);
+// any other cause gets no cause line rather than a guess.
+const CAUSE_LINES = {
+  salary_not_arrived: (time) => `Your salary hadn't arrived in your NovaPay wallet by ${time}.`,
+};
+// S11, when we'll try again, per cause. Collection is attempted only when salary lands, and
+// only while the permission lasts, which ends on the default date.
+const RETRY_LINES = {
+  salary_not_arrived: (endsOn) =>
+    `We'll take it automatically when your salary arrives in NovaPay, as long as that's before ${endsOn}.`,
+};
+
+/**
+ * S11: the failed collection, the event, so the only red. role="alert" (audit 6.10).
+ * `attempt` is getStatus().last_attempt: its date, time and cause come from the module.
+ */
+export function NotCollectedNotice({ attempt }) {
+  const cause = CAUSE_LINES[attempt.reason]?.(formatTime(attempt.time));
+  return (
+    <Card tone="danger" role="alert" className="space-y-1">
+      <h2 className="text-body font-semibold text-neutral-900">
+        We couldn't take your repayment on {formatDate(attempt.date)}
+      </h2>
+      {cause ? <p className="text-body text-neutral-900">{cause}</p> : null}
+      <p className="text-body text-neutral-900">Nothing was taken and no fee was added.</p>
+    </Card>
+  );
+}
+
+/** S11: the person's status after it, calm (a default card's content): what's owed, and what happens next. */
+export function NotCollectedStatus({ status }) {
+  const retry = RETRY_LINES[status.last_attempt.reason]?.(formatDate(status.permission.ends_on));
+  return (
+    <>
+      <p className="text-body text-neutral-900">
+        <AmountText amount={status.outstanding} size="body" className="font-semibold" /> still to repay. The amount
+        hasn't changed.
+      </p>
+      {retry ? <p className="text-caption text-neutral-700 mt-1">{retry}</p> : null}
     </>
   );
 }

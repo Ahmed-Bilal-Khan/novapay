@@ -225,6 +225,22 @@
   
   The S1 card is checked at 390 and 360px: 4 lines, and the button stays above the fold.
 
+### Chat 5, continued: S11, not collected on payday
+
+- **Verified twice before building.** The first S11 brief (4 causes, a payroll button on 28 Jul, two pay stubs) didn't line up with my Scope, my 2 Aug Assumption or the audit. I dropped what didn't align.
+- **Home on 28 Jul:**
+  - a danger Card (`role="alert"`): "We couldn't take your repayment on 28 Jul" / "Your salary hadn't arrived in your NovaPay wallet by 6pm." / "Nothing was taken and no fee was added."
+  - then the advance card, calm: "Rs 10,300 still to repay. The amount hasn't changed." / "We'll take it automatically when your salary arrives in NovaPay, as long as that's before 27 Aug." / See details
+  - no failed row in recent activity.
+- **Details view, status section first:**
+  - the same danger card,
+  - a status card with "What happens if it's late" (the late card is dropped from payday on),
+  - the terms retitled "What you agreed",
+  - one action, "Pay some or all yourself", which opens a labelled placeholder (`PayYourselfPlaceholder.jsx`).
+- **Shared wording in `advanceParts.jsx`:** `NotCollectedNotice`, `NotCollectedStatus`, `LateLink`, and a `heading` option on `AdvanceSummary`. Date, time, cause, amount and 27 Aug all come from `getStatus`.
+- **"Before 27 Aug", not "by":** the module ends the permission on 27 Aug (`today < default_date`).
+- **Checked in the app:** Home and details on 28 Jul; the sheet opens and Escape returns focus; the placeholder and back; S10 and S12 unchanged; 360×640 (both status cards above the action area).
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -377,6 +393,13 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**S11:**
+- Only "salary didn't arrive" is shown, as my Scope says.
+- "Nothing required, it's automatic" counts as the next step that works.
+- The payroll report starts at S12 (2 Aug), as my Assumption says.
+- There's one pay stub, with the late sheet's wording.
+- The danger card keeps `role="alert"` (audit 6.10).
+
 **S10 and where the late path lives:**
 - The 25 Jul balance stays Rs 1,800 (my Assumption), not the Rs 600 my S10 brief said.
 - The late information will go at the top of the existing advance details view, not on a new screen: a status section first (a danger Card for the failed collection, an attention Card for late), the agreed terms below, and next steps in the action area.
@@ -450,6 +473,11 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - ~~**4. Principle 5 says the balance says~~ *Decided: reworded.* how much came from the advance**, but "Includes…" shows only on the payout day.
   - ~~**6. The S1 offer card says~~ *Decided: S3's wording, word for word.* "We take it… on 28 Jul"**, which can read as the loan being taken. It also lacks "If you accept" and "at 6pm", which S3 has.
   - ~~**10. "With more time: Modelling spending"**~~ *Decided: updated.* in my read. Spending now exists as sample rows, but not how much of the balance is borrowed.
+- *From S11, noted, not fixed:*
+  - **The late sheet says "If your salary is delayed, tell us…"**, but there's no way to tell us until S12 (2 Aug).
+  - **The danger card's `role="alert"` is there when the screen opens**, so it re-announces on every visit (the cost of audit 6.10).
+  - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
+  - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
@@ -614,7 +642,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (the reminder before the due date) is built. Next: S11 onwards, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
+S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (the reminder before the due date) and S11 (not collected on payday) are built. Next: S12 (late, with "My salary is late") onwards, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.
