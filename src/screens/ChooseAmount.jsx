@@ -42,7 +42,6 @@ export default function ChooseAmount({ Frame, offer, amount, onAmountChange, onC
   useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
 
   const due = formatDate(offer.due_date);
-  const days = offer.days_until_due;
   const available = offer.tiers.filter((t) => t.available).map((t) => t.amount);
 
   function handleChange(value) {
@@ -93,16 +92,13 @@ export default function ChooseAmount({ Frame, offer, amount, onAmountChange, onC
       }
       overlay={<Toast open={toast != null} message={toast} variant="neutral" />}
     >
-      <Card className="space-y-2">
-        <h2 className="text-body font-semibold text-neutral-900">How it works</h2>
+      {/* Four lines at 360px, so the first two amounts sit above the fold on a 360×640 phone. */}
+      <Card>
         <p className="text-body text-neutral-900">
-          A salary advance is a short-term loan. You repay it all on <span className="font-semibold">{due}</span>,
-          your next payday (in {days} {days === 1 ? "day" : "days"}).
-        </p>
-        <p className="text-body text-neutral-900">
-          If you accept, we take the full amount from your NovaPay wallet automatically at{" "}
-          <span className="font-semibold">{formatTime(offer.collection_time)}</span>, once your salary arrives. The
-          fee is <span className="font-semibold">{FEE_PERCENT}%</span> of the amount you get, charged once.
+          A short-term loan with a <span className="font-semibold">{FEE_PERCENT}%</span> fee, charged once. If you
+          accept, we take the full amount from your NovaPay wallet automatically at{" "}
+          <span className="font-semibold">{formatTime(offer.collection_time)}</span> on{" "}
+          <span className="font-semibold">{due}</span>, once your salary arrives.
         </p>
       </Card>
 
