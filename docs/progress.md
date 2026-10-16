@@ -139,13 +139,26 @@
 - **Checked in the app:** every outcome; Try again; S7's Accept and No thanks; the tick message scrolling the whole checkbox row into view on S4 and S7. Build and check pass.
 - **The audit has S5, S6 and S7 notes and a new R2 row** for the reviewer control.
 
-### Chat 4, continued: S8, the receipt (not committed yet)
+### Chat 4, continued: S8, the receipt (`47c371d`, `d5f5f6a`, `df23b34`)
 
 - **S8 replaces the placeholder,** reworked for a sense of completion: one centred column with the amount centre stage ("You received" / Rs 10,000 in the largest type token, brand colour / "It's in your NovaPay wallet now." / "Accepted on 7 Jul"), one line on the repayment ("You repay Rs 10,300 on 28 Jul at 6pm, once your salary arrives."), and "Your record" as a labelled placeholder. Done goes home. No success colour, no confetti, no back. Laid out with the better-layout principles: space groups, nothing repeated.
 - **Module:** the advance now carries `collection` and `permission` from the accepted terms. The new check failed before the change (29 checks now).
-- **Shared parts** (`src/screens/advanceParts.jsx`): the "Your advance" rows, the late line and the late sheet, used by S4 and S7.
+- **Shared parts** (`src/screens/advanceParts.jsx`): the "Your advance" rows, the late line and the late sheet, used by S4, S7 and (from S9) the advance's details.
 - **My read:** the payout landing at accept is now an Assumption.
 - **Checked in the app:** S8 for Rs 10,000 and Rs 5,000; the amount group sits in the middle of the screen with no scrolling at 390×844 and 360×640; focus lands on "Advance confirmed"; Done goes home.
+
+### Chat 4, continued: S9, home after accepting, then re-verified (not committed yet)
+
+- **Home moved to `src/screens/Home.jsx`.** The balance comes from `getWallet` before and after accepting: Rs 4,250, then Rs 14,250 with "Includes Rs 10,000 from your advance" (on the payout day only). An unknown balance says "Not available yet", never "Rs 0".
+- **One advance at a time, in the module:** `getOffer(persona, today, advance)` returns `has_advance` while one is open, and `getTerms` returns nothing. Home shows the advance card instead of the offer, and the offer screens send anyone without an offer home. Two new checks; both failed first (31 checks now).
+- **"Your salary advance" card:** "Rs 10,300 to repay on 28 Jul" (from `getStatus`), "We take it from your NovaPay wallet at 6pm, once your salary arrives.", "See details".
+- **Recent activity:** "Advance received" / "Today" / "+Rs 10,000" first. "Today" comes from the module's new `formatDay`. Every row says its direction in words and with a sign: "Sent to Ahmed K." −Rs 1,500, "Salary credited" +Rs 68,000 (from `PERSONAS`, only when salary is paid into NovaPay), "Paid for mobile top-up" −Rs 500.
+- **"See details" opens the advance's details** (`src/screens/AdvanceDetails.jsx`), not the confirmation: "Your salary advance", the agreed rows ("You received", Fee, "You repay on 28 Jul") with "Accepted on 7 Jul", "Your permission" with its end date, the late line and sheet in their own card, back to home.
+- **The receipt:** "It's in your NovaPay wallet." (no "now"), the repayment line says "from your NovaPay wallet", and the record line is "You can see these details from your advance on the home screen."
+- **Home consistency:** captions in neutral-700 like every other screen; "Available balance", "Recent activity" and the offer card's title are headings; the offer's button is medium like "See details".
+- **Reviewer:** "Start again" clears the accepted advance and returns home, so the flow can run again. Vite's temp files are ignored locally (`.git/info/exclude`), so they can't be committed.
+- **A third review agent** checked S8, S9 and the details against every doc; its findings were fixed or decided (below).
+- **Checked in the app:** home before and after, the advance card, the activity rows, details, the sheet, back, and Start again.
 
 ## Decisions
 
@@ -275,6 +288,9 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **S7's comparison uses list rows, not a table.**
 - **The reviewer control was added now and recorded** (audit R2). The phone is centred; reviewer controls sit to its side.
 - **S8, the receipt:** the payout landing at accept is now an Assumption; the 6pm time and the permission's end date come from the advance (they're Assumptions already); where the record lives, and home after Done, wait for S9.
+- **S9:** "See details" is a details view of the terms, not the confirmation. The record lives there, in the app (now an Assumption), and the receipt says so: "You can see these details from your advance on the home screen." Every activity row has a sign. The advance row says "Today". The balance comes from `getWallet`.
+- **One advance at a time** is now an Assumption, enforced in the module (`getOffer` → `has_advance`).
+- **Principle 5 reworded** in my read and the audit: the balance first, saying how much of it came from the advance, and the advance in its own card (not "own balance first").
 - **S8 should feel like success, so the amount is centre stage.** "Your advance" was cut because it repeats what they just saw, and "Your permission" was cut too. The repayment stays as one line. The permission's end date and "What happens if it's late" were already on S4, so they aren't on the receipt.
 - **The two "nothing was sent or charged" promises stay as they are** without new Assumptions.
 - **S4's Accept button is one line: "Accept Rs 10,000".** "Your advance" already shows "You repay on 28 Jul" and Rs 10,300 without scrolling, so a second line would only repeat it. Exceptions like this are allowed when the rest of the screen gives enough context. The rule is updated in `CLAUDE.md`, principle 1 and Scope in my read, and the audit's S4 and 6.5 rows. Button's `subLabel` stays: S3's "Review terms" still uses "Nothing is borrowed yet".
@@ -287,7 +303,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - The glossary lists `income_source (salaried/freelance)`, but the product is described as only for salaried users.
 - ~~`DESIGN_SYSTEM.md` doesn't exist yet.~~ *Resolved (`eca45f1`).* `CLAUDE.md` says every token or component change is logged there, including the check's `white`/`black`/`transparent` exception.
 - ~~Principle 4 in `00-my-read.md` still says~~ *Resolved in chat 4: the wording is updated.* "(provisional)", "The system audit confirms it" and "accent". All three are stale after the audit. The read is mine to update.
-- Where does the lasting record of the agreement live? The receipt has to say where.
+- ~~Where does the lasting record of the agreement live? The receipt has to say where.~~ *Resolved in chat 4: in the app, from the advance card on Home ("See details"). Whether a copy is also sent, and in which languages, stays in What I'd want to know.*
 
 ### Added in chat 3, continued
 
@@ -316,8 +332,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - ~~**My read's Scope still quotes the old, long permission wording**~~ *Resolved in chat 4.* (the "I allow NovaPay to collect Rs 10,300…" line). It's mine to update.
   - **The default line reads the permission's end date** (`terms.permission.ends_by`), not `terms.default_date`. They're the same today but mean different things.
   - **The receipt placeholder's heading is "Salary advance",** not a screen name. It goes away when S8 is built.
-  - **After Done, home still offers an advance.** Accepting the same terms again returns the first advance and shows "accepted" again. This waits for home after accepting (S9).
-  - **Home hard-codes the balance and transactions** instead of reading `PERSONAS`. The audit accepted fixing this (I17); it isn't done.
+  - ~~**After Done, home still offers an advance.**~~ *Resolved with S9.*
+  - ~~**Home hard-codes the balance and transactions**~~ *Balance resolved with S9 (from `getWallet`); the other activity rows stay as sample data.*
   - **BottomSheet's `title` is required but not enforced.** Without one, the dialog has no name.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
@@ -346,6 +362,8 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - Wallet balance is Rs 4,250 for both personas.
   - A reduced payout can't go below Rs 5,000. That case isn't designed.
   - The payout lands in the NovaPay wallet the moment the advance is accepted (added in chat 4).
+  - One advance at a time: no new offer while one is open (added in chat 4).
+  - The record of the agreement lives in the app, in the advance's details from the home screen; whether a copy is also sent is still a question (added in chat 4).
 
 ### What I'd want to know
 
@@ -402,6 +420,8 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **`formatAmount` uses a non-breaking space** between "Rs" and the number, so a plain-space text search ("Accept Rs 5,000") misses it.
   - **Background browser tabs pause `requestAnimationFrame` and throttle timers.** A scroll put in a rAF never ran there, so it now uses a timeout.
   - **`inert` is passed as `inert=""`,** which React 18 renders. React 19 expects a boolean, so it needs changing on an upgrade.
+  - **Vite leaves `vite.config.js.timestamp-*.mjs` files** in the project root while the dev server starts. They're now ignored locally (`.git/info/exclude`).
+  - **Rules can hide in screens.** "One advance at a time" lived only in Home's JSX until review. Limit logic belongs in the module, with a check.
 
 ### AI process
 
@@ -438,6 +458,9 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
     - S7 hid where the repayment is taken from.
     It also caught a reviewer control that didn't do what its label said. All were fixed.
   - **I rejected the AI's table on S7** and asked for the same list rows as S4, so old and new read the same way as the screen before.
+  - **I redirected S8 from a record to a moment.** The AI's first receipt repeated the terms and the permission. I asked for the money they received to be centre stage, and cut what they'd just read; the terms moved to a details view.
+  - **The AI argued for signs on every activity row** after I first said only the advance row. I agreed: + and − make direction clear for everyone, not just the advance.
+  - **A third review agent found policy hiding in a screen.** Home quietly decided "one advance at a time", which nothing backed and the module didn't know. It's now an Assumption and a module rule with checks. It also caught the receipt pointing to "this" when "See details" opens something else, and the screens deciding "Today" and "now" themselves.
 
 ### Deferred from the S3 critique
 
@@ -457,11 +480,11 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S8 are built. S8 (the receipt) is in the working tree, waiting for my "Commit now". After that come S9, the reviewer switcher and the late path.
+S3 to S9 are built. S9 and the details view are in the working tree, waiting for my "Commit now". After that come the reviewer switcher and the late path.
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
-   - S9, home after accepting: Done currently returns to a home that still offers an advance, and where the record lives is decided there. (S5–S8 are built.)
-2. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
+   - The accept moment is built (S3–S9). The late path is next.
+2. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`. Once it puts Home on later dates, the advance card needs its later states (late, repaid: never "Rs 0 to repay").
 3. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
 
 Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.

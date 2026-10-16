@@ -90,7 +90,7 @@ The first two aren't the user's fault, and that's why the late experience should
    - Never sent to anyone but the borrower.
    - Red only on the event that failed (e.g. "We couldn't collect on 28 Jul"), never on the person's status card or the late screen. Their status uses the attention colour.
    - Attention colour: the amber ramp, now named `attention`, only as a soft background with dark text (body text neutral-900 on attention-50; attention-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons.
-5. **Their wallet stays theirs.** The advance is shown separately from their own money. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
+5. **Their wallet stays theirs.** Borrowed money is never mistaken for their own: the balance says how much of it came from the advance, and the advance (what's owed and when) has its own card. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
 
 ## A moment that shouldn't exist
 **"Declined: income unverified."**
@@ -107,7 +107,7 @@ Built as separate states the reviewer can jump to, so the depth goes into two pl
 - A separate collection permission, its own unticked checkbox, that doesn't repeat the amounts above it: "I allow NovaPay to take the repayment above automatically." with "This ends automatically when it's repaid, or on 27 Aug at the latest." On a lower offer it says "the new repayment".
 - A descriptive button: "Accept Rs 10,000". No second line on S4, because "Your advance" above it already shows "You repay on 28 Jul" and Rs 10,300 without scrolling.
 - After the tap: processing, double-tap protection, network failure, and a reduced payout that needs fresh consent.
-- A receipt of what was agreed.
+- A receipt that confirms it worked, and the advance's details (opened from home) as the record of what was agreed.
 
 **In depth: the late path (my one bad-news path)**
 Reminder before the due date → Not collected on payday → late → notice before default.
@@ -117,10 +117,10 @@ Causes of "Not collected on payday": salary didn't arrive, salary arrived short 
 **Thin**
 The home card: eligible vs needs verification (the second persona's home-card state). The rest of the "shouldn't exist" case is argued here in writing.
 
-Home after accepting: their own balance first, with the advance shown separately. This is where the receipt's Done goes, and it makes principle 5 testable.
+Home after accepting: the balance first, saying how much of it came from the advance ("Includes Rs 10,000 from your advance"), and the advance in its own card with what's owed and when. This is where the receipt's Done goes, and it makes principle 5 testable. The advance's details open from that card.
 
 **With more time**
-Credit-history decline, the default screen itself, successful repayment, viewing the advance later, early repayment. Modelling spending, so the balance always shows how much of it is borrowed.
+Credit-history decline, the default screen itself, successful repayment, early repayment. (Viewing the advance later is now built as its details, from the home card.) Modelling spending, so the balance always shows how much of it is borrowed.
 
 ## First impressions of NovaKit
 - Card and Panel are the same component; only the border differs, and Card's border is a hardcoded colour.
@@ -138,7 +138,9 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - The fee is 3% of the amount paid out, charged once, and added to the repayment.
 - A second user is paid into a bank account, so the wallet can't see their income. They see the "Verify your salary" home card.
 - Wallet balance is Rs 4,250 for both personas (taken from the starter screen).
-- The payout lands in the NovaPay wallet the moment the advance is accepted, so the receipt can say "Rs 10,000 is in your NovaPay wallet".
+- The payout lands in the NovaPay wallet the moment the advance is accepted, so the receipt can say "It's in your NovaPay wallet."
+- One advance at a time: while an advance is open (not yet repaid), no new one is offered.
+- The record of the agreement lives in the app: the advance's details, opened from its card on the home screen. Whether a copy is also sent is still a question.
 - Verification status is known before applying. The product reference says income may or may not be verified at application, so this is my assumption.
 - Collection is automatic, from the NovaPay wallet, on payday once salary has landed, at a fixed time (6pm), with explicit and separate permission given at accept. The reminder before the due date says exactly when. Collection is attempted only when salary lands, never from other incoming money.
 - Automatic collection is full amount only. The user can choose to pay part manually (shown on the late screen, stubbed in the prototype).
@@ -162,7 +164,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - How is the limit set?
 - How long can a collection permission legally last, and what does re-asking after default require?
 - Can we use wallet data to check eligibility before an application, and what consent does that need?
-- How is the record of agreement delivered and stored, and in which languages (Urdu and English)?
+- Besides the in-app details, is a copy of the agreement also sent (SMS, email), and in which languages (Urdu and English)?
 - Why are people actually late (payroll delays, job loss, spending)? What does the data say?
 - Does a re-check after a decline hit the credit bureau?
 - The product reference cites "Trust rules" that don't exist, and its decision wording isn't consistent. Which is the source of truth?
@@ -193,9 +195,9 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 | The limit grows after on-time repayments | Accept, removed | It rewards repeat borrowing |
 | No cancellation window | Adapt | Moved to "want to know" |
 | "No late fees, ever" | Adapt | "Pushing for, pending confirmation" |
-| Cut v1's separate "Record of the advance" screen | Accept | Moved to "With more time" |
+| Cut v1's separate "Record of the advance" screen | Accept | Moved to "With more time". *Later (chat 4): built as the advance's details, opened from home.* |
 | Your suggested late path left out the reminder before the due date | **Reject** | It's the one chance to prevent two of the four causes of lateness: salary moved to a bank, and money spent before collection |
-| Keep a receipt after accepting (my addition, not a critique point) | Keep | The accept moment isn't finished until the user knows it worked. It will say where the lasting record lives, which is still an open question |
+| Keep a receipt after accepting (my addition, not a critique point) | Keep | The accept moment isn't finished until the user knows it worked. It says where the record lives: in the app, from the advance on the home screen (decided in chat 4) |
 | Round 2: my reasons for the receipt and the reminder were weak | Accept | Reasons replaced, see the two rows above |
 | Cut the credit decline, default screen, success screen | Accept | Moved to "with more time" |
 
