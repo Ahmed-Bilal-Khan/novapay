@@ -8,17 +8,16 @@ import { useId } from "react";
  * radio is described by it.
  *
  * options: [{ id, label, description? }]. `value` is the chosen id; there's always one.
- * columns: "row" (default, one line of segments) or 2 (a 2×2 grid, for longer labels).
  * Labels may wrap onto two lines inside their segment.
  */
-export default function SegmentedControl({ legend, name, options, value, onChange, columns = "row" }) {
+export default function SegmentedControl({ legend, name, options, value, onChange }) {
   const descriptionId = useId();
   const chosen = options.find((o) => o.id === value);
 
   return (
     <fieldset>
       <legend className="text-caption font-semibold text-neutral-700">{legend}</legend>
-      <div className={`mt-2 ${columns === 2 ? "grid grid-cols-2" : "flex"} gap-1 rounded-md bg-neutral-200 p-1`}>
+      <div className="mt-2 flex gap-1 rounded-md bg-neutral-200 p-1">
         {options.map((o) => (
           <label key={o.id} className="flex-1 min-w-0 cursor-pointer">
             <input
