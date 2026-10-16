@@ -10,7 +10,11 @@ import { useId } from "react";
  * - The whole row is the tap target, at least 44px tall.
  * - The accessible name is the label only. The description and the disabled reason
  *   are read as descriptions (aria-describedby), so they're heard but not repeated.
- * - Any other props (aria-*, required, form…) go to the <input>.
+ * - Disabled uses aria-disabled, not the native attribute, so the option stays
+ *   focusable and its reason is heard. It can't be checked: a tap is cancelled and
+ *   onChange is never called. A caller's onClick still runs, so a screen can say why.
+ *   The control is dimmed; the label and reason stay readable in neutral-700.
+ * - Any other props (aria-*, required, form, onClick…) go to the <input>.
  *
  * Radio groups: the caller wraps the options in a <fieldset> with a <legend>
  * that names the choice, and gives every option the same `name`. For example:
@@ -32,6 +36,7 @@ export default function Choice({
   disabled = false,
   disabledReason = null,
   id,
+  onClick,
   ...rest
 }) {
   const autoId = useId();
@@ -41,6 +46,11 @@ export default function Choice({
   const reasonId = disabled && disabledReason ? `${inputId}-reason` : null;
   const describedBy =
     [rest["aria-describedby"], descriptionId, reasonId].filter(Boolean).join(" ") || undefined;
+
+  function handleClick(event) {
+    if (disabled) event.preventDefault(); // cancels the check, by tap, click or Space
+    onClick?.(event);
+  }
 
   return (
     <label
@@ -56,13 +66,16 @@ export default function Choice({
         type={type}
         name={name}
         value={value}
-        checked={checked === true}
-        onChange={onChange}
-        disabled={disabled}
+        checked={disabled ? false : checked === true}
+        // Disabled: a no-op, so a change by arrow key is undone by React's controlled value.
+        onChange={disabled ? () => {} : onChange}
+        onClick={handleClick}
+        aria-disabled={disabled || undefined}
         aria-labelledby={labelId}
         aria-describedby={describedBy}
         className={
-          "h-6 w-6 shrink-0 accent-brand disabled:cursor-not-allowed " +
+          // Dimmed when disabled, but full strength while focused, so the ring isn't dimmed too.
+          "h-6 w-6 shrink-0 accent-brand aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 aria-disabled:cursor-not-allowed " +
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 " +
           (type === "radio" ? "rounded-full" : "")
         }

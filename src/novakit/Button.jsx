@@ -4,7 +4,8 @@
  * Sizes: md | lg (minimum heights, so a second line fits)
  * States: default, pressed (active), focus-visible, disabled, loading
  *
- * - subLabel: an optional second line, e.g. "Repay Rs 10,300 on 28 Jul".
+ * - subLabel: an optional second line, e.g. "Repay Rs 10,300 on 28 Jul". Screen readers
+ *   hear a stop between the lines: "Accept Rs 10,000. Repay Rs 10,300 on 28 Jul".
  * - loading: the button is disabled and aria-busy. loadingLabel, if given, replaces
  *   the label; the original label stays in place invisibly, so the size never changes.
  * - Any other props (aria-*, id, form…) go to the <button>.
@@ -62,6 +63,8 @@ export default function Button({
       <span className="grid">
         <span className={`col-start-1 row-start-1 ${showLoadingLabel ? "invisible" : ""}`}>{children}</span>
         {showLoadingLabel ? <span className="col-start-1 row-start-1">{loadingLabel}</span> : null}
+        {/* A stop heard but not seen, so the two lines aren't read as one phrase. */}
+        {subLabel ? <span className="sr-only">.</span> : null}
       </span>
       {subLabel ? (
         <span className={`text-caption ${state === "disabled" ? "" : v.subLabel}`}>{subLabel}</span>
