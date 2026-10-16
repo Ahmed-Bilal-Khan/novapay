@@ -11,3 +11,12 @@ body {
   margin: 0;
   background: #e9eaee; /* page behind the phone frame */
 }
+
+/* Phone frame scaffolding: phones overlay their scrollbars, so the desktop one is
+   hidden inside the frame. Scrolling still works by wheel, touch and keyboard. */
+.phone-scroll {
+  scrollbar-width: none;
+}
+.phone-scroll::-webkit-scrollbar {
+  display: none;
+}

@@ -37,7 +37,7 @@ export default function App() {
       <div className="relative w-[390px] h-[844px] shrink-0 flex flex-col bg-neutral-50 rounded-[28px] shadow-xl overflow-hidden border border-neutral-300">
         <AppBar title="NovaPay" />
 
-        <main className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+        <main className="phone-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           <Card>
             <div className="text-caption text-neutral-500">Available balance</div>
             <div className="mt-1">
