@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../novakit";
 import SegmentedControl from "./SegmentedControl";
 import { ACCEPT_OUTCOMES, AFTER_ACCEPT, REVIEW_GROUPS, REVIEW_STATES, START_STATE } from "./reviewStates";
@@ -16,13 +16,31 @@ import { ACCEPT_OUTCOMES, AFTER_ACCEPT, REVIEW_GROUPS, REVIEW_STATES, START_STAT
  * Entries are links (?state=S4), so a link can be copied from the panel. A plain click
  * opens the state here; a modified click is left to the browser.
  *
- * The panel fills its container's height (App makes it the phone's height): the title and
- * Start again stay put and the index scrolls between them, so a reviewer never scrolls the
- * page away from the phone. When the current state changes (a jump, or a tap in the phone),
- * its entry is scrolled into view inside the index, never the page.
+ * From 768px the panel fills the aside (absolute, inset 0), which App stretches to the
+ * phone's height, so the panel's own content never makes the page taller. The
+ * title and Start again stay put and the index scrolls between them, so a reviewer never
+ * scrolls the page away from the phone. When the current state changes (a jump, or a tap in
+ * the phone), its entry is scrolled into view inside the index, never the page.
+ *
+ * Below 768px it's a drawer: a "Reviewer controls" button (aria-expanded) that opens the
+ * panel downwards, above the phone, pushing it down rather than covering it. The panel is
+ * capped at max-h-96 there, with the same inner scroll. Choosing a state closes the drawer
+ * and puts focus back on its button, so the phone is what's in view.
  */
+const WIDE = "(min-width: 768px)"; // Tailwind's md
+
 export default function ReviewerState({ current, outcome, onJump }) {
   const indexRef = useRef(null);
+  const toggleRef = useRef(null); // wraps the drawer button (Button doesn't take a ref)
+  const [open, setOpen] = useState(false); // the drawer, below 768px only
+
+  function jump(id) {
+    onJump(id);
+    if (open && !window.matchMedia(WIDE).matches) {
+      setOpen(false);
+      toggleRef.current?.querySelector("button")?.focus();
+    }
+  }
 
   useEffect(() => {
     const index = indexRef.current;
@@ -35,47 +53,67 @@ export default function ReviewerState({ current, outcome, onJump }) {
     const bottom = entry.offsetTop + entry.offsetHeight + margin;
     if (top < index.scrollTop) index.scrollTop = top;
     else if (bottom > index.scrollTop + index.clientHeight) index.scrollTop = bottom - index.clientHeight;
-  }, [current]);
+  }, [current, open]);
 
   return (
-    <div className="flex h-full w-80 flex-col rounded-lg border border-neutral-300 bg-neutral-100">
-      <div className="shrink-0 border-b border-neutral-300 p-4">
-        <h2 id="reviewer-controls-title" className="text-body font-semibold text-neutral-900">
+    <div className="flex h-full flex-col gap-2 md:absolute md:inset-0">
+      <div ref={toggleRef} className="md:hidden">
+        <Button
+          variant="secondary"
+          aria-expanded={open}
+          aria-controls="reviewer-controls-panel"
+          onClick={() => setOpen(!open)}
+        >
           Reviewer controls
-        </h2>
-        <p className="text-caption text-neutral-700">
-          Not part of the app. Choose a state to open it in the phone. Spend most time on the graded ones.
-        </p>
+        </Button>
       </div>
 
-      {/* The index scrolls inside the panel. Groups are 16px apart; inside a group, 4px. */}
-      <nav ref={indexRef} aria-label="States" className="review-scroll relative min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        {REVIEW_GROUPS.map((group) => (
-          <div
-            key={group.id}
-            data-group
-            className={group.graded ? "rounded-md border border-neutral-300 bg-white p-2" : ""}
-          >
-            <h3 id={`review-group-${group.id}`} className="px-2 text-caption font-semibold text-neutral-700">
-              {group.heading}
-            </h3>
-            <ul aria-labelledby={`review-group-${group.id}`} className="mt-1 space-y-1">
-              {group.entries.map((id) =>
-                id === AFTER_ACCEPT.id ? (
-                  <AfterAcceptEntry key={id} current={current} outcome={outcome} onJump={onJump} />
-                ) : (
-                  <StateLink key={id} state={REVIEW_STATES[id]} current={current} graded={group.graded} onJump={onJump} />
-                )
-              )}
-            </ul>
-          </div>
-        ))}
-      </nav>
+      <div
+        id="reviewer-controls-panel"
+        className={
+          (open ? "flex" : "hidden") +
+          " max-h-96 w-full min-h-0 flex-1 flex-col rounded-lg border border-neutral-300 bg-neutral-100 md:flex md:max-h-none md:w-80"
+        }
+      >
+        <div className="shrink-0 border-b border-neutral-300 p-4">
+          {/* Below 768px the drawer button already says this, so the title is for screen readers. */}
+          <h2 id="reviewer-controls-title" className="sr-only text-body font-semibold text-neutral-900 md:not-sr-only">
+            Reviewer controls
+          </h2>
+          <p className="text-caption text-neutral-700">
+            Not part of the app. Choose a state to open it in the phone. Spend most time on the graded ones.
+          </p>
+        </div>
 
-      <div className="shrink-0 border-t border-neutral-300 p-4">
-        <Button variant="secondary" onClick={() => onJump(START_STATE)}>
-          Start again
-        </Button>
+        {/* The index scrolls inside the panel. Groups are 16px apart; inside a group, 4px. */}
+        <nav ref={indexRef} aria-label="States" className="review-scroll relative min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+          {REVIEW_GROUPS.map((group) => (
+            <div
+              key={group.id}
+              data-group
+              className={group.graded ? "rounded-md border border-neutral-300 bg-white p-2" : ""}
+            >
+              <h3 id={`review-group-${group.id}`} className="px-2 text-caption font-semibold text-neutral-700">
+                {group.heading}
+              </h3>
+              <ul aria-labelledby={`review-group-${group.id}`} className="mt-1 space-y-1">
+                {group.entries.map((id) =>
+                  id === AFTER_ACCEPT.id ? (
+                    <AfterAcceptEntry key={id} current={current} outcome={outcome} onJump={jump} />
+                  ) : (
+                    <StateLink key={id} state={REVIEW_STATES[id]} current={current} graded={group.graded} onJump={jump} />
+                  )
+                )}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <div className="shrink-0 border-t border-neutral-300 p-4">
+          <Button variant="secondary" onClick={() => jump(START_STATE)}>
+            Start again
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -182,95 +182,99 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full flex justify-center items-start py-6">
-      {/* The phone is centred on the page. Reviewer controls (src/review/) hang off its right
-          side, never inside it, and come after it in the DOM so Tab reaches the phone first. */}
-      <div className="relative">
-        {current === "home" ? (
-          <Home
-            Frame={PhoneFrame}
-            today={today}
-            persona={persona}
-            offer={offer}
-            wallet={getWallet(persona, advance, today)}
-            activity={getActivity(persona, advance, today)}
-            advance={advance}
-            status={status}
-            noticeHidden={noticeKey != null && hiddenNotice === noticeKey}
-            onHideNotice={() => setHiddenNotice(noticeKey)}
-            onStartAdvance={() => go("chooseAmount")}
-            onStartVerification={() => go("verifySalary")}
-            onSeeAdvance={() => go("advanceDetails")}
-          />
-        ) : null}
+      {/* From 768px the phone and the reviewer controls (src/review/) sit side by side and are
+          centred together. The phone alone sets the row's height: the aside stretches to it
+          and the panel fills the aside out of flow, so the panel is as tall as the phone and
+          its index scrolls inside. Below 768px they stack: the reviewer bar shows above the phone (order-first)
+          and opens downwards, pushing the phone down, so it never covers anything in the phone.
+          Either way the controls come after the phone in the DOM, so Tab reaches the phone first. */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-stretch md:gap-6">
+        <div>
+          {current === "home" ? (
+            <Home
+              Frame={PhoneFrame}
+              today={today}
+              persona={persona}
+              offer={offer}
+              wallet={getWallet(persona, advance, today)}
+              activity={getActivity(persona, advance, today)}
+              advance={advance}
+              status={status}
+              noticeHidden={noticeKey != null && hiddenNotice === noticeKey}
+              onHideNotice={() => setHiddenNotice(noticeKey)}
+              onStartAdvance={() => go("chooseAmount")}
+              onStartVerification={() => go("verifySalary")}
+              onSeeAdvance={() => go("advanceDetails")}
+            />
+          ) : null}
 
-        {current === "chooseAmount" ? (
-          <ChooseAmount
-            Frame={PhoneFrame}
-            offer={offer}
-            amount={amount}
-            onAmountChange={setAmount}
-            onContinue={() => go("terms")}
-            onLeave={leaveToHome}
-          />
-        ) : null}
+          {current === "chooseAmount" ? (
+            <ChooseAmount
+              Frame={PhoneFrame}
+              offer={offer}
+              amount={amount}
+              onAmountChange={setAmount}
+              onContinue={() => go("terms")}
+              onLeave={leaveToHome}
+            />
+          ) : null}
 
-        {current === "terms" ? (
-          <ReviewAccept
-            key={terms.id}
-            Frame={PhoneFrame}
-            terms={terms}
-            onAccept={(consent) => accept(terms, consent)}
-            onChangeAmount={() => go("chooseAmount")}
-            onLeave={leaveToHome}
-          />
-        ) : null}
+          {current === "terms" ? (
+            <ReviewAccept
+              key={terms.id}
+              Frame={PhoneFrame}
+              terms={terms}
+              onAccept={(consent) => accept(terms, consent)}
+              onChangeAmount={() => go("chooseAmount")}
+              onLeave={leaveToHome}
+            />
+          ) : null}
 
-        {/* S7: the same screen in its reduced-payout form, with fresh, unticked consent. */}
-        {current === "reduced" ? (
-          <ReviewAccept
-            key={reducedTerms.id}
-            Frame={PhoneFrame}
-            terms={reducedTerms}
-            onAccept={(consent) => accept(reducedTerms, consent)}
-            onLeave={leaveToHome}
-          />
-        ) : null}
+          {/* S7: the same screen in its reduced-payout form, with fresh, unticked consent. */}
+          {current === "reduced" ? (
+            <ReviewAccept
+              key={reducedTerms.id}
+              Frame={PhoneFrame}
+              terms={reducedTerms}
+              onAccept={(consent) => accept(reducedTerms, consent)}
+              onLeave={leaveToHome}
+            />
+          ) : null}
 
-        {current === "receipt" ? <Receipt Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
+          {current === "receipt" ? <Receipt Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
 
-        {current === "advanceDetails" ? (
-          <AdvanceDetails
-            Frame={PhoneFrame}
-            advance={advance}
-            status={status}
-            reminders={getReminders(advance, today)}
-            onBack={() => go("home")}
-            onPayYourself={() => go("payYourself")}
-            // "My salary is late": the same review state as the reviewer checkbox, so the
-            // scenario reports it on 2 Aug (my Assumption). Stays on this screen.
-            onReportPayrollDelay={() => setReview({ ...review, payroll_delay: true })}
-          />
-        ) : null}
+          {current === "advanceDetails" ? (
+            <AdvanceDetails
+              Frame={PhoneFrame}
+              advance={advance}
+              status={status}
+              reminders={getReminders(advance, today)}
+              onBack={() => go("home")}
+              onPayYourself={() => go("payYourself")}
+              // "My salary is late": the same review state as the reviewer checkbox, so the
+              // scenario reports it on 2 Aug (my Assumption). Stays on this screen.
+              onReportPayrollDelay={() => setReview({ ...review, payroll_delay: true })}
+            />
+          ) : null}
 
-        {/* S2's "Start verification": the same labelled placeholder, with its own words. */}
-        {current === "verifySalary" ? (
-          <PayYourselfPlaceholder
-            Frame={PhoneFrame}
-            onBack={() => go("home")}
-            title="Verify your salary"
-            backLabel="Back to home"
-            heading="Placeholder: verify your salary"
-            line="This screen isn't built yet. Nothing has been shared."
-          />
-        ) : null}
+          {/* S2's "Start verification": the same labelled placeholder, with its own words. */}
+          {current === "verifySalary" ? (
+            <PayYourselfPlaceholder
+              Frame={PhoneFrame}
+              onBack={() => go("home")}
+              title="Verify your salary"
+              backLabel="Back to home"
+              heading="Placeholder: verify your salary"
+              line="This screen isn't built yet. Nothing has been shared."
+            />
+          ) : null}
 
-        {current === "payYourself" ? (
-          <PayYourselfPlaceholder Frame={PhoneFrame} onBack={() => go("advanceDetails")} />
-        ) : null}
+          {current === "payYourself" ? (
+            <PayYourselfPlaceholder Frame={PhoneFrame} onBack={() => go("advanceDetails")} />
+          ) : null}
+        </div>
 
-        {/* top-0 bottom-0: the panel is exactly as tall as the phone, so nothing in it sits
-            below the phone; its index scrolls inside. */}
-        <aside aria-labelledby="reviewer-controls-title" className="absolute left-full top-0 bottom-0 ml-6">
+        <aside aria-labelledby="reviewer-controls-title" className="order-first md:relative md:order-none md:w-80">
           <ReviewerState
             current={currentState}
             outcome={outcome}
