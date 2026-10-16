@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The font stack comes from fontFamily.sans in tailwind.config.js (Tailwind's base styles apply it). */
 :root {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: #1a1a1a;
+  color: theme("colors.neutral.900");
 }
 
 body {

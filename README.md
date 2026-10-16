@@ -37,7 +37,7 @@ src/
 tailwind.config.js    # design tokens (colors, radius, type scale, elevation)
 ```
 
-Tokens live in `tailwind.config.js` (e.g. `bg-brand`, `bg-brand-50`, `text-accent-600`, `text-neutral-700`, `rounded-md`, `shadow-card`, `text-title`). The palette is intentionally generous — a full brand (indigo) ramp, a warm amber accent, and a layered neutral scale — so you have room to make real aesthetic choices. Use it with restraint. Build new work from tokens and existing components; extend the system only where you genuinely need to, and keep design and code in sync.
+Tokens live in `tailwind.config.js` (e.g. `bg-brand`, `bg-brand-50`, `text-attention-600`, `text-neutral-700`, `rounded-md`, `shadow-card`, `text-title`). The palette is intentionally generous — a full brand (indigo) ramp, a warm amber accent, and a layered neutral scale — so you have room to make real aesthetic choices. Use it with restraint. Build new work from tokens and existing components; extend the system only where you genuinely need to, and keep design and code in sync.
 
 ## Your task (summary)
 

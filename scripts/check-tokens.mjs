@@ -1,9 +1,10 @@
-// npm run check: fails if any file under src/ contains a hex colour or an arbitrary
-// Tailwind value, unless it's listed in scripts/check-allowlist.json.
+// npm run check: fails if any file under src/ contains a hex colour, an arbitrary
+// Tailwind value or a Tailwind default colour, unless it's listed in scripts/check-allowlist.json.
 // Colours, type, radius and shadow must come from tailwind.config.js (see CLAUDE.md).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import tailwindConfig from '../tailwind.config.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const srcDir = path.join(root, 'src');
@@ -19,6 +20,34 @@ const ARBITRARY = [
 ];
 // #RGB, #RGBA, #RRGGBB, #RRGGBBAA. The lookbehind skips HTML entities like &#123;.
 const HEX = /(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b/gi;
+
+// Tailwind's default colour names. They stay available because our colours sit under
+// `extend`, so a class like text-red-500 or text-neutral-400 would build without a token.
+// white, black and transparent are allowed: they're absolutes, not palette choices
+// (see DESIGN_SYSTEM.md). A family we define, like neutral, passes only for our own shades.
+const ALLOWED_DEFAULTS = ['white', 'black', 'transparent'];
+const DEFAULT_FAMILIES =
+  'slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|' +
+  'indigo|violet|purple|fuchsia|pink|rose|inherit|current|transparent|black|white';
+const COLOUR_UTILITY =
+  'bg|text|border(?:-[xytrblse])?|ring(?:-offset)?|outline|divide|placeholder|caret|accent|fill|stroke|shadow|decoration|from|via|to';
+const DEFAULT_COLOUR_CLASS = new RegExp(
+  `(?<![\\w-])(?:${COLOUR_UTILITY})-(${DEFAULT_FAMILIES})(?:-(\\d{2,3}))?(?:\\/[\\w.]+)?(?![\\w-])`,
+  'g'
+);
+const DEFAULT_COLOUR_THEME = new RegExp(
+  `theme\\(\\s*['"]colors\\.(${DEFAULT_FAMILIES})(?:\\.(\\d{2,3}))?['"]`,
+  'g'
+);
+const tokens = tailwindConfig.theme.extend.colors;
+
+function isTokenColour(family, shade) {
+  if (ALLOWED_DEFAULTS.includes(family)) return true;
+  const ours = tokens[family];
+  if (ours === undefined) return false;
+  if (!shade) return typeof ours === 'string' || 'DEFAULT' in ours;
+  return typeof ours === 'object' && shade in ours;
+}
 
 function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
@@ -43,6 +72,12 @@ function findings(file) {
       if (spans.some(([a, b]) => m.index >= a && m.index < b)) continue;
       out.push({ file: rel, line: i + 1, kind: 'hex colour', match: m[0] });
     }
+    for (const re of [DEFAULT_COLOUR_CLASS, DEFAULT_COLOUR_THEME]) {
+      for (const m of line.matchAll(re)) {
+        if (isTokenColour(m[1], m[2])) continue;
+        out.push({ file: rel, line: i + 1, kind: 'Tailwind default colour', match: m[0] });
+      }
+    }
   });
   return out;
 }
@@ -57,9 +92,9 @@ for (const a of stale) {
   console.warn(`warning: allow-list entry no longer matches anything: ${a.file} ${a.match}`);
 }
 if (problems.length) {
-  console.error(`check failed: ${problems.length} hex colour(s) or arbitrary value(s) in src/\n`);
+  console.error(`check failed: ${problems.length} hex colour(s), arbitrary value(s) or Tailwind default colour(s) in src/\n`);
   for (const p of problems) console.error(`  ${p.file}:${p.line}  ${p.kind}  ${p.match}`);
   console.error('\nUse a token from tailwind.config.js. If this one is truly an exception, it goes in scripts/check-allowlist.json (ask first).');
   process.exit(1);
 }
-console.log(`check passed: no hex colours or arbitrary values in src/ (${all.length} allowed by scripts/check-allowlist.json)`);
+console.log(`check passed: no hex colours, arbitrary values or Tailwind default colours in src/ (${all.length} allowed by scripts/check-allowlist.json)`);

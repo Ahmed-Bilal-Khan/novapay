@@ -17,11 +17,12 @@ export default {
           pressed: "#3730A3",
           800: "#312E81",
         },
-        // Accent — warm amber, for highlights and expressive moments.
-        accent: {
+        // Attention — amber, for states that need attention (late, notice before default).
+        // Soft background (50) with dark text (neutral-900); 600 only for the short status label.
+        // Never a solid fill, so there is no DEFAULT. 100 is not for text (600 on it is 4.31:1).
+        attention: {
           50: "#FFF7E6",
           100: "#FDECC8",
-          DEFAULT: "#F59E0B",
           600: "#B45309",
         },
         neutral: {
@@ -29,11 +30,19 @@ export default {
           100: "#F2F2F2",
           200: "#ECECEC",
           300: "#D9D9D9",
-          500: "#808080",
+          500: "#6B6B6B",
           700: "#4D4D4D",
           900: "#1A1A1A",
         },
-        success: "#1E9E5A",
+        success: "#15803D",
+        // Danger — only on the event that failed, never on a person's status.
+        danger: {
+          50: "#FEF3F2",
+          DEFAULT: "#B42318",
+        },
+      },
+      fontFamily: {
+        sans: ["ui-sans-serif", "system-ui", "-apple-system", '"Segoe UI"', "Roboto", "sans-serif"],
       },
       borderRadius: {
         sm: "8px",
