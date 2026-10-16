@@ -303,7 +303,26 @@
 - **Built and rejected:** the first reviewer control (as "hectic"), its cause choice, and S13 (as a pile-on).
 - **Deferred:** the lock-screen previews.
 - **Module:** now 44 checks. Three display rules moved out of screens into `getStatus` (`before_due_reminder_sent`, `can_report_payroll_delay`) or were reverted with S13 (`default_notice_sent`).
-- **Nothing is pushed.**
+- **Nothing is pushed.** *(Out of date: as found in chat 6, everything up to `1ea918f` "Commits for session 4" is on GitHub.)*
+
+### Chat 6: reviewer controls (`7f8a6c3`, `96955b1`, `9e728b4`)
+
+- **Found before starting:**
+  - the brief's text is in a committed transcript (`docs/ai-log/raw/kit-audit&component-updates/*.jsonl`, commit `505ab67`), and that commit is on GitHub;
+  - "Nothing is pushed" above was out of date.
+  
+  Both are open for me to decide before any push (see Open questions).
+- **One "Reviewer controls" panel, an index of states** (`src/review/reviewStates.js`, `ReviewerState.jsx`):
+  - four headed groups: Before accepting (S1, S2, S3), **Graded: terms and accept** (S4, S5–S7, S8), After accepting (S9, S10), **Graded: bad news** (S11, S12, S12 with the payroll delay). The graded groups sit on white;
+  - each entry has a code, name, date (from the module) and a one-line note with its principle, and opens its state directly, set up from `scenario()`: the date, persona, outcome, S4's terms or the S8/S9 advance;
+  - S5–S7 is one entry whose After Accept choices (Works, Fails once, Lower amount) are the jumps, each opening S4 ready to accept;
+  - the current entry is marked (`aria-current`) and follows taps inside the phone and "My salary is late";
+  - Start again opens S1 and now also resets the payroll delay;
+  - removed: `DateSteps`, `AcceptOutcome`, the persona segments, the payroll checkbox and "Now showing".
+- **The panel is the phone's height (844px)** with its own scroll, so the page never scrolls away from the phone. Its scrollbar is thin and shows only on hover or focus (`.review-scroll` in `index.css`).
+- **Links:** `?state=S1` … `S12`, `S12-delay`. `S6` and `S7` open S4 with that outcome; `S5` opens S4; anything else opens S1. The URL follows the current state (`replaceState`), so a reload keeps it and Back doesn't step through states. A link names the state, not hand-made choices.
+- **Narrow screens:** from 768px the phone and panel sit side by side, centred together (no sideways scroll at 1,024 or 768). Below 768px the panel is a push-down drawer above the phone; Tab still reaches the phone first; choosing a state closes it and returns focus to its button.
+- **Checked in the app:** every entry and link fresh, the edge cases (S5, S13, a typo, `toString`, none), Fails once → S6 → Try again → S8 → S9, Lower amount → S7, reloads on S7, the details and S12 with the delay, focus after jumps, and the layout at 1,400, 1,024, 768, 767, 420 and 375px.
 
 ## Decisions
 
@@ -490,6 +509,18 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 ### Chat 6: reviewer controls, README, deploy
 
 - **NovaKit changes page dropped; the Figma sheet shows v0 next to v1; DESIGN_SYSTEM.md is the written record.**
+- **The index replaces the separate controls (A).** The date, persona and delay controls and "Now showing" are gone; each is an index entry or the highlight.
+- **After Accept lives inside the S5–S7 entry (B).** Its choices open S4 with that outcome; S6 and S7 links do the same, so S5 is always seen on the way.
+- **Start again stays (C),** though it does what the S1 entry does.
+- **Narrow screens get a push-down drawer above the phone (D),** after the phone in the DOM, so a keyboard user sees the button first but reaches it after the phone, as asked.
+- **`DateSteps.jsx` and `AcceptOutcome.jsx` deleted (E).**
+- **The reviewer panel has a fixed height and an inner scroll** (my request), with a thin scrollbar shown only on hover or focus.
+
+**Calls the AI made during the build, flagged and not overruled**
+- **The notes' principle tags (P1–P5) are the AI's reading;** S1 is tagged "offer" rather than a principle.
+- **A reload gives the state as the index sets it up:** a hand-chosen Rs 5,000 comes back as Rs 10,000, and the permission comes back unticked.
+- **"Thin" is 10px in Chromium, not 6px.** The `-webkit-` thumb didn't repaint on hover there, so the standard properties are used and `-webkit-` is only a fallback.
+- **If "Lower amount" is chosen and the amount then changed to Rs 5,000 by hand, the index marks S7,** though Accept would simply work. Jumps never set this up.
 
 ## Open questions
 
@@ -548,8 +579,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **Only the modelled stories have rows.** A collection that works on payday (repaid) adds no salary or repayment row; that's out of scope.
 - **Persona B's balance carries 4,250 to every date,** because nothing is modelled for B after 7 Jul. *(The reviewer control keeps B on 7 Jul, so this isn't shown.)*
 - **Nothing on screen reads the payroll delay yet.** It changes the advance (`payroll_delay_reported_on`, reminders paused), and the late screens will show it.
-- **The reviewer control has no URL state, notes or narrow-screen drawer** (planned for chat 6). At narrow widths it hangs off the right of the phone.
-- **At `w-80` the panel needs a window about 1,060px wide.** At 1,024px its right edge is at 1,043px, so the page scrolls sideways a little. The narrow-screen drawer (chat 6) is the fix.
+- ~~**The reviewer control has no URL state, notes or narrow-screen drawer**~~ *Resolved in chat 6 (`7f8a6c3`, `96955b1`, `9e728b4`).*
+- ~~**At `w-80` the panel needs a window about 1,060px wide.**~~ *Resolved in chat 6: side by side from 768px, a drawer below.*
 - *From the re-verification, mine to decide:*
   - ~~**2. S10 says "nothing you need to do"**~~ *Decided: leave as is.*, but my read says this reminder is the one chance to prevent money being spent before collection. Should it say anything about payday before 6pm?
   - ~~**3. My Scope lists four causes~~ *Decided: Scope updated.* of "Not collected on payday"**, but the reviewer now shows only "salary didn't arrive".
@@ -563,7 +594,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
 - *From S2, noted, not fixed:*
   - **`PayYourselfPlaceholder.jsx` now serves two placeholders**, so its name is narrower than its use. A rename needs my OK.
-  - **The reviewer panel crashed during the hot reload** that dropped 20 Aug: the open page still had 20 Aug selected. It isn't reachable from a fresh load, but the panel assumes its date exists.
+  - **The reviewer panel crashed during the hot reload** that dropped 20 Aug: the open page still had 20 Aug selected. It isn't reachable from a fresh load, but the panel assumes its date exists. *(Resolved in chat 6: the dates are gone, and an unknown state opens S1.)*
 - *From the S13 rejection:*
   - ~~**20 Aug is still a reviewer date.**~~ *Resolved: dropped from the reviewer.*
   - **My Scope and Assumptions still list "notice before default"** as the end of the late path. The notice is still sent (module, 20 Aug), but no screen designs it now.
@@ -573,7 +604,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **"Nothing you need to do" sits next to the optional "My salary is late".**
   - **The default line repeats the late sheet's last bullet.**
   - **"5 days late" is 4.71:1**, an AA pass by 0.21.
-  - **Start again keeps the payroll-delay state.**
+  - ~~**Start again keeps the payroll-delay state.**~~ *Resolved in chat 6.*
 - **The Browser pane's screenshots sometimes lag** behind the page. The page text and DOM were used to confirm each state.
 - *At the end of chat 5:*
   - **The S12 item "20 Aug shows S12's card…" no longer applies in the reviewer**, since 20 Aug was dropped. It would still apply to a real person on 20 Aug, because no S13 screen exists.
@@ -581,6 +612,12 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The audit's rows S5–S9 and earlier were not re-checked in this chat.** Only the rows touched here have chat 5 notes.
 
 **Resolved in chat 4:** Toast no longer sits over the sticky action area (`c4f284e`).
+
+### Added in chat 6
+
+- **The brief's text is on GitHub.** The chat 3 transcript under `docs/ai-log/raw/kit-audit&component-updates/` (commit `505ab67`, pushed) contains passages of `_inputs/brief.md`. Mine to decide before any push: keep or make the repo private, cut the passages in a new commit (they stay in history), or rewrite history and force-push.
+- **Where to deploy** is still open (Vercel or Netlify from GitHub recommended; GitHub Pages needs a workflow, a `base`, and a public repo on the free plan).
+- **At 375px the 390px phone frame is wider than the screen,** so the page scrolls sideways. That was true before chat 6 (the frame-scaling question above).
 
 ## Write-up inbox
 
@@ -804,14 +841,12 @@ Built and committed (nothing pushed):
 
 S13 was built and rejected. The lock-screen previews are deferred, with their copy in the Write-up inbox.
 
-1. **Chat 6 (planned): the reviewer panel's URL state, notes and narrow-screen drawer.** The drawer also fixes the panel needing a window about 1,060px wide.
+1. **Chat 6, continued:** the README's "How to review" (draft shown to me first), then deploy, once I've decided the two push questions in Open questions → Added in chat 6. The reviewer controls are done.
 2. **My read, mine to update:**
    - Scope and Assumptions still end the late path at "notice before default", which has no screen now.
    - The critique table (line 213) says "new money" where my Assumption says salary.
 3. **Small items noted in Open questions:**
    - renaming `PayYourselfPlaceholder.jsx` (needs my OK),
-   - the reviewer panel assuming its date exists,
-   - Start again keeping the payroll-delay state,
    - `role="alert"` re-announcing on S11.
 4. **Before the write-up:** a review agent re-checks every built screen against every doc, as after each chat 4 screen.
 
