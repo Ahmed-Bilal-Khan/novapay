@@ -24,6 +24,18 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > - Next step: Phase 0, my own read (no AI).
 > Commit it with a message giving the reason.
 
+### Prompt 3
+
+<!-- prompt:fbb3b99a-d38d-4c29-b4a9-351328c59b1a -->
+
+> Commit .claude/ and docs/ai-log/ with a reason-giving message, then push feature/salary-advance.
+
+### Prompt 4
+
+<!-- prompt:c28cd1fd-137e-4b9a-90eb-4057b8fac140 -->
+
+> Export this chat's transcript to docs/ai-log/raw/project-setup.md
+
 ## Session 2
 
 <!-- session:64c6f4f7-eddd-4b77-8bcf-7852456bfd15 -->
