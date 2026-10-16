@@ -942,3 +942,9 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > Update docs/progress.md: what's done, decisions made and why, open questions, next step. Append anything new from this chat to the Write-up inbox (Assumptions / What I'd want to know / System flags). Don't rewrite earlier entries. Then commit with a message that gives the reason, not just the change.
 >
 > Export the transcript of this chat to docs/ai-log/raw/Screens-Relevant-(a)-(b)
+
+### Prompt 32
+
+<!-- prompt:b8278686-d7de-427d-b016-5228c6c36e57 -->
+
+> Commit the transcript export and the prompt log, with a message that gives the reason.
