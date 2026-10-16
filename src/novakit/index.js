@@ -6,5 +6,5 @@ export { default as ListRow } from "./ListRow.jsx";
 export { default as AppBar } from "./AppBar.jsx";
 export { default as BottomSheet } from "./BottomSheet.jsx";
 export { default as Toast } from "./Toast.jsx";
-export { default as AmountText } from "./AmountText.jsx";
+export { default as AmountText, formatAmount } from "./AmountText.jsx";
 export { default as Choice } from "./Choice.jsx";

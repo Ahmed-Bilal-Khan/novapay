@@ -6,6 +6,12 @@ Every token or component change in NovaKit Lite: what changed, why (one line), a
 
 | Date | What changed | Why | File | Audit |
 |---|---|---|---|---|
+| 16 Oct 2026 | AmountText adds `tabular-nums` | Amounts in a cost summary should line up digit for digit | `src/novakit/AmountText.jsx` | 3b |
+| 16 Oct 2026 | AmountText and `formatAmount` take an optional `sign`: "+" for money in, "−" (U+2212, a real minus) for money out. A negative amount always shows "−" | The advance in and the collection out must be impossible to confuse | `src/novakit/AmountText.jsx` | 6.18 |
+| 16 Oct 2026 | AmountText adds a `caption` size, alongside display, title and body | Amounts inside fine print and second lines need the caption size | `src/novakit/AmountText.jsx` | 5A |
+| 16 Oct 2026 | AmountText no longer forces `text-neutral-900`. The colour is inherited | Inside a primary button the amount was 2.77:1 on brand | `src/novakit/AmountText.jsx` | C2, 6.4 |
+| 16 Oct 2026 | AmountText renders nothing when the amount is missing, and warns in development | It showed "Rs 0" for missing data, which is a false statement about money | `src/novakit/AmountText.jsx` | 6.1 |
+| 16 Oct 2026 | Added `formatAmount(amount, { sign })`, the single money formatter: "Rs 10,300" with a non-breaking space, or `null` for null, undefined, NaN or a non-number. AmountText uses it, and it's exported from the barrel too | Money inside strings (a button's second line, an `aria-label`) must format exactly like AmountText, from one place | `src/novakit/AmountText.jsx`, `src/novakit/index.js` | 5A, Q8 (3.2) |
 | 16 Oct 2026 | Button forwards other props (`aria-*`, `id`, `form`…) to the `<button>` | Accessibility wiring (for example `aria-describedby` to the cost summary) needs them, and no prop could be added before | `src/novakit/Button.jsx` | 6.16, I13 |
 | 16 Oct 2026 | Button gets a `focus-visible` ring in `brand` with an offset | Keyboard users need to see where they are. Before, it depended on the browser's default | `src/novakit/Button.jsx` | 6.17 |
 | 16 Oct 2026 | Secondary Button text neutral-500 → neutral-900. The border stays neutral-300 | The "no" option must be as clear as "yes". It looked disabled (3.95:1 at the audit, 5.33:1 after the token change, now 17.40:1) | `src/novakit/Button.jsx` | 1A, 6.3 |
