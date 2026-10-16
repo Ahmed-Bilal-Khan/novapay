@@ -36,7 +36,7 @@ src/
     index.js          # barrel export -> import { Button } from "./novakit"
   advance/
     salaryAdvance.js  # the one source of truth for salary-advance money and dates
-  screens/            # ChooseAmount (S3), ReviewAccept (S4, and S7 for a lower offer)
+  screens/            # ChooseAmount (S3), ReviewAccept (S4–S7), Receipt (S8), advanceParts (rows and late details S4 and S7 share)
   review/             # reviewer controls shown beside the phone, never inside it
   App.jsx             # phone frame, home, routing and placeholders
   index.css           # Tailwind entry

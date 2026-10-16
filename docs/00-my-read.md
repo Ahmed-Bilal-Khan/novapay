@@ -138,6 +138,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - The fee is 3% of the amount paid out, charged once, and added to the repayment.
 - A second user is paid into a bank account, so the wallet can't see their income. They see the "Verify your salary" home card.
 - Wallet balance is Rs 4,250 for both personas (taken from the starter screen).
+- The payout lands in the NovaPay wallet the moment the advance is accepted, so the receipt can say "Rs 10,000 is in your NovaPay wallet".
 - Verification status is known before applying. The product reference says income may or may not be verified at application, so this is my assumption.
 - Collection is automatic, from the NovaPay wallet, on payday once salary has landed, at a fixed time (6pm), with explicit and separate permission given at accept. The reminder before the due date says exactly when. Collection is attempted only when salary lands, never from other incoming money.
 - Automatic collection is full amount only. The user can choose to pay part manually (shown on the late screen, stubbed in the prototype).

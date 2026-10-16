@@ -139,6 +139,14 @@
 - **Checked in the app:** every outcome; Try again; S7's Accept and No thanks; the tick message scrolling the whole checkbox row into view on S4 and S7. Build and check pass.
 - **The audit has S5, S6 and S7 notes and a new R2 row** for the reviewer control.
 
+### Chat 4, continued: S8, the receipt (not committed yet)
+
+- **S8 replaces the placeholder,** reworked for a sense of completion: one centred column with the amount centre stage ("You received" / Rs 10,000 in the largest type token, brand colour / "It's in your NovaPay wallet now." / "Accepted on 7 Jul"), one line on the repayment ("You repay Rs 10,300 on 28 Jul at 6pm, once your salary arrives."), and "Your record" as a labelled placeholder. Done goes home. No success colour, no confetti, no back. Laid out with the better-layout principles: space groups, nothing repeated.
+- **Module:** the advance now carries `collection` and `permission` from the accepted terms. The new check failed before the change (29 checks now).
+- **Shared parts** (`src/screens/advanceParts.jsx`): the "Your advance" rows, the late line and the late sheet, used by S4 and S7.
+- **My read:** the payout landing at accept is now an Assumption.
+- **Checked in the app:** S8 for Rs 10,000 and Rs 5,000; the amount group sits in the middle of the screen with no scrolling at 390×844 and 360×640; focus lands on "Advance confirmed"; Done goes home.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -266,6 +274,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **S7's Accept is one line too ("Accept Rs 5,000").** The `CLAUDE.md` exception still names only S4, and I left it that way.
 - **S7's comparison uses list rows, not a table.**
 - **The reviewer control was added now and recorded** (audit R2). The phone is centred; reviewer controls sit to its side.
+- **S8, the receipt:** the payout landing at accept is now an Assumption; the 6pm time and the permission's end date come from the advance (they're Assumptions already); where the record lives, and home after Done, wait for S9.
+- **S8 should feel like success, so the amount is centre stage.** "Your advance" was cut because it repeats what they just saw, and "Your permission" was cut too. The repayment stays as one line. The permission's end date and "What happens if it's late" were already on S4, so they aren't on the receipt.
 - **The two "nothing was sent or charged" promises stay as they are** without new Assumptions.
 - **S4's Accept button is one line: "Accept Rs 10,000".** "Your advance" already shows "You repay on 28 Jul" and Rs 10,300 without scrolling, so a second line would only repeat it. Exceptions like this are allowed when the rest of the screen gives enough context. The rule is updated in `CLAUDE.md`, principle 1 and Scope in my read, and the audit's S4 and 6.5 rows. Button's `subLabel` stays: S3's "Review terms" still uses "Nothing is borrowed yet".
 
@@ -281,7 +291,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 
 ### Added in chat 3, continued
 
-- **The module states something my read doesn't:** "the payout lands in the wallet when it's accepted" (`received_on = accepted_on`). Its comment marks it as from my read, but it isn't there yet. I either add it to my Assumptions, or it changes.
+- ~~**The module states something my read doesn't:**~~ *Resolved in chat 4: it's now in my Assumptions.* "the payout lands in the wallet when it's accepted" (`received_on = accepted_on`). Its comment marks it as from my read, but it isn't there yet. I either add it to my Assumptions, or it changes.
 - **Is a real "Rs 0" acceptable?** For example, nothing left to repay. The rule only covers missing data.
 - **Button loading keeps the brand colour.** I haven't confirmed that, or chosen the disabled grey instead.
 - **Should the danger card get a pink edge?** That would need a new `danger-100` token. Today it uses neutral-200.
@@ -335,7 +345,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
     - default on day 30 (27 Aug).
   - Wallet balance is Rs 4,250 for both personas.
   - A reduced payout can't go below Rs 5,000. That case isn't designed.
-  - Not yet in my read: the payout lands in the wallet on the day it's accepted.
+  - The payout lands in the NovaPay wallet the moment the advance is accepted (added in chat 4).
 
 ### What I'd want to know
 
@@ -447,13 +457,12 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S7 are built. The latest work (one-line Accept, S5–S7, the reviewer control, the centred phone) is in the working tree, waiting for my "Commit now". After that come S8, the reviewer switcher and the late path.
+S3 to S8 are built. S8 (the receipt) is in the working tree, waiting for my "Commit now". After that come S9, the reviewer switcher and the late path.
 
-1. **Loose end in my read:** whether the payout lands on the day it's accepted, as an assumption.
-2. **The rest of the accept moment, one state per request, each with a plan I approve first:**
-   - S8, the receipt, which replaces the placeholder and has to say where the lasting record lives. (S5, S6 and S7 are built.)
-3. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
-4. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
+1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
+   - S9, home after accepting: Done currently returns to a home that still offers an advance, and where the record lives is decided there. (S5–S8 are built.)
+2. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`.
+3. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
 
 Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
 
