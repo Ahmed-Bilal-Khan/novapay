@@ -948,3 +948,296 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 <!-- prompt:b8278686-d7de-427d-b016-5228c6c36e57 -->
 
 > Commit the transcript export and the prompt log, with a message that gives the reason.
+
+## Session 7
+
+<!-- session:17b7475c-897d-4f6e-8852-79b9a075a9c6 -->
+
+### Prompt 1
+
+<!-- prompt:c6f5e511-01cf-4e62-80af-6d0a6c652044 -->
+
+> Read CLAUDE.md and docs/progress.md. In this session we'll focus on Screens for different scenarios on how to handle bad news. Do not update anything this is just to give you a idea of what this session is for and perp this session accordingly. Do not do any reseach or thinking or work yet
+
+### Prompt 2
+
+<!-- prompt:885c0ff3-9f7d-48eb-8a26-ba12c20d29af -->
+
+> Before any late-path screen, I need to decide how Home behaves on later dates. Give me options with a recommendation for each, as lettered choices. No code.
+> 1. The wallet balance on 25 Jul, 28 Jul, 2 Aug and 20 Aug. Today it says "Not available yet". Should the module expose a scenario balance (the scenario inputs already have 1,800 / 9,600 / 6,500), or stay unknown?
+> 2. Recent activity on later dates. Today it's hard-coded ("Today, 2:14pm", "28 Jun"). How should rows follow the date, including whether salary arrived on 28 Jul?
+> 3. Home's entry copy for persona A, which still says "You may qualify for a NovaPay salary advance." Persona A does qualify and the limit is known.
+
+### Prompt 3
+
+<!-- prompt:753d7955-5fba-4553-b1f2-7773982f6025 -->
+
+> Take the recommendations: 1B, 2A with 2i, 3B with 3i. Ask me for the 25 Jul balance and the spending rows for balance dropped before planning.
+
+### Prompt 4
+
+<!-- prompt:9df76791-5f96-4ce7-b9c1-293c729a4edb -->
+
+> Go ahead with the plan as written, dates only on activity rows.
+>
+> Build a basic reviewer control beside the frame, in src/review/, next to "after Accept". It sets data, not screens, all from the module's scenario():
+> - the date: 7 Jul (S1/S9), 25 Jul (S10), 28 Jul (S11), 2 Aug (S12), 20 Aug (S13),
+> - the not-collected cause (the 4 reasons, only relevant from 28 Jul),
+> - payroll delay reported (on/off, from 2 Aug),
+> - persona A or B.
+> App passes persona and today through; no screen computes dates. URLs, notes and the narrow-screen drawer come in Chat 6. Plan first.
+
+### Prompt 5
+
+<!-- prompt:992aa2ad-f476-44d8-aae9-4eb080f8c623 -->
+
+> Build it with C1a, C2a, C3a, C4a, C5a, C6a, C7a.
+
+### Prompt 6
+
+<!-- prompt:ea2fa39f-f79c-4b73-9546-6c11a3ecb330 -->
+
+> I think the reviewer control right now is very hectic and confusing for the reviewer, since this is not part of the application we can use some newer components to make this more better structured and understandable /better-layout use for this reviewer section only
+
+### Prompt 7
+
+<!-- prompt:810fb5f5-6033-4e17-8ab0-721c921b9bc1 -->
+
+> Build it with L1, L2 and L3 as recommended.
+
+### Prompt 8
+
+<!-- prompt:f9d0b3f0-9076-43db-a90e-1bf1b8d2f902 -->
+
+> Get rid of the why it wasn't collected option, it does not add that much value and has a lot of impact on the screen. Increase it's width by 20% as well.
+>
+> Your Assumptions are missing three lines about the 25 Jul balance, the sample rows and the 2 Aug delay. I didn’t edit 00-my-read.md; the lines are in progress.md → Write-up inbox for you to add. add these to my read
+
+### Prompt 9
+
+<!-- prompt:b0fc35e6-ecc8-47a6-ab4e-2efad9dfe80b -->
+
+> Keep it at w-80. The narrow-screen drawer in chat 6 will handle small windows.
+
+### Prompt 10
+
+<!-- prompt:a650ba9f-8dce-4259-a972-58d51223f2c2 -->
+
+> Moment: S10, 25 Jul, 3 days before payday. Persona A, viewed through the scenario control.
+> Who: someone on track, with Rs 600 in their wallet, whose advance is due in 3 days.
+> What they must understand: exactly when and from where Rs 10,300 is taken (28 Jul at 6pm, from their NovaPay wallet, once their salary arrives), and what helps it go smoothly (their salary still being paid into NovaPay).
+> What we can honestly say and what we can't: we can state the date, time, amount and source. We can't promise the salary will arrive, and we can't hint at consequences in a reminder that's about being on track.
+> Next step that actually works: nothing is required. No "pay early" button, because early repayment is "with more time" and every visible control must work.
+> Principles: 1 (the amount and date match what they agreed), 4 (calm; this is a reminder, not a warning).
+> Build: Home's advance card in its "due in 3 days" form (from getStatus), and the details view if anything changes there. The in-app reminder can show the amount; the lock-screen preview comes later in 5.4.
+> Plan question: does the late information live in the existing advance details view, or on a new screen? Recommend one.
+> Data from getStatus, getReminders, getWallet and getActivity. No screen computes money or dates.
+> Propose layout + exact copy, top to bottom. No code.
+>
+>  use /better-layout but keep the kit in mind and don't stray from it. the skill should work with the kit and not invent anything new
+
+### Prompt 11
+
+<!-- prompt:3ff498b2-b912-4c09-b462-2158f66c2ba9 -->
+
+> Build S10 as proposed, balance stays Rs 1,800, and the late information goes at the top of the existing details view.
+
+### Prompt 12
+
+<!-- prompt:e1f22f73-3272-44e7-bae2-3ffe47a4be7e -->
+
+> Reverify your work against context and flag any inconsistencies
+
+### Prompt 13
+
+<!-- prompt:d3446f79-1d89-4d12-87f8-caebf7d785e7 -->
+
+> Fix 5 (move the reminder rule into the module with a check), the stale docs 7 to 9, and record 11 to 13 in progress.md. I'll decide 2, 3, 4, 6 and 10 myself.
+
+### Prompt 14
+
+<!-- prompt:32596546-b781-431f-b49f-a0bbfdb3324b -->
+
+> 2. leave as is
+> 3. update the scope
+> 4. reword
+> 5. -
+> 6. use the same wording 
+>
+> 10. update the stale statement
+
+### Prompt 15
+
+<!-- prompt:38b3054c-92bb-45d8-a8ef-73c2188b1bd6 -->
+
+> Moment: S11, 28 Jul after 6pm. The collection attempt didn't go through. Persona A, viewed through the scenario control, for each of the 4 causes.
+> Who: someone whose payday didn't go as planned, possibly through no fault of their own.
+> What they must understand:
+> - what happened, in plain words for the cause (salary hasn't arrived / arrived short of Rs 10,300 / the balance was below Rs 10,300 at 6pm / salary now goes to a bank account),
+> - that nothing partial was taken and no fee was added,
+> - when we'll try again (only when salary arrives in NovaPay; for "moved to a bank", say plainly that automatic collection can't happen),
+> - that the amount owed is unchanged: Rs 10,300.
+> What we can honestly say and what we can't: we know the cause and the date. We don't know why their salary is late, so never guess or blame.
+> Next steps that actually work: "My payroll is delayed" (reportPayrollDelay: pauses the weekly reminders, never the pre-default notice); pay now / pay part (clearly labelled stubs, like S3's placeholder pattern).
+> Principles: 4 (red only on the failed-event message, Card tone="danger"; the person's status is calm), 5 (no partial sweep).
+> Build: Home's advance card in its "not collected" form, and the details view's status section. No failed-collection row in recent activity (decision 2i).
+> Data from collectionOutcome (the cause comes from the module), getStatus, getReminders, getWallet and getActivity.
+> Propose layout + exact copy, top to bottom, with the 4 cause lines side by side. No code.
+>
+>  Use 
+> /better-layout
+>  but keep the kit in mind and don't stray from it. the skill should work with the kit and not invent anything new
+
+### Prompt 16
+
+<!-- prompt:e9f91a6b-766e-4bd9-8283-0ea376e1e880 -->
+
+> Verify this against our context and see if this works before building
+
+### Prompt 17
+
+<!-- prompt:45366265-3ae3-4522-9430-066ccf9ffdd3 -->
+
+> My call is drop what does not align with our assumptions and other details and show me structure before we build and are there still any inconsistencies left and does S11 still have its meaning
+
+### Prompt 18
+
+<!-- prompt:c8a4b03b-ef80-41b0-a1dc-49ce476ff089 -->
+
+> Inconsistencies 
+>
+> 1. nothing required, it's automatic can count as a next step.
+>
+>
+> Build it
+
+### Prompt 19
+
+<!-- prompt:cdcb1b89-94db-4c24-88fc-0c26b16138f9 -->
+
+> make the alert message dismissable it should only show up when the user opens the app again
+
+### Prompt 20
+
+<!-- prompt:189a25df-e598-4f48-bc94-90a9d4454087 -->
+
+> Build as planned and also check this tone against our context: "We'll take it automatically when your salary arrives in NovaPay, as long as that's before 27 Aug." can we come up with something nicer?
+
+### Prompt 21
+
+<!-- prompt:7ad0f44a-7f0b-46b0-bc3e-8f93225cd3b3 -->
+
+> Use option A: "When your salary arrives in NovaPay, we'll take it automatically, so there's nothing you need to do. The permission you gave us ends on 27 Aug."
+
+### Prompt 22
+
+<!-- prompt:8ede6b25-e55e-4eba-98fc-dc470f635fd8 -->
+
+> Moment: S12, 2 Aug, 5 days after the due date. Persona A, cause carried forward from 28 Jul (salary didn't arrive), viewed through the scenario control. Two variants: payroll delay not reported, and reported (the reviewer checkbox; my Assumption says it's reported on 2 Aug).
+>
+> First, an alignment pass. Before proposing anything, check this brief against my Assumptions, Scope, the audit and CLAUDE.md. Drop anything that doesn't line up, and give me a "What I dropped, and why / What remains" table, like you did for S11.
+>
+> Keep S11's settled structure, and change only what 2 Aug changes:
+> - Home: balance first (getWallet) → the advance card in the ATTENTION tone (Card tone="attention": body text neutral-900 on attention-50, attention-600 only for a short status label such as "5 days late", no icons) → recent activity (getActivity, no failed row). No danger card on 2 Aug: the failed attempt was an event on 28 Jul, so red doesn't follow the person for days. The status card can mention it in plain text ("We couldn't take it on 28 Jul because your salary hadn't arrived."). See details, as before. No action area on Home.
+> - Details view: the attention status card with: Rs 10,300 still to repay, unchanged and no fee added; days late counted from 28 Jul (from getStatus); what happens on 27 Aug, using only my Assumptions' default consequences as stated (new advances paused, automatic collection stops) plus "your wallet keeps working"; that we'll still take it automatically if salary arrives by 27 Aug; when the next reminder comes (from getReminders); the late-sheet link. Then "What you agreed" and "Your permission", unchanged.
+> - Action area on the details view: "My salary is late" (reportPayrollDelay) only in the not-reported variant, and the same stub, "Pay some or all yourself", going to the existing placeholder screen.
+> - After reporting: no Toast. A short confirmation inside the status card (role="status"): reminders are paused, and the notice on 20 Aug will still be sent. The button disappears. Both facts come from getReminders.
+>
+> Words to avoid: "overdue", "missed", "failed to pay", and anything about the person rather than the payment.
+> Data only from getWallet, getStatus, getReminders and getActivity. No screen computes money or dates.
+>
+> Give me the structure for Home and the details view, both variants, in the same layout as S11 (the element, the copy, and where each value comes from). Then a "Still inconsistent" table with a severity for each item, and a short "Does S12 still mean what it should?". No code. Measure both screens at 390×844 and 360×640 before building.
+>
+>  use /better-layout but keep the kit in mind and don't stray from it. the skill should work with the kit and not invent anything new
+
+### Prompt 23
+
+<!-- prompt:44528af9-f228-430a-ab60-540b7f6916aa -->
+
+> Build S12 as structured. Keep 27 Aug after a report (item 1 stays an open question), and leave item 2 for S13.
+
+### Prompt 24
+
+<!-- prompt:150cba2d-89f7-44a7-ba2c-9eb403eec698 -->
+
+> Moment: S13, 20 Aug, 7 days before the default on 27 Aug. Persona A, cause carried forward (salary didn't arrive), viewed through the scenario control. Two variants: payroll delay not reported, and reported. This notice is never paused, so in the reported variant it still appears, and the screen says why.
+>
+> First, an alignment pass. Before proposing anything, check this brief against my Assumptions, Scope, the audit and CLAUDE.md. Drop anything that doesn't line up (for example, a "talk to someone" route, unless my Assumptions name one), and give me the "What I dropped, and why / What remains" table.
+>
+> Keep S12's structure, and change only what 20 Aug changes:
+> - Home: balance first → the advance card in the attention tone, now leading with the date: on 27 Aug the advance goes into default, in 7 days (days_until_default from getStatus). Short status label, e.g. "Default on 27 Aug". No countdown styling, no red, no icons. Recent activity as before. See details.
+> - Details view: the attention status card with: the exact default date and exactly what changes then, only my Assumptions' consequences as stated (new advances paused, automatic collection stops); what doesn't change (your wallet keeps working, the amount owed stays Rs 10,300, no fee added); that we'll still take it automatically if salary arrives before 27 Aug, and that after 27 Aug automatic collection stops and the permission ends (permission.ends_on). Then "What you agreed" and "Your permission", unchanged. Nothing about credit bureaus, collections or legal steps (those are "What I'd want to know").
+> - In the reported variant: one plain line that the other reminders are paused, but this notice is always sent because it's about a date that matters.
+> - Action area on the details view: "Pay some or all yourself" (the same stub), and "My salary is late" only if it hasn't been reported.
+>
+> Tone: firm and clear, never alarming. It's here so they aren't caught off guard.
+> Words to avoid: "overdue", "missed", "final warning", "act now", "last chance", and anything about the person.
+> Data only from getWallet, getStatus, getReminders and getActivity.
+>
+> Give me the structure for Home and the details view, both variants, in the S11 layout (the element, the copy, and where each value comes from). Then a "Still inconsistent" table with severities, and "Does S13 still mean what it should?". No code. Measure at 390×844 and 360×640 before building.
+>
+> use 
+> /better-layout
+>  but keep the kit in mind and don't stray from it. the skill should work with the kit and not invent anything new
+
+### Prompt 25
+
+<!-- prompt:0c937463-5bd0-4442-a86a-9da538c36ddd -->
+
+> Build S13 as structured, with the default_notice_sent module field and its check. Items 1 to 6 stay noted.
+
+### Prompt 26
+
+<!-- prompt:56654ffd-b068-4264-a2eb-777b45c7b938 -->
+
+> Let's drop S13 and keep traces of it in the document, the reason I am rejecting this is because this message feels a lot like a pile on the user will face. Log this as something rejected
+
+### Prompt 27
+
+<!-- prompt:29279ed5-e0ec-46c6-b99e-797c5a0dc699 -->
+
+> Drop 20 Aug from the reviewer dates, so the reviewer ends at 2 Aug (S12).
+
+### Prompt 28
+
+<!-- prompt:6a0096b7-1589-4fc6-9722-60b3f84852f3 -->
+
+> I'm skipping the lock-screen preview build. Record it and draft the write-up table. No code.
+> 1. Audit: add a dated note to Q6 / 12A (and 6.21): "Deferred in Chat 5: reminder copy and lock-screen text are documented in the write-up; previews are 'with more time'."
+> 2. progress.md: add it to Decisions, with the reason (not asked for in the brief; the schedule is checked in the module; S10/S12 show reminders in-app).
+> 3. Write-up inbox: draft a reminder table from getReminders for persona A, one row per reminder: date and time, type, channel (push + SMS), lock-screen text, in-app text, and whether it pauses after a payroll delay. Lock-screen text follows my rules: no amount, "loan" or "overdue"; calm; only to the borrower. In-app text must match what S10 and S12 actually show. The 20 Aug notice has no screen (S13 dropped), so write its in-app text as the copy it would use, marked "not built". Mark it "never paused". Show me the table for approval before saving.
+> Then add "lock-screen previews" to With more time in my read.
+
+### Prompt 29
+
+<!-- prompt:e677b25a-4f3e-42b7-a45f-1bbaddcc1c86 -->
+
+> Save the table to the Write-up inbox as drafted, add "Reminders go by push and SMS, to the borrower only" to my Assumptions, and commit.
+
+### Prompt 30
+
+<!-- prompt:a792ded2-a8e5-4a13-a406-3620c1cf67cf -->
+
+> Moment: S2, persona B's home. They're paid into a bank account, so the wallet can't see their income.
+> What they must understand: they need to verify their salary before an advance is possible, and the steps.
+> Next step: start verification (a clearly labelled stub). No amounts, no offer, nothing that looks like a decline.
+> Principle 2 (know before you ask). This is the "a moment that shouldn't exist" case, so keep it to one card.
+> Propose layout + exact copy. No code.
+>
+>  /better-layout /better-writing 
+>
+> use the skills in bounds of the kit and not invent new stuff
+
+### Prompt 31
+
+<!-- prompt:36253a02-7175-4d0c-8256-0cb6e000cd45 -->
+
+> Build S2 as proposed with step 3 option A ("When it's verified, this card shows what you can do next."), and reuse the placeholder screen.
+
+### Prompt 32
+
+<!-- prompt:69c45090-39cc-4a1d-a283-d030fc3ace5f -->
+
+> Update docs/progress.md: what's done, decisions made and why, open questions, next step. Append anything new from this chat to the Write-up inbox (Assumptions / What I'd want to know / System flags). Don't rewrite earlier entries. Then commit with a message that gives the reason, not just the change.
+>
+> export the transcript to docs/ai-log/raw/bad-news
