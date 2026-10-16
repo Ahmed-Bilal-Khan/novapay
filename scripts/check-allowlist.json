@@ -8,6 +8,9 @@
 
     { "file": "src/index.css", "match": "#1a1a1a", "reason": "Starter debt: root text colour duplicates neutral-900. Fix at the token, then remove this entry" },
     { "file": "src/novakit/Card.jsx", "match": "border-[#E6E6E6]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" },
-    { "file": "src/novakit/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" }
+    { "file": "src/novakit/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Starter debt: hard-coded border, not a token. Fix at the token, then remove this entry" },
+
+    { "file": "src/review/novakit-v0/Card.jsx", "match": "border-[#E6E6E6]", "reason": "Frozen starter copy for before/after. Never edited, never imported." },
+    { "file": "src/review/novakit-v0/ListRow.jsx", "match": "border-[#DADADA]", "reason": "Frozen starter copy for before/after. Never edited, never imported." }
   ]
 }
