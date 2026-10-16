@@ -89,7 +89,7 @@ The first two aren't the user's fault, and that's why the late experience should
    - No amount, "loan" or "overdue" on the lock screen.
    - Never sent to anyone but the borrower.
    - Red only on the event that failed (e.g. "We couldn't collect on 28 Jul"), never on the person's status card or the late screen. Their status uses the attention colour.
-   - Attention colour (provisional): the existing amber ramp, only as a soft background with dark text (accent-600 on accent-50). Never a solid fill, never on headlines, no alarm icons. The system audit confirms it.
+   - Attention colour (provisional): the existing amber ramp, only as a soft background with dark text (body text neutral-900 on accent-50; accent-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons. The system audit confirms it.
 5. **Their wallet stays theirs.** The advance is shown separately from their own money. Collection only ever takes what's owed, attempted once each time new money lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
 
 ## A moment that shouldn't exist
@@ -140,7 +140,7 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - Verification status is known before applying. The product reference says income may or may not be verified at application, so this is my assumption.
 - Collection is automatic, from the NovaPay wallet, on payday once salary has landed, at a fixed time (6pm), with explicit and separate permission given at accept. The reminder before the due date says exactly when.
 - Automatic collection is full amount only. The user can choose to pay part manually (shown on the late screen, stubbed in the prototype).
-- A reduced payout needs fresh consent to the new terms.
+- A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms.
 - After a default, new advances are paused and the wallet is never frozen.
 - After default, automatic collection stops. We ask for permission again, or the user pays manually.
 - Default consequences shown in the prototype are placeholders.
