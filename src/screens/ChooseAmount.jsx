@@ -142,7 +142,7 @@ export default function ChooseAmount({ Frame, offer, amount, onAmountChange, onC
             ))}
           </div>
           <p className="text-body text-neutral-700 mt-3">
-            We'll confirm the final amount before you accept. It may be lower than you choose.
+            If we can only pay a lower amount, we'll ask you again before paying anything.
           </p>
         </fieldset>
       </Card>

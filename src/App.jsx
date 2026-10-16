@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "./novakit";
 import ChooseAmount from "./screens/ChooseAmount";
-import { PERSONAS, PROTOTYPE_TODAY, getOffer } from "./advance/salaryAdvance";
+import ReviewAccept from "./screens/ReviewAccept";
+import { PERSONAS, PROTOTYPE_TODAY, acceptTerms, getOffer, getTerms } from "./advance/salaryAdvance";
 
 /**
  * NovaPay prototype in a mobile frame. Screens are built from NovaKit Lite
@@ -54,10 +55,14 @@ export default function App() {
 
   const [screen, setScreen] = useState("home");
   const [amount, setAmount] = useState(null);
+  const [advance, setAdvance] = useState(null);
+  const terms = amount != null ? getTerms(persona, amount, today) : null;
 
   // Only an eligible offer reaches the salary-advance screens. Anyone else (persona B)
-  // is sent to home.
-  const current = screen !== "home" && offer.eligibility !== "eligible" ? "home" : screen;
+  // is sent to home. The terms screen needs terms; without them it goes back to the amounts.
+  let current = screen;
+  if (screen !== "home" && offer.eligibility !== "eligible") current = "home";
+  else if (screen === "terms" && terms == null) current = "chooseAmount";
 
   function go(next) {
     hasChangedScreen = true;
@@ -67,6 +72,15 @@ export default function App() {
   function leaveToHome() {
     setAmount(null); // nothing is pre-selected next time
     go("home");
+  }
+
+  function accept() {
+    // The permission was ticked on screen. acceptTerms is idempotent: a second tap
+    // returns the same advance, never a second one.
+    const result = acceptTerms(terms, { permission_granted: true }, today);
+    if (result.error) return;
+    setAdvance(result);
+    go("receipt");
   }
 
   return (
@@ -88,7 +102,17 @@ export default function App() {
         />
       ) : null}
 
-      {current === "terms" ? <TermsPlaceholder Frame={PhoneFrame} onBack={() => go("chooseAmount")} /> : null}
+      {current === "terms" ? (
+        <ReviewAccept
+          Frame={PhoneFrame}
+          terms={terms}
+          onAccept={accept}
+          onChangeAmount={() => go("chooseAmount")}
+          onLeave={leaveToHome}
+        />
+      ) : null}
+
+      {current === "receipt" ? <ReceiptPlaceholder Frame={PhoneFrame} advance={advance} onDone={leaveToHome} /> : null}
     </div>
   );
 }
@@ -141,14 +165,24 @@ function Home({ Frame, onStartAdvance }) {
   );
 }
 
-// PLACEHOLDER until S4 (terms + accept) is built. It exists so "Review terms" leads
-// somewhere honest, and Back returns to the chosen amount.
-function TermsPlaceholder({ Frame, onBack }) {
+// PLACEHOLDER until S5 (the receipt) is built. It exists so "Accept" leads somewhere
+// honest. There's no back: the advance has been accepted.
+function ReceiptPlaceholder({ Frame, advance, onDone }) {
   return (
-    <Frame title="Terms placeholder: NovaPay" appBar={<AppBar title="Salary advance" onBack={onBack} backLabel="Back to amounts" />}>
+    <Frame
+      title="Receipt placeholder: NovaPay"
+      appBar={<AppBar title="Salary advance" />}
+      actions={
+        <Button size="lg" onClick={onDone}>
+          Done
+        </Button>
+      }
+    >
       <Card className="space-y-1">
-        <p className="text-body font-semibold text-neutral-900">Placeholder: terms and accept</p>
-        <p className="text-body text-neutral-700">This screen isn't built yet. Nothing has been borrowed.</p>
+        <p className="text-body font-semibold text-neutral-900">Placeholder: receipt</p>
+        <p className="text-body text-neutral-700">
+          This screen isn't built yet. {advance ? "The advance was accepted." : null}
+        </p>
       </Card>
     </Frame>
   );
