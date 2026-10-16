@@ -230,7 +230,7 @@
 - **Verified twice before building.** The first S11 brief (4 causes, a payroll button on 28 Jul, two pay stubs) didn't line up with my Scope, my 2 Aug Assumption or the audit. I dropped what didn't align.
 - **Home on 28 Jul:**
   - a danger Card (`role="alert"`): "We couldn't take your repayment on 28 Jul" / "Your salary hadn't arrived in your NovaPay wallet by 6pm." / "Nothing was taken and no fee was added."
-  - then the advance card, calm: "Rs 10,300 still to repay. The amount hasn't changed." / "We'll take it automatically when your salary arrives in NovaPay, as long as that's before 27 Aug." / See details
+  - then the advance card, calm: "Rs 10,300 still to repay. The amount hasn't changed." / "When your salary arrives in NovaPay, we'll take it automatically, so there's nothing you need to do. The permission you gave us ends on 27 Aug." *(option A, chosen after a tone check: the first version read as a deadline and left out that nothing is needed)* / See details
   - no failed row in recent activity.
 - **Details view, status section first:**
   - the same danger card,

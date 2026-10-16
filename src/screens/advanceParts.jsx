@@ -98,10 +98,12 @@ const CAUSE_LINES = {
   salary_not_arrived: (time) => `Your salary hadn't arrived in your NovaPay wallet by ${time}.`,
 };
 // S11, when we'll try again, per cause. Collection is attempted only when salary lands, and
-// only while the permission lasts, which ends on the default date.
+// only while the permission lasts, which ends on the default date. Reassurance first (the
+// next step is that nothing is needed), then the end date as a plain fact, in the
+// permission card's words.
 const RETRY_LINES = {
   salary_not_arrived: (endsOn) =>
-    `We'll take it automatically when your salary arrives in NovaPay, as long as that's before ${endsOn}.`,
+    `When your salary arrives in NovaPay, we'll take it automatically, so there's nothing you need to do. The permission you gave us ends on ${endsOn}.`,
 };
 
 /**
