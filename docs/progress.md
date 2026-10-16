@@ -202,6 +202,13 @@
   - Measured: 746px on 7 Jul and 704px on 2 Aug and 20 Aug.
 - **My three Assumptions are now in `00-my-read.md`:** the 25 Jul balance, the payday balances by cause as sample data, and the 2 Aug payroll delay.
 
+### Chat 5, continued: S10, the reminder before the due date
+
+- **Proposed with better-layout, kit only, then approved.** Home's advance card on 25 Jul: "Rs 10,300 to repay on 28 Jul, in 3 days" / "We take it from your NovaPay wallet at 6pm, once your salary arrives." / "Your salary is paid into NovaPay, so there's nothing you need to do." / "See details". No status label, no amber, no action, no balance comparison.
+- **The card is the in-app reminder.** It switches on once `getReminders` says the before-due reminder was sent and `getStatus` says the advance is before due, so S9 on 7 Jul is unchanged. "in 3 days" is `days_until_due` ("tomorrow" for 1). The salary line reads `persona.salary_destination`.
+- **The details view is unchanged on S10.**
+- **Checked in the app:** S10 copy; S9 unaffected; 28 Jul, 2 Aug and 20 Aug don't pick up the new lines; at 360×640 the whole card is above the fold.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -353,6 +360,10 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **"Start again" moved into the new control,** because "after Accept" is hidden on later dates and Start again has to be reachable from any date.
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
+
+**S10 and where the late path lives:**
+- The 25 Jul balance stays Rs 1,800 (my Assumption), not the Rs 600 my S10 brief said.
+- The late information will go at the top of the existing advance details view, not on a new screen: a status section first (a danger Card for the failed collection, an attention Card for late), the agreed terms below, and next steps in the action area.
 
 **Reviewer panel, simplified:** no cause choice (it added little for the space it took). The other three causes stay in the module and its checks, but the reviewer can't show them. Width `w-80`, the nearest default to the 20% wider I asked for.
 
@@ -578,7 +589,7 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). Next: the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" on 2 Aug), then the late path screens.
+S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (the reminder before the due date) is built. Next: S11 onwards, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
 
 1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
    - The accept moment is built (S3–S9). The late path is next.

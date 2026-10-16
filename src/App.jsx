@@ -9,6 +9,7 @@ import {
   acceptTerms,
   getActivity,
   getOffer,
+  getReminders,
   getStatus,
   getTerms,
   getWallet,
@@ -172,11 +173,13 @@ export default function App() {
           <Home
             Frame={PhoneFrame}
             today={today}
+            persona={persona}
             offer={offer}
             wallet={getWallet(persona, advance, today)}
             activity={getActivity(persona, advance, today)}
             advance={advance}
             status={advance ? getStatus(advance, today) : null}
+            reminders={advance ? getReminders(advance, today) : []}
             onStartAdvance={() => go("chooseAmount")}
             onSeeAdvance={() => go("advanceDetails")}
           />
