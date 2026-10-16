@@ -66,15 +66,14 @@ export function AdvanceSummary({
   );
 }
 
+// A text button inside a card: brand text, a 44px target and the brand focus ring.
+const TEXT_BUTTON =
+  "inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2";
+
 // The button that opens "What happens if it's late" (the sheet below).
 export function LateLink({ onOpen }) {
   return (
-    <button
-      type="button"
-      aria-haspopup="dialog"
-      onClick={onOpen}
-      className="inline-flex items-center min-h-11 rounded-sm text-body font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-    >
+    <button type="button" aria-haspopup="dialog" onClick={onOpen} className={TEXT_BUTTON}>
       What happens if it's late
     </button>
   );
@@ -108,16 +107,21 @@ const RETRY_LINES = {
 /**
  * S11: the failed collection, the event, so the only red. role="alert" (audit 6.10).
  * `attempt` is getStatus().last_attempt: its date, time and cause come from the module.
+ * `onHide` (Home only): "Hide this message". The details view keeps it as the record.
  */
-export function NotCollectedNotice({ attempt }) {
+export function NotCollectedNotice({ attempt, onHide = null }) {
   const cause = CAUSE_LINES[attempt.reason]?.(formatTime(attempt.time));
+  const title = `We couldn't take your repayment on ${formatDate(attempt.date)}`;
   return (
     <Card tone="danger" role="alert" className="space-y-1">
-      <h2 className="text-body font-semibold text-neutral-900">
-        We couldn't take your repayment on {formatDate(attempt.date)}
-      </h2>
+      <h2 className="text-body font-semibold text-neutral-900">{title}</h2>
       {cause ? <p className="text-body text-neutral-900">{cause}</p> : null}
       <p className="text-body text-neutral-900">Nothing was taken and no fee was added.</p>
+      {onHide ? (
+        <button type="button" onClick={onHide} aria-label={`Hide this message: ${title}`} className={TEXT_BUTTON}>
+          Hide this message
+        </button>
+      ) : null}
     </Card>
   );
 }

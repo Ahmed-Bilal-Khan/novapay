@@ -240,6 +240,11 @@
 - **Shared wording in `advanceParts.jsx`:** `NotCollectedNotice`, `NotCollectedStatus`, `LateLink`, and a `heading` option on `AdvanceSummary`. Date, time, cause, amount and 27 Aug all come from `getStatus`.
 - **"Before 27 Aug", not "by":** the module ends the permission on 27 Aug (`today < default_date`).
 - **Checked in the app:** Home and details on 28 Jul; the sheet opens and Escape returns focus; the placeholder and back; S10 and S12 unchanged; 360×640 (both status cards above the action area).
+- **The Home alert can be hidden** (my request):
+  - "Hide this message" sits at the bottom of the red card on Home only. The details view keeps the card as the record.
+  - App state keeps it hidden for that failed attempt. Home → details → Home and a date round trip keep it hidden; a reload (opening the app again) and Start again bring it back. Nothing is saved.
+  - Focus moves to the advance card's heading. The button reuses the late link's style (`TEXT_BUTTON` in `advanceParts.jsx`), so there's no new component.
+  - Checked in the app.
 
 ## Decisions
 

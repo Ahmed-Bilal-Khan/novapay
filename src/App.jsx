@@ -96,6 +96,11 @@ export default function App() {
   // The offer knows about the open advance: one advance at a time (module rule).
   const offer = getOffer(persona, today, advance);
   const terms = amount != null ? getTerms(persona, amount, today) : null;
+  const status = advance ? getStatus(advance, today) : null;
+  // S11's "Hide this message" on Home: kept for this failed attempt until the app is opened
+  // again (a reload clears this state) or the reviewer starts again. Not saved anywhere.
+  const [hiddenNotice, setHiddenNotice] = useState(null);
+  const noticeKey = status?.last_attempt ? `${advance.id}:${status.last_attempt.date}` : null;
 
   // Only an eligible offer reaches the offer screens (S3, S4, S7). Anyone else (persona B,
   // or someone with an open advance) is sent to home. The terms screens need terms; without
@@ -131,6 +136,7 @@ export default function App() {
   // Reviewer only: back to 7 Jul, persona A, nothing accepted, to run the flow again.
   function startAgain() {
     setLiveAdvance(null);
+    setHiddenNotice(null);
     changeReview({ ...review, persona: "A", scenario: "S1" });
   }
 
@@ -178,7 +184,9 @@ export default function App() {
             wallet={getWallet(persona, advance, today)}
             activity={getActivity(persona, advance, today)}
             advance={advance}
-            status={advance ? getStatus(advance, today) : null}
+            status={status}
+            noticeHidden={noticeKey != null && hiddenNotice === noticeKey}
+            onHideNotice={() => setHiddenNotice(noticeKey)}
             onStartAdvance={() => go("chooseAmount")}
             onSeeAdvance={() => go("advanceDetails")}
           />
@@ -223,7 +231,7 @@ export default function App() {
           <AdvanceDetails
             Frame={PhoneFrame}
             advance={advance}
-            status={getStatus(advance, today)}
+            status={status}
             onBack={() => go("home")}
             onPayYourself={() => go("payYourself")}
           />

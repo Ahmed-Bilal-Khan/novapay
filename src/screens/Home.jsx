@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "../novakit";
 import { FEE_PERCENT, formatDate, formatDay, formatTime } from "../advance/salaryAdvance";
 import { NotCollectedNotice, NotCollectedStatus } from "./advanceParts";
@@ -27,6 +28,8 @@ export default function Home({
   activity,
   advance,
   status,
+  noticeHidden,
+  onHideNotice,
   onStartAdvance,
   onSeeAdvance,
 }) {
@@ -39,6 +42,14 @@ export default function Home({
   // S11: payday's collection didn't go through (getStatus). The event gets its own danger
   // card above the advance card, which stays calm and in its usual place (principle 4).
   const notCollected = status?.phase === "not_collected";
+  // "Hide this message": App keeps it hidden until the app is opened again (a reload) or
+  // the reviewer starts again. Focus moves to the advance card, so nobody loses their place.
+  // A timeout, not rAF: background tabs pause rAF (progress.md, system flags).
+  const advanceHeadingRef = useRef(null);
+  function hideNotice() {
+    onHideNotice();
+    setTimeout(() => advanceHeadingRef.current?.focus(), 0);
+  }
 
   return (
     <Frame title="NovaPay" appBar={<AppBar title="NovaPay" />}>
@@ -60,10 +71,12 @@ export default function Home({
 
       {advance && offer.eligibility === "has_advance" && notCollected ? (
         <>
-          <NotCollectedNotice attempt={status.last_attempt} />
+          {noticeHidden ? null : <NotCollectedNotice attempt={status.last_attempt} onHide={hideNotice} />}
           <Card className="space-y-3">
             <div>
-              <h2 className="text-body font-semibold text-neutral-900">Your salary advance</h2>
+              <h2 ref={advanceHeadingRef} tabIndex={-1} className="text-body font-semibold text-neutral-900 focus:outline-none">
+                Your salary advance
+              </h2>
               <div className="mt-1">
                 <NotCollectedStatus status={status} />
               </div>
