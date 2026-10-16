@@ -90,7 +90,7 @@ The first two aren't the user's fault, and that's why the late experience should
    - Never sent to anyone but the borrower.
    - Red only on the event that failed (e.g. "We couldn't collect on 28 Jul"), never on the person's status card or the late screen. Their status uses the attention colour.
    - Attention colour (provisional): the existing amber ramp, only as a soft background with dark text (body text neutral-900 on accent-50; accent-600 only for the short status label). Never a solid fill, never on headlines, no alarm icons. The system audit confirms it.
-5. **Their wallet stays theirs.** The advance is shown separately from their own money. Collection only ever takes what's owed, attempted once each time new money lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
+5. **Their wallet stays theirs.** The advance is shown separately from their own money. Collection only ever takes what's owed, attempted once each time salary lands, never on a daily loop (whether retries are allowed is an open question). The wallet is never frozen. 
 
 ## A moment that shouldn't exist
 **"Declined: income unverified."**
@@ -120,7 +120,7 @@ The home card: eligible vs needs verification (the second persona's home-card st
 Home after accepting: their own balance first, with the advance shown separately. This is where the receipt's Done goes, and it makes principle 5 testable.
 
 **With more time**
-Credit-history decline, the default screen itself, successful repayment, viewing the advance later, early repayment.
+Credit-history decline, the default screen itself, successful repayment, viewing the advance later, early repayment. Modelling spending, so the balance always shows how much of it is borrowed.
 
 ## First impressions of NovaKit
 - Card and Panel are the same component; only the border differs, and Card's border is a hardcoded colour.
@@ -137,10 +137,14 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - The user is salaried, with a limit of Rs 10,000. Salary of Rs 68,000 lands in NovaPay on the 28th. Today is 7 Jul, so the advance is due 28 Jul (21 days).
 - The fee is 3% of the amount paid out, charged once, and added to the repayment.
 - A second user is paid into a bank account, so the wallet can't see their income. They see the "Verify your salary" home card.
+- Wallet balance is Rs 4,250 for both personas (taken from the starter screen).
 - Verification status is known before applying. The product reference says income may or may not be verified at application, so this is my assumption.
-- Collection is automatic, from the NovaPay wallet, on payday once salary has landed, at a fixed time (6pm), with explicit and separate permission given at accept. The reminder before the due date says exactly when.
+- Collection is automatic, from the NovaPay wallet, on payday once salary has landed, at a fixed time (6pm), with explicit and separate permission given at accept. The reminder before the due date says exactly when. Collection is attempted only when salary lands, never from other incoming money.
 - Automatic collection is full amount only. The user can choose to pay part manually (shown on the late screen, stubbed in the prototype).
-- A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms.
+- Reminder before the due date: 25 Jul at 10:00. The not-collected notice: 6pm on the day the attempt fails.
+- Late reminders every 7 days (4, 11, 18 and 25 Aug). This cadence is a placeholder.
+- Notice before default: 20 Aug, never paused, even after a payroll delay is reported. Default happens on day 30 (27 Aug).
+- A reduced payout always drops to a lower tier (e.g. 10,000 → 5,000), so the fee is always a whole number of rupees. It needs fresh consent to the new terms. A reduced payout can't go below Rs 5,000, the lowest tier. That case isn't designed.
 - After a default, new advances are paused and the wallet is never frozen.
 - After default, automatic collection stops. We ask for permission again, or the user pays manually.
 - Default consequences shown in the prototype are placeholders.
@@ -151,7 +155,9 @@ The full audit against my scope comes next (docs/01-system-audit.md).
 - Is there a required cancellation window?
 - Is the fee legally interest? Do we need an annualised rate or a key facts statement? Is interest (riba) a concern for this market?
 - What exactly happens at default: which credit bureau, collections, any legal steps?
+- Should a reported payroll delay move the default date?
 - Collection: can we retry when funds are short? How often? Is any amount protected for the user?
+- What happens if a reduced payout is needed from the lowest tier?
 - How long can a collection permission legally last, and what does re-asking after default require?
 - Can we use wallet data to check eligibility before an application, and what consent does that need?
 - How is the record of agreement delivered and stored, and in which languages (Urdu and English)?
