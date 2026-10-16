@@ -263,6 +263,20 @@
 - **Shared wording in `advanceParts.jsx`:** `LateLabel` and `LateStatus`, plus `RetryLine`, now shared with S11.
 - **Checked in the app:** both variants; focus after the tap, and none when the screen opens already reported; the reviewer checkbox and Now showing follow the tap; S10 and S11 unchanged. Measured: the status card ends at 316px (two buttons) and 390px (reported), inside 450/506px at 360×640 and 654/710px at 390×844.
 
+### Chat 5, continued: S13 built, then rejected (`f4db1bd`, reverted in `0113d65`)
+
+- **What the AI built:** the notice before default on 20 Aug. On Home and at the top of the details, the attention card had:
+  - "Default date: 27 Aug",
+  - "If it's still unpaid on 27 Aug, the advance is in default. That's in 7 days.",
+  - then (details only) "Then new advances are paused and automatic collection stops. We won't freeze your wallet.",
+  - what's owed today, payday's cause line and S11's retry line,
+  - in the reported variant, why the notice still came.
+  
+  The only action was the pay stub. A module field, `default_notice_sent`, switched it on and stopped offering "My salary is late". It was aligned, measured and checked in the app.
+- **Rejected by me:** the message feels like a pile-on the person would face. Five things land in one card a week before default: the date, the consequences, the amount, what went wrong, and what happens next.
+- **Reverted as `CLAUDE.md` asks:** the build is the draft (`f4db1bd`), and `0113d65` is the "Reject:" commit. The code, the module field, its check (back to 44) and its doc entries are gone. This entry and the audit's S13 row keep the trace.
+- **What 20 Aug shows now (checked in the app):** S12's card, with "23 days late". In the details, "My salary is late" is offered again and would be recorded as 2 Aug. If reported, the confirmation says "we'll still send you a notice on 20 Aug" on 20 Aug itself.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -415,6 +429,8 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The control's date names** ("Accept flow (S1–S9)", "Late (S12)"…) are reviewer text in `ReviewerState.jsx`; the dates come from the module.
 - **Shortened to fit the phone's height:** "Balance dropped" (not "…before 6pm") and "Payroll delay reported" (the date moved to "Now showing"). "Network failure" became the "Fails once" segment, with the full wording in its description.
 
+**S13 (rejected):** the screen is dropped; it felt like a pile-on. The notice itself still exists in the module (20 Aug, never paused), so my Assumption and Scope still name it, but no screen shows it.
+
 **S12:**
 - Build as structured.
 - 27 Aug stays after a report: whether a payroll delay moves the default date is still an open question in my read, and the screen shows the module's current date.
@@ -505,6 +521,9 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The danger card's `role="alert"` is there when the screen opens**, so it re-announces on every visit (the cost of audit 6.10).
   - **My read's critique table (line 213) says "each time new money lands"**, but my Assumption (line 147) says only when salary lands. It's my file.
   - **Persona A, other causes:** the module still models them, but the screens show no cause line or retry line for them rather than a guess.
+- *From the S13 rejection:*
+  - **20 Aug is still a reviewer date**, and it shows S12's card. "My salary is late" there records 2 Aug, and the reported confirmation is in the wrong tense on that day.
+  - **My Scope and Assumptions still list "notice before default"** as the end of the late path. The notice is still sent (module, 20 Aug), but no screen designs it now.
 - *From S12, noted, not fixed:*
   - **After a report, the details still say "if it's still unpaid on 27 Aug…"**, which treats an open question in my read as answered (my choice to keep it).
   - **20 Aug shows S12's card ("23 days late") until S13 is built.** Tapping "My salary is late" there would record 2 Aug, and the confirmation's "we'll still send you a notice on 20 Aug" would be in the wrong tense.
@@ -653,6 +672,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI corrected its own earlier claim.** It had said the 28 Jun salary row would show on later dates. With a 4-row cap it doesn't, and it said so before building.
   - **Policy questions stayed questions.** Whether a short salary or a move to a bank counts as a payroll delay isn't written, so the delay applies only when the salary didn't arrive (C6a).
   - **The AI's own estimate failed when measured.** It estimated the restructured panel at about 640px; the first build measured 904px. Wrapping names and descriptions cost the most. The AI shortened the date rows to one line, made the causes a 2×2 grid, and moved the delay's date into "Now showing", then measured again (834px at most).
+  - **Rejected AI output (candidate for the write-up): S13.** The AI's notice before default passed its own alignment pass, measurements and checks, and I still rejected it: it read as a pile-on. Being correct, calm in colour and well measured didn't make it kind. This time it went in as a proper "AI draft" / "Reject:" pair (`f4db1bd` / `0113d65`).
   - **Rejected AI output, twice, replaced rather than reverted.** I called the first reviewer control "hectic and confusing" (`70d22f3`), and it was rebuilt with better-layout (`1eeec89`). I then cut its "Why it wasn't collected" group as not worth its space (`84ba2eb`). Both went in as forward commits, not the "AI draft: …" / "Reject: …" pair `CLAUDE.md` asks for. The re-verification flagged it. Reverting now would undo work built on top, so the record is here.
   - **A working screen was rewritten whole without showing me the diff.** `Home.jsx` was replaced in one write (`d6c9c5a`) under an approved plan. `CLAUDE.md` asks for the diff first.
   - **Re-verifying against every doc paid off again.** It found the late dates showing "before due" wording, a display rule living in a screen, copy that pulls against my read's reason for the reminder, and stale docs.
@@ -676,12 +696,10 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-S3 to S9 are built and committed. Home's balance and activity follow the date, and the reviewer control sets persona, date, cause and payroll delay (chat 5). S10 (reminder), S11 (not collected) and S12 (late, with "My salary is late") are built. Next: S13, the notice before default on 20 Aug, which also fixes 20 Aug reusing S12, with the late information at the top of the existing details view, and the advance card's later states on Home (it still says "to repay on 28 Jul… once your salary arrives" from 28 Jul).
+Built and committed: the accept moment (S3–S9) and the late path up to S12. Home's balance and activity follow the date, and the reviewer panel sets persona, date and payroll delay. S13 (notice before default) was built and rejected.
 
-1. **The rest of the accept moment, one state per request, each with a plan I approve first:**
-   - The accept moment is built (S3–S9). The late path is next.
-2. **The reviewer state switcher** in `src/review/`, beside the frame, driven by `scenario()`. Once it puts Home on later dates, the advance card needs its later states (late, repaid: never "Rs 0 to repay").
-3. **Then the late path:** the reminder before the due date → not collected on payday → late → the notice before default.
+1. **Decide what 20 Aug is now.** Either drop it from the reviewer dates, or redesign the notice so it isn't a pile-on. Until then it shows S12's card, with the report-date and tense problems noted above.
+2. **The lock-screen previews (5.4):** no amount, no "loan", no "overdue".
+3. **Persona B's home card** (S2, verify salary) is still not built.
 
-Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
-
+One state per request, each with a plan I approve first. Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
