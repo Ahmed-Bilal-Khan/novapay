@@ -9,9 +9,9 @@ export default function AppBar({ title, onBack = null }) {
         <button
           onClick={onBack}
           aria-label="Back"
-          className="h-9 w-9 -ml-1 flex items-center justify-center rounded-full text-neutral-700 active:bg-neutral-100"
+          className="h-11 w-11 -ml-1 flex items-center justify-center rounded-full text-neutral-700 active:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
-          ‹
+          <span aria-hidden="true">‹</span>
         </button>
       ) : null}
       <h1 className="text-title text-neutral-900">{title}</h1>

@@ -6,6 +6,7 @@ Every token or component change in NovaKit Lite: what changed, why (one line), a
 
 | Date | What changed | Why | File | Audit |
 |---|---|---|---|---|
+| 16 Oct 2026 | AppBar back button: target `h-9 w-9` (36px) → `h-11 w-11` (44px), a `brand` focus-visible ring with an offset, and the "‹" glyph `aria-hidden` (the button keeps `aria-label="Back"`). No icon library | 36px was under the 44px touch target, and keyboard focus depended on the browser default | `src/novakit/AppBar.jsx` | 10B, 6.17 |
 | 16 Oct 2026 | ListRow forwards other props to the row's `<div>` | Screens need to add `id`, `aria-*` or a test hook without editing the component | `src/novakit/ListRow.jsx` | I13 |
 | 16 Oct 2026 | ListRow's icon slot is `aria-hidden`. The meaning goes in the title or subtitle. Rows are still `<div>`s, not list items (flagged, not fixed) | The glyphs (↑ ↓) were read aloud as "upwards arrow" and carried the direction of money on their own | `src/novakit/ListRow.jsx` | I14, 6.18 |
 | 16 Oct 2026 | ListRow `wrap` (default `false`): title and subtitle wrap instead of truncating. Existing rows still truncate | Cutting "Repay on 28 Jul at 6pm, once your salary lands" hides the terms | `src/novakit/ListRow.jsx` | 10B, 6.12 |
