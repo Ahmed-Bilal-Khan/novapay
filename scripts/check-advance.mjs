@@ -291,6 +291,13 @@ check('The advance card has what it needs: received, when, what to repay, by whe
   assert.equal(SA.formatDate(adv.received_on), '7 Jul');
 });
 
+check('The receipt has what was agreed: collection time and source, and when the permission ends', () => {
+  const adv = accept();
+  assert.deepEqual(adv.collection, { date: '2026-07-28', time: '18:00', from: 'novapay_wallet' });
+  assert.deepEqual(adv.permission, { amount: 10300, from_date: '2026-07-28', ends_by: '2026-08-27' });
+  assert.equal(adv.accepted_on, '2026-07-07');
+});
+
 // ---- Formatting ----
 
 check('Dates and times format for screens; missing stays missing', () => {

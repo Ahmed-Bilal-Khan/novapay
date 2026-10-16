@@ -215,6 +215,9 @@ export function acceptTerms(terms, { permission_granted }, today) {
     received_on: today, // MR: the payout lands in the wallet when accepted
     due_date: terms.due_date,
     default_date: terms.default_date,
+    // What was agreed, kept on the advance so the receipt shows exactly the accepted terms.
+    collection: terms.collection,
+    permission: terms.permission,
     permission_granted: true,
     payments: [],
     collection_attempts: [],
