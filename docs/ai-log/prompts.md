@@ -93,3 +93,93 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > 5. Does my scope cover the necessary areas and does it follow the Depth over breadth rule set in the breif?
 >
 > Be blunt and specific.
+
+### Prompt 3
+
+<!-- prompt:bbed4f3a-a610-433b-92a2-7b9d089ad6c6 -->
+
+> I've updated docs/00-my-read.md to v2 after your critique. The "Response to the AI critique" table at the end shows what I accepted, adapted and rejected.
+>
+> I'm rejecting two of your points:
+> 1. Cutting the record: The receipt right after accepting is the accept moment, and "no record" is on my own predatory list. Only the later "view your advance" screens are cut..
+> 2. Cutting the reminder before the due date: The brief names "a repayment is coming due". The late path starts there.
+>
+> Please:
+> 1. Argue against both rejections as strongly as you can, then tell me whether anything in your argument should change my call.
+> 2. Check v2 for anything still unsupported or contradictory. A short list only.
+>
+> Don't edit 00-my-read.md. I'll make any changes myself.
+
+### Prompt 4
+
+<!-- prompt:ac0b8d4c-9b4e-4403-8397-3d25062598dc -->
+
+> Two corrections. First, you're right about the table: it misattributed three points to you. I'm correcting those rows to match what you actually said. Second, my last message went out with placeholders instead of my reasons. My actual reasons: [receipt: the accept moment isn't finished until the user knows it worked], [reminder: it's the only chance to prevent two of the causes of lateness].
+>
+> I accept your round-2 argument on both reasons. Next I'll fix the 11 issues you added, then decide the rest myself.
+
+### Prompt 5
+
+<!-- prompt:6691a333-4a11-4baf-9910-e2e3b4c50f19 -->
+
+> Two corrections. First, you're right about the table: it misattributed three points to you. I'm correcting those rows to match what you actually said. Second, my last message went out with placeholders instead of my reasons. My actual reasons: receipt: the accept moment isn't finished until the user knows it worked, reminder: it's the only chance to prevent two of the causes of lateness.
+>
+> I accept your round-2 argument on both reasons. Next I'll fix the 11 issues you added, then decide the rest myself.
+
+### Prompt 6
+
+<!-- prompt:b5178b20-51fc-4c5e-a91d-ad9244dfc1b8 -->
+
+> I've decided how to handle your 11 round-2 points. Apply these decisions to docs/00-my-read.md. Change only what's listed, keep my wording where I give it, and don't add anything of your own. Show me the diff before saving.
+>
+> 1. Collection timing. In "Why someone ends up late" and Assumptions: collection happens on payday once salary has landed, at a fixed time (6pm), and the reminder before the due date says exactly when. In the Scope late path, rename "collection failed" to "Not collected on payday". Causes: salary didn't arrive, salary arrived short of Rs 10,300, balance dropped below Rs 10,300 before 6pm, or salary moved to a bank account. Keep "spent before collection" as a cause, since the 6pm time makes it possible.
+>
+> 2. Second persona. Add to Assumptions: "A second user is paid into a bank account, so the wallet can't see their income. They see the 'Verify your salary' home card." Also add: "Verification status is known before applying. The product reference says income may or may not be verified at application, so this is my assumption." Under Thin in Scope, name this as the second persona's home-card state.
+>
+> 3. Grace period. Remove the 5-day rule. Replace the "Due date vs salary arriving" paragraph with: "Days late are counted from 28 Jul, as the product reference says, and shown truthfully. The tone is calm from day 1. If payroll is delayed, the user can tell us and reminders pause."
+>
+> 4. Retries and part-payments. In principle 5, replace "at most once a day" with "attempted once each time new money lands, never on a daily loop (whether retries are allowed is an open question)". In Assumptions: "Automatic collection is full amount only. The user can choose to pay part manually (shown on the late screen, stubbed in the prototype)."
+>
+> 5. Default consequences. In the Scope terms + accept section, after the default consequences line, add "placeholder copy until compliance confirms". Add to Assumptions: "Default consequences shown in the prototype are placeholders."
+>
+> 6. Red. Replace principle 4's last bullet with: "Red only on the event that failed (e.g. 'We couldn't collect on 28 Jul'), never on the person's status card or the late screen. Their status uses the attention colour."
+>
+> 7. Home after accepting. Add to Thin in Scope: "Home after accepting: their own balance first, with the advance shown separately. This is where the receipt's Done goes, and it makes principle 5 testable."
+>
+> 8. Button. Add to First impressions: "Button has a fixed height and 20px text at large size. A descriptive label like 'Accept Rs 10,000 · repay Rs 10,300 on 28 Jul' probably won't fit. I'd rather change Button (a secondary line and a minimum height) than loosen principle 1. The audit will confirm." In Scope, change the button line to: main label "Accept Rs 10,000", secondary line "Repay Rs 10,300 on 28 Jul".
+>
+> 9. What's working. Replace the first bullet with: "It converts, so people want it. That doesn't prove they understand it." Mark the fixed-fee and payday-timing bullets as "(from the product reference, not observed)".
+>
+> 10. Metrics. Add to "How I'd know it's good": "Repeat borrowing: how often someone borrows again within 7 days of repaying. It should stay low."
+>
+> 11. Permission end date. Change the collection permission in Scope to: "I allow NovaPay to collect Rs 10,300 from my wallet on 28 Jul, or when my salary lands after that, until this advance is repaid or the default date, whichever comes first." Add to Assumptions: "After default, automatic collection stops. We ask for permission again, or the user pays manually." Add to "What I'd want to know": "How long can a collection permission legally last, and what does re-asking after default require?"
+>
+> Critique table: correct three rows so they match what you actually said:
+> - "Separate permission to collect from the wallet": change the reason to "Becomes the checkbox, so consent is specific rather than a generic 'I agree'".
+> - Replace "Cut the record" with: "Cut v1's separate 'Record of the advance' screen | Accept | Moved to 'With more time'".
+> - Replace "Cut the pre-due reminder" with: "Your suggested late path left out the reminder before the due date | Reject | It's the one chance to prevent two of the four causes of lateness: salary moved to a bank, and money spent before collection".
+> Then add: "Keep a receipt after accepting (my addition, not a critique point) | Keep | The accept moment isn't finished until the user knows it worked. It will say where the lasting record lives, which is still an open question".
+>
+> Then add a "Round 2" table underneath, with columns Point | My call | What changed, one row per decision above. Points 3 and 9 are "Accept"; points 1, 4, 8 and 11 are "Adapt"; the rest are "Accept".
+
+### Prompt 7
+
+<!-- prompt:d5cd86f0-cac4-49d5-a143-c4d25fb92f31 -->
+
+> Save the staged version to docs/00-my-read.md as shown. I'll handle the three flagged items myself.
+
+### Prompt 8
+
+<!-- prompt:c1014656-53f0-4b63-b34d-263c5f38d01d -->
+
+> Three stale points remain after the round-2 edits. Apply exactly these to docs/00-my-read.md and show me the diff before saving:
+> 1. In the critique table, change the "Why someone ends up late" reason to: "It decides the tone. A grace rule was added in v2, then removed in round 2: days late are shown truthfully."
+> 2. Define the attention colour. Add to principle 4: "Attention colour (provisional): the existing amber ramp, only as a soft background with dark text (accent-600 on accent-50). Never a solid fill, never on headlines, no alarm icons. The system audit confirms it." In First impressions, replace the amber bullet with: "The only status colour is success. Amber is labelled 'for expressive moments' and has no defined meaning, so anyone would grab it for a late screen. I'll give it one meaning (attention) with rules, or not use it."
+> 3. In "A moment that shouldn't exist", replace the first bullet with: "Assuming verification status is known before anyone applies (see Assumptions), the home card can show verification as a step to complete first, instead of letting the user apply and then declining them: 'Verify your salary to unlock an advance', with the steps."
+> Change nothing else.
+
+### Prompt 9
+
+<!-- prompt:3df69a92-3f28-4b9c-8791-caa9a3ef7e80 -->
+
+> Save the staged version to docs/00-my-read.md as shown.
