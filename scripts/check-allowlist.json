@@ -2,7 +2,7 @@
   "_about": "Exceptions for npm run check. Each entry allows one exact match in one file under src/. Owned by Ahmed: ask before adding or removing entries.",
   "allow": [
     { "file": "src/App.jsx", "match": "w-[390px]", "reason": "Phone frame (the exception in CLAUDE.md)" },
-    { "file": "src/App.jsx", "match": "min-h-[780px]", "reason": "Phone frame" },
+    { "file": "src/App.jsx", "match": "h-[844px]", "reason": "Phone frame: fixed device height" },
     { "file": "src/App.jsx", "match": "rounded-[28px]", "reason": "Phone frame" },
     { "file": "src/index.css", "match": "#e9eaee", "reason": "Page backdrop behind the phone frame" },
 

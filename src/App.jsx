@@ -25,13 +25,19 @@ export default function App() {
     setTimeout(() => setToast(false), 2200);
   }
 
+  // The sticky action area at the bottom of the frame. A screen puts its main action
+  // here so it stays visible while the content scrolls. Nothing is shown when empty.
+  const actions = null;
+
   return (
-    <div className="min-h-screen w-full flex justify-center py-6">
-      {/* Mobile frame */}
-      <div className="relative w-[390px] min-h-[780px] bg-white rounded-[28px] shadow-xl overflow-hidden border border-neutral-300">
+    <div className="min-h-screen w-full flex justify-center items-start gap-6 py-6">
+      {/* Reviewer controls (src/review/) go beside the frame, never inside it. */}
+
+      {/* Mobile frame: a fixed 390×844 device. The AppBar and action area stay put; main scrolls. */}
+      <div className="relative w-[390px] h-[844px] shrink-0 flex flex-col bg-neutral-50 rounded-[28px] shadow-xl overflow-hidden border border-neutral-300">
         <AppBar title="NovaPay" />
 
-        <main className="p-4 space-y-4">
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           <Card>
             <div className="text-caption text-neutral-500">Available balance</div>
             <div className="mt-1">
@@ -73,6 +79,10 @@ export default function App() {
             />
           </Card>
         </main>
+
+        {actions ? (
+          <footer className="shrink-0 bg-white border-t border-neutral-200 p-4 space-y-3">{actions}</footer>
+        ) : null}
 
         <Toast open={toast} message="TODO: build the salary-advance flow" />
       </div>
