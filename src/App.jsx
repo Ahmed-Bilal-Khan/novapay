@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "./novakit";
 import ChooseAmount from "./screens/ChooseAmount";
 import { PERSONAS, PROTOTYPE_TODAY, getOffer } from "./advance/salaryAdvance";
@@ -11,12 +11,34 @@ import { PERSONAS, PROTOTYPE_TODAY, getOffer } from "./advance/salaryAdvance";
 // Mobile frame: a fixed 390×844 device. The AppBar and action area stay put; main scrolls.
 // The action area is the sticky bottom of the frame: a screen puts its main action there
 // so it stays visible while the content scrolls. Nothing is shown when it's empty.
-function PhoneFrame({ appBar, actions = null, children }) {
+// `overlay` is for things that sit above the content, like a Toast. It's placed at the
+// bottom of the content area, just above the action area, never over the actions.
+//
+// Every screen gets the same arrival: the page title becomes `title`, and after a screen
+// change focus moves to the screen's <h1>, so a screen reader announces where you are.
+// The first screen on page load keeps the browser's own focus.
+let hasChangedScreen = false; // set by App's navigation, never during render
+
+function PhoneFrame({ title, appBar, actions = null, overlay = null, children }) {
+  const frameRef = useRef(null);
+
+  useEffect(() => {
+    document.title = title;
+    if (hasChangedScreen) frameRef.current?.querySelector("h1")?.focus();
+  }, [title]);
+
   return (
-    <div className="relative w-[390px] h-[844px] shrink-0 flex flex-col bg-neutral-50 rounded-[28px] shadow-xl overflow-hidden border border-neutral-300">
+    <div
+      ref={frameRef}
+      className="relative w-[390px] h-[844px] shrink-0 flex flex-col bg-neutral-50 rounded-[28px] shadow-xl overflow-hidden border border-neutral-300"
+    >
       {appBar}
 
-      <main className="phone-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-4">{children}</main>
+      {/* The overlay sits at the bottom of the content area, so it never covers the actions. */}
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <main className="phone-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-4">{children}</main>
+        {overlay}
+      </div>
 
       {actions ? (
         <footer className="shrink-0 bg-white border-t border-neutral-200 p-4 space-y-3">{actions}</footer>
@@ -37,9 +59,14 @@ export default function App() {
   // is sent to home.
   const current = screen !== "home" && offer.eligibility !== "eligible" ? "home" : screen;
 
+  function go(next) {
+    hasChangedScreen = true;
+    setScreen(next);
+  }
+
   function leaveToHome() {
     setAmount(null); // nothing is pre-selected next time
-    setScreen("home");
+    go("home");
   }
 
   return (
@@ -47,7 +74,7 @@ export default function App() {
       {/* Reviewer controls (src/review/) go beside the frame, never inside it. */}
 
       {current === "home" ? (
-        <Home Frame={PhoneFrame} onStartAdvance={() => setScreen("chooseAmount")} />
+        <Home Frame={PhoneFrame} onStartAdvance={() => go("chooseAmount")} />
       ) : null}
 
       {current === "chooseAmount" ? (
@@ -56,20 +83,20 @@ export default function App() {
           offer={offer}
           amount={amount}
           onAmountChange={setAmount}
-          onContinue={() => setScreen("terms")}
+          onContinue={() => go("terms")}
           onLeave={leaveToHome}
         />
       ) : null}
 
-      {current === "terms" ? <TermsPlaceholder Frame={PhoneFrame} onBack={() => setScreen("chooseAmount")} /> : null}
+      {current === "terms" ? <TermsPlaceholder Frame={PhoneFrame} onBack={() => go("chooseAmount")} /> : null}
     </div>
   );
 }
 
-// The starter home screen. Only "See your offer" is wired, to start the advance.
+// The starter home screen. Only the advance card's button is wired, to start the advance.
 function Home({ Frame, onStartAdvance }) {
   return (
-    <Frame appBar={<AppBar title="NovaPay" />}>
+    <Frame title="NovaPay" appBar={<AppBar title="NovaPay" />}>
       <Card>
         <div className="text-caption text-neutral-500">Available balance</div>
         <div className="mt-1">
@@ -85,7 +112,7 @@ function Home({ Frame, onStartAdvance }) {
           </div>
         </div>
         <Button size="lg" onClick={onStartAdvance}>
-          See your offer
+          See amounts and costs
         </Button>
       </Card>
 
@@ -118,7 +145,7 @@ function Home({ Frame, onStartAdvance }) {
 // somewhere honest, and Back returns to the chosen amount.
 function TermsPlaceholder({ Frame, onBack }) {
   return (
-    <Frame appBar={<AppBar title="Salary advance" onBack={onBack} />}>
+    <Frame title="Terms placeholder: NovaPay" appBar={<AppBar title="Salary advance" onBack={onBack} backLabel="Back to amounts" />}>
       <Card className="space-y-1">
         <p className="text-body font-semibold text-neutral-900">Placeholder: terms and accept</p>
         <p className="text-body text-neutral-700">This screen isn't built yet. Nothing has been borrowed.</p>
