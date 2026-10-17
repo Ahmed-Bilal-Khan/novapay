@@ -1306,3 +1306,15 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 <!-- prompt:6d19f331-7426-4989-9ac2-ab15c31db634 -->
 
 > Start commit 3: the push-down drawer below 768px, as planned.
+
+### Prompt 8
+
+<!-- prompt:7ff0ed6a-cb13-4e91-9564-cf76cb874742 -->
+
+> Add a "How to review" section to README.md: the live link, how to reach each graded moment (with scenario URLs), what's real vs stubbed, and where the write-up, design-system notes and AI log live.
+
+### Prompt 9
+
+<!-- prompt:65cf15fd-79fb-43e3-b4b8-323b7672d54a -->
+
+> Can you push this feature so I can deploy on vercel
