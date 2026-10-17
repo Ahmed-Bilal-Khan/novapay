@@ -341,6 +341,31 @@
 - **Password protection was looked into, not added** (Decisions).
 - `npm run build` and `npm run check` (44 module checks) pass after every commit.
 
+### Chat 7: the Figma component sheet
+
+- **Where:** the Figma file "Component-Set" (https://www.figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set), four pages, built through the Figma MCP's Plugin API. The pages, variables and variant properties were planned first and approved; then one page per round, each checked by screenshot.
+- **Tokens page** ("Page 1", renamed):
+  - collection "NovaKit tokens", 25 variables named as in `tailwind.config.js`: brand (7), neutral (7, with 500 = #6B6B6B), attention (50, 100, 600; no DEFAULT), success #15803D, danger and danger-50, radius sm/md/lg, plus `absolute/white` and `absolute/black`, described as Tailwind built-ins, not NovaKit tokens;
+  - scopes set per variable (attention-100 can't be picked for text) and Web code syntax `theme("colors.…")`;
+  - text styles display, title, body and caption in Roboto, and the effect style `shadow/card`;
+  - swatches, the note that accent became attention with DEFAULT removed, type, radius and shadow, and a 25-row contrast table. Every ratio was recalculated from the config and matches `DESIGN_SYSTEM.md`.
+- **A hidden collection, "Starter v0 (frozen)":** 22 variables with the `starter` tag's values (neutral-500 #808080, success #1E9E5A, accent with DEFAULT), hidden from publishing. For the sheet, this answers the chat 3 question of how to show colours before the change.
+- **Components page:** six component sets with 54 variants. Variant properties are named after the code props, and each block is headed with its `src/novakit/…` file (also in the set's description):
+  - Choice: type × checked × disabled (6; no disabled + checked, because the code forces it false), with label, description and disabledReason;
+  - Button: variant × size × disabled × loading (12; no loading + disabled, because loading wins), with label, subLabel (on/off plus its text) and loadingLabel;
+  - AmountText: size × sign (none, +, −) × missing (16). missing=true is an empty layer;
+  - Card: tone (3), with children as a slot;
+  - ListRow: wrap (2), with icon, subtitle and trailing (an exposed AmountText);
+  - AppBar: back (2), with the 44px target.
+
+  Each set has an "Examples (not props)" row (pressed, focus-visible, and real copy from S3, S4, S9, S11 and S12) and notes.
+- **Before / after page:** 19 pairs in seven blocks (Tokens, Button, AmountText, Card, ListRow, AppBar, Choice).
+  - v0 is drawn with the frozen collection. Card's #E6E6E6 and ListRow's #DADADA stay raw hex, labelled as hard-coded.
+  - v1 is instances from the Components page.
+  - Each "why" is quoted from `DESIGN_SYSTEM.md`. Changes you can't see go on one "Code only" line per block.
+- **"Flagged, not fixed" page:** BottomSheet (fixed later, in chat 4; its required title still isn't enforced), Toast (partly fixed; still no `aria-live`), TextField (not fixed; no screen uses it) and ListRow semantics (not fixed). Each has a drawing, one line per issue tagged Fixed or Not fixed, and its file.
+- **The repo didn't change** apart from this file. No token or component changed, so `DESIGN_SYSTEM.md` has no new entry.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -556,6 +581,27 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **The README's S11 line doesn't promise "a next step".** S11's only action is the stubbed pay screen, so the line says nothing is needed and that "See details" shows the status.
 - **The browser tab still says "NovaKit Lite" until the app loads.** That's the starter's `index.html` title, and link previews show it too. It wasn't changed (Open questions).
 
+### Chat 7: the Figma sheet
+
+- **Approved before any Figma write:**
+  - Roboto stands in for the system font stack, because the target is Android;
+  - a frozen v0 collection holds the starter colours;
+  - `absolute/white` and `absolute/black` are variables;
+  - pressed and focus-visible are example rows, not variant properties;
+  - one page per round, with a screenshot;
+  - a hand-drawn tick for Choice.
+- **BottomSheet and Toast are on the "Flagged, not fixed" page,** not Before / after. The before/after list was the item-2 components.
+
+**Calls the AI made, flagged and not overruled**
+- **Button's md label is unstyled text** at 15px / 22px in Roboto SemiBold, because Figma drops a text style when the weight changes. A "body semibold" style would be a new style, mine to approve (Open questions).
+- **Web code syntax is `theme("colors.…")`,** the form `index.css` uses. The code has no CSS variables, so there's no `var()` to point at.
+- **Native controls are drawn with tokens, not traced from a browser.** Choice's unchecked border is neutral-500, close to Chromium's, and the checkbox radius is 4px. `rounded-full` (AppBar's back button, ListRow's icon) is a raw radius. Both are labelled.
+- **Focus rings are two drop shadows** (2px white, then 4px brand spread). On the Components page's Button example Figma wouldn't render the spread, so that one is an outline frame.
+- **The contrast table leaves out "brand on brand-50"** from the plan, because no text using it could be verified.
+- **Sample text where the product has none:** Toast's "Sample text" and ListRow's "Sample date".
+- **Quotes trimmed:** the danger tone's "why" drops the backticks around `danger`, and the subLabel "why" is its first sentence.
+- **The two-line secondary Button measures 58px in Figma:** the 1px border adds 2px, as it does in CSS.
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
@@ -657,6 +703,12 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The site has no password.** Anyone with the link can open it (my call for now; the free middleware option is in Decisions).
   - **The browser tab says "NovaKit Lite" until the app sets its title,** and link previews show it. It comes from the starter's `index.html`. Changing it is mine to approve.
   - **The README's write-up link is still a placeholder,** to fill once the write-up exists.
+
+### Added in chat 7
+
+- **The Figma file isn't linked from the README or the write-up yet,** and its sharing setting is mine to decide.
+- **A "body semibold" text style for Button's md label?** Today it's unstyled text (Decisions → Chat 7).
+- **Nothing keeps Figma and the code in step.** The variables were typed from `tailwind.config.js`, and each set's description names its file, but there's no Code Connect mapping. A change to the config or a component has to be repeated in Figma by hand.
   - ~~**This chat's transcript contains three short fragments of the brief.**~~ *Resolved at the end of chat 6: replaced with "[brief text removed]", then committed (`8b935ff`).* They come from the AI's checks for brief text in the repo, which printed the lines they searched for. It's exported to `docs/ai-log/raw/reviewer-controls-and-deployment/` but not committed; mine to decide whether to cut them first.
 
 ## Write-up inbox
@@ -691,6 +743,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
   - Reminders go by push and SMS, to the borrower only (added with the reminder table).
 - *Chat 6: none new.* No product policy was added. The reviewer notes and the README describe what's already built.
+- *Chat 7: none new.* The Figma sheet documents the kit; its copy examples come from built screens.
 
 ### What I'd want to know
 
@@ -715,6 +768,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - What is the real late-reminder cadence? It's a placeholder, so the screens don't name the next reminder's date.
   - After default, can the amount owed change (fees, compounding)? The screens only say what's true today ("no fee was added"), never what happens after.
 - *Chat 6: none new about the product.* This chat was the reviewer controls, the README and the deploy.
+- *Chat 7: none new about the product.* This chat was the Figma component sheet.
 
 ### System flags
 
@@ -778,6 +832,14 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Vercel's Password Protection isn't on Hobby** ($20 a month per project on Pro, Sep 2026). Routing Middleware works on every plan.
   - **The starter's `index.html` title ("NovaKit Lite") shows until the app sets its own,** including in link previews.
   - **Long shell heredocs broke again** while writing this file. The edit went through a script file instead, as chat 5 learned.
+- *Added in chat 7, found while building the Figma sheet:*
+  - **Figma drops a text style when the weight is changed,** so text-body + font-semibold can't be "body with an override". It's unstyled text at the body size.
+  - **`resize()` on an auto-layout component fixes its height.** The two-line Button was clipped at 44px until it was set back to hug. `min-h` in code needs hug plus `minHeight` in Figma.
+  - **A drop shadow's spread only renders on a frame that clips its content,** and on one Button instance it didn't render at all. Tailwind's `ring` + `ring-offset` became an outline frame there.
+  - **Fill-less frames cast no shadow,** so the AppBar back button's focus ring needed a white fill to show.
+  - **A bound paint's opacity didn't hold:** the 40% scrim drew fully black until the opacity moved to the layer.
+  - **The Plugin API can't turn on tabular figures** (`openTypeFeatures` is read-only). Roboto's default figures are already tabular, so AmountText still lines up.
+  - **The frozen v0 code copy can't show old colours,** because tokens aren't frozen with it. The sheet uses a separate frozen variable collection from the `starter` tag.
 
 ### AI process
 
@@ -856,6 +918,20 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **The AI didn't guess the live URL.** My message lost it; the AI tried GitHub's API, got "Not Found", and asked.
   - **The deploy fix stayed inside the project.** The AI set the email in this repo's config, not my global one, and added a commit rather than rewriting pushed history.
   - **The AI checked Vercel's docs before answering about passwords,** rather than answering from memory. Plan availability and price had changed.
+- *Added in chat 7:*
+  - **Plan first, no writes until approved.** The AI proposed the pages, variables and variant properties with five decisions, each with a recommendation. I approved them in one reply, then the work went one page per round.
+  - **The plan surfaced an old open question.** The frozen v0 code shows the new colours, so a true "before" needed the `starter` values. That became the frozen collection.
+  - **A screenshot after every page found defects before I saw them:**
+    - a wrapping ratio column,
+    - a clipped two-line Button,
+    - example rows overflowing their block,
+    - invisible focus rings (three separate causes),
+    - an overflowing swatch row,
+    - an opaque scrim.
+  - **The AI wrote a false note on the sheet, then corrected it.** It said the md label was "the body style with a SemiBold override"; reading the style ID back showed the style had been dropped.
+  - **The AI's own number failed when measured.** Its caption gave the two-line Button as 60px (the large size); Figma measured 58px (medium, with its border), and the caption says that.
+  - **A failed script left nothing behind.** The AI read the canvas before retrying instead of assuming.
+  - **The AI changed an unrelated line in this file by mistake while updating it** (a chat 6 entry) and reverted it before committing.
 
 ### Reminder table (chat 5)
 
@@ -910,7 +986,7 @@ S13 was built and rejected. The lock-screen previews are deferred, with their co
    - reviewer access to the repo, if it stays private;
    - a password on the site (public for now);
    - the "NovaKit Lite" tab title.
-2. **Chat 7: the Figma sheet,** with v0 next to v1 (the before/after; `DESIGN_SYSTEM.md` is the written record).
+2. ~~**Chat 7: the Figma sheet**~~ *Done in chat 7:* four pages (Tokens, Components, Before / after, Flagged, not fixed) in https://www.figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set. Still mine to decide: its sharing setting and where it's linked (Open questions → Added in chat 7).
 3. **My read, mine to update:**
    - Scope and Assumptions still end the late path at "notice before default", which has no screen now.
    - The critique table (line 213) says "new money" where my Assumption says salary.
