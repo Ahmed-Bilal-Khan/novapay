@@ -1452,6 +1452,18 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 
 > Yes. Update docs/progress.md with the Figma sheet (including the Write-up inbox and the calls you made), then commit it.
 
+### Prompt 8
+
+<!-- prompt:20e474a4-37ec-44ec-a383-e8ee559379cd -->
+
+> Do a release check: fresh clone into a temp folder, npm install, npm run build, npm run check, npm run verify. Click through every scenario URL and report any dead control, console error, or a number or date that differs between screens.
+
+### Prompt 9
+
+<!-- prompt:46f6df4c-e77f-4125-85ce-6997b626f674 -->
+
+> Yes, delete the .release-check/ folder and remove its line from .git/info/exclude.
+
 ## Session 10
 
 <!-- session:8eca7ee7-c35c-4d26-a3cd-e77d10cc023b -->
