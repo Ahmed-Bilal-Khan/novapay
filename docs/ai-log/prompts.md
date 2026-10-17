@@ -1248,6 +1248,18 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 
 > Commit docs/ai-log/raw/bad-news and docs/ai-log/prompts.md as "AI log: chat 5 transcript (bad-news screens) and prompt log".
 
+### Prompt 34
+
+<!-- prompt:87afdeb0-e249-4c30-8845-28acd8bd7d42 -->
+
+> There is a contradiction in S12 in the details it says " ...so there's nothing you need to do" but it gives the option a the bottom to pay some or all yourself. I think this action is not necessary and is contradicting, assess if I am right on this and then we can cut it from here
+
+### Prompt 35
+
+<!-- prompt:11ff89a9-c43f-40ac-b8e8-be664748bb83 -->
+
+> leave it as is, I think this is a defendable option
+
 ## Session 8
 
 <!-- session:6fc70d0c-ba75-4f0e-b538-febff5a6686d -->
@@ -1356,3 +1368,102 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > Update docs/progress.md: what's done, decisions made and why, open questions, next step. Append anything new from this chat to the Write-up inbox (Assumptions / What I'd want to know / System flags). Don't rewrite earlier entries. Then commit with a message that gives the reason, not just the change.
 >
 > export the transcript to docs/ai-log/raw/reviewer-controls-and-deployment
+
+### Prompt 16
+
+<!-- prompt:a8967641-7442-48e6-8bda-ed3f3c7ceaee -->
+
+> Replace the brief fragments in the transcript files with [brief text removed], then commit the transcript and the prompt log.
+
+### Prompt 17
+
+<!-- prompt:f684dc88-ce81-41cb-8c0a-9e9d7526099e -->
+
+> Push them.
+
+### Prompt 18
+
+<!-- prompt:c3733e2b-eb74-4432-8e06-3f4fcb1a3239 -->
+
+> https://www.figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set?node-id=0-1&t=mFzxED19hDj9TTbS-1 add the figma link to the read me file
+
+### Prompt 19
+
+<!-- prompt:e5184c8d-2f63-4f1a-a210-abae2da58263 -->
+
+> Push both.
+
+## Session 9
+
+<!-- session:20b721ac-db68-469e-947e-c01a3a1b5f25 -->
+
+### Prompt 1
+
+<!-- prompt:8864f9d0-b866-4fb0-b1d6-c5694d28704f -->
+
+> Read CLAUDE.md and docs/progress.md. Figma Sheet. My intent: We'll be creating a figma component sheet. Do not do anything yet
+
+### Prompt 2
+
+<!-- prompt:f06b8926-59e8-400f-b96f-c380f99918d0 -->
+
+> Create a small Figma component sheet for the components I changed. Plan the pages, variables and variant properties first; no Figma writes until I approve.
+> 1. Tokens as Figma variables, matching tailwind.config.js exactly: brand, neutral (with neutral-500 retuned to #6B6B6B), success (#15803D), attention (renamed from accent; DEFAULT removed, noted on the sheet), danger and danger-50. Show contrast for each text pair.
+> 2. Components with proper variants and auto-layout, variant names matching the code props:
+>    - Choice (new): type checkbox/radio, checked, disabled (aria-disabled, with reason)
+>    - Button: variant primary/secondary, size md/lg, subLabel, loading
+>    - AmountText: size incl. caption, sign, missing (renders nothing)
+>    - Card: tone default/attention/danger
+>    - ListRow: wrap
+>    - AppBar: back (44px target), if time allows
+> 3. Before/after: for each changed component, the v0 version (from src/review/novakit-v0) next to v1, with a one-line "why" taken from DESIGN_SYSTEM.md.
+> 4. A "flagged, not fixed" frame: BottomSheet's original issues (fixed later), Toast, TextField, ListRow semantics.
+> Each component frame names its code file (src/novakit/...). That's the design-to-code mapping.
+>
+> Do it here: https://www.figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set?node-id=0-1&t=mFzxED19hDj9TTbS-1
+
+### Prompt 3
+
+<!-- prompt:da603b7f-5f41-4cea-b3e5-ee7c11bae7d2 -->
+
+> Approved with your recommendations: Roboto, a frozen v0 collection, absolute/white and absolute/black, interaction states as an example row, and one page per round with a screenshot. The hand-drawn tick is OK. Start with the Tokens page.
+
+### Prompt 4
+
+<!-- prompt:f6ac56f0-1111-4fff-bcef-03392610747b -->
+
+> Tokens page looks good. Go on to the Components page.
+
+### Prompt 5
+
+<!-- prompt:309e64d3-437d-47a5-8c5f-ee4a95265436 -->
+
+> Components page looks good. Go on to the Before / after page.
+
+### Prompt 6
+
+<!-- prompt:42974cf9-d76b-4323-a38a-c47c5c15e486 -->
+
+> Before / after looks good. Go on to the Flagged, not fixed page.
+
+### Prompt 7
+
+<!-- prompt:d8a4fe96-a19e-495e-bf21-773f8b0484e1 -->
+
+> Yes. Update docs/progress.md with the Figma sheet (including the Write-up inbox and the calls you made), then commit it.
+
+## Session 10
+
+<!-- session:8eca7ee7-c35c-4d26-a3cd-e77d10cc023b -->
+
+### Prompt 1
+
+<!-- prompt:4e9144d2-a76b-4f7f-895e-6c944e67967b -->
+
+> From docs/ai-log/prompts.md, docs/ai-log/raw/ and the "AI draft / Reject" commit pairs, draft docs/ai-log/README.md: an index of sessions, the prompts that mattered, and a table of prompt → output → kept/changed/rejected → why. Use only what's actually in the logs and commits. Don't invent or smooth anything.
+
+### Prompt 2
+
+<!-- prompt:f8b97563-a699-4619-9a0d-6f06f6f04dd6 -->
+
+> Commit docs/ai-log/README.md with a message that gives the reason.
