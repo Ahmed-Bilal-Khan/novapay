@@ -657,7 +657,7 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
   - **The site has no password.** Anyone with the link can open it (my call for now; the free middleware option is in Decisions).
   - **The browser tab says "NovaKit Lite" until the app sets its title,** and link previews show it. It comes from the starter's `index.html`. Changing it is mine to approve.
   - **The README's write-up link is still a placeholder,** to fill once the write-up exists.
-  - **This chat's transcript contains three short fragments of the brief.** They come from the AI's checks for brief text in the repo, which printed the lines they searched for. It's exported to `docs/ai-log/raw/reviewer-controls-and-deployment/` but not committed; mine to decide whether to cut them first.
+  - ~~**This chat's transcript contains three short fragments of the brief.**~~ *Resolved at the end of chat 6: replaced with "[brief text removed]", then committed (`8b935ff`).* They come from the AI's checks for brief text in the repo, which printed the lines they searched for. It's exported to `docs/ai-log/raw/reviewer-controls-and-deployment/` but not committed; mine to decide whether to cut them first.
 
 ## Write-up inbox
 
@@ -906,7 +906,7 @@ Built, committed and pushed (`feature/salary-advance`), and live at https://nova
 S13 was built and rejected. The lock-screen previews are deferred, with their copy in the Write-up inbox.
 
 1. **Mine to decide** (Open questions → Added in chat 6):
-   - the brief's text in the pushed chat 3 transcript, and the brief fragments in this chat's transcript before it's committed;
+   - the brief's text in the pushed chat 3 transcript;
    - reviewer access to the repo, if it stays private;
    - a password on the site (public for now);
    - the "NovaKit Lite" tab title.
