@@ -324,6 +324,23 @@
 - **Narrow screens:** from 768px the phone and panel sit side by side, centred together (no sideways scroll at 1,024 or 768). Below 768px the panel is a push-down drawer above the phone; Tab still reaches the phone first; choosing a state closes it and returns focus to its button.
 - **Checked in the app:** every entry and link fresh, the edge cases (S5, S13, a typo, `toString`, none), Fails once → S6 → Try again → S8 → S9, Lower amount → S7, reloads on S7, the details and S12 with the delay, focus after jumps, and the layout at 1,400, 1,024, 768, 767, 420 and 375px.
 
+### Chat 6, continued: README, push and deploy (`c05efd6`, `b3586fd`, `81c3620`)
+
+- **README, "How to review"** (right after the intro; the starter's sections are unchanged):
+  - the live link;
+  - for each graded moment, a `?state=` link and what to check: terms (S4), accept (S4 → S8, with S6 and S7), bad news (S11, S12, S12 with the payroll delay);
+  - links to the other states, and the P1–P5 key the reviewer notes use;
+  - a table of what's real, simulated, stubbed and not built;
+  - where my read, `DESIGN_SYSTEM.md`, the audit, the tokens, the prompt log, the transcripts, the rejected AI outputs (including `f4db1bd` / `0113d65`) and `CLAUDE.md` are.
+
+  The write-up link is a labelled placeholder.
+- **Pushed.** I had pushed up to `9d31501` myself. The AI pushed the rest as plain fast-forwards, after checking that the files not yet on GitHub added no brief text.
+- **Deployed on Vercel** from `feature/salary-advance`: https://novapay-lake.vercel.app. `main` is still the untouched starter.
+- **The first deploy was blocked.** The newest commit's email (ahmed.bilal@devsatmelior.com, from my global git config) isn't on my GitHub account. This repo now commits as abk9232@gmail.com (`.git/config` only; the global config is unchanged), and `b3586fd` (the prompt log) became the newest commit with that email.
+- **The README points at the live site:** the live link, and all 13 state links (S4 twice). A line keeps `localhost:5173` for local runs. All 12 states were opened on the live site; each lands on the right screen with the right entry marked.
+- **Password protection was looked into, not added** (Decisions).
+- `npm run build` and `npm run check` (44 module checks) pass after every commit.
+
 ## Decisions
 
 ### Chat 1: project setup
@@ -522,6 +539,23 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 - **"Thin" is 10px in Chromium, not 6px.** The `-webkit-` thumb didn't repaint on hover there, so the standard properties are used and `-webkit-` is only a fallback.
 - **If "Lower amount" is chosen and the amount then changed to Rs 5,000 by hand, the index marks S7,** though Accept would simply work. Jumps never set this up.
 
+**README, push and deploy**
+- **"How to review" goes right after the intro,** so it's the first thing a reviewer reads. The starter's own sections stay.
+- **Placeholders are labelled:** the write-up link (the write-up isn't in the repo), and the live link until it existed.
+- **Deploy on Vercel from `feature/salary-advance`.** `main` stays the starter, as received.
+- **The commit email is set for this repo only.** My global git config is outside the project, and `CLAUDE.md` keeps the AI inside it.
+- **A new commit fixed the email, not a rewrite.** The blocked commit was already pushed, so changing it would have needed a force push.
+- **The site stays public for now (my call).** The options checked in Vercel's docs (Sep 2026):
+  - Password Protection isn't available on Hobby, and costs $20 a month per project on Pro;
+  - Vercel Authentication only lets in Vercel users on my team, not outside reviewers;
+  - a password screen inside the app would ship the password in the code.
+
+  The free option, if I need it later: Routing Middleware (`middleware.js` at the root) checking a password kept in a Vercel environment variable, with no package to install.
+
+**Calls the AI made, flagged and not overruled**
+- **The README's S11 line doesn't promise "a next step".** S11's only action is the stubbed pay screen, so the line says nothing is needed and that "See details" shows the status.
+- **The browser tab still says "NovaKit Lite" until the app loads.** That's the starter's `index.html` title, and link previews show it too. It wasn't changed (Open questions).
+
 ## Open questions
 
 - The cost section says "See 'Trust rules'", but there's no section with that name. The closest is "Trust matters most here".
@@ -615,9 +649,15 @@ The full record is in the "My decision" column of `docs/01-system-audit.md`. Non
 
 ### Added in chat 6
 
-- **The brief's text is on GitHub.** The chat 3 transcript under `docs/ai-log/raw/kit-audit&component-updates/` (commit `505ab67`, pushed) contains passages of `_inputs/brief.md`. Mine to decide before any push: keep or make the repo private, cut the passages in a new commit (they stay in history), or rewrite history and force-push.
-- **Where to deploy** is still open (Vercel or Netlify from GitHub recommended; GitHub Pages needs a workflow, a `base`, and a public repo on the free plan).
+- **The brief's text is on GitHub.** The chat 3 transcript under `docs/ai-log/raw/kit-audit&component-updates/` (commit `505ab67`, pushed) contains passages of `_inputs/brief.md`. Mine to decide before any push: keep or make the repo private, cut the passages in a new commit (they stay in history), or rewrite history and force-push. *Later in chat 6: GitHub's API returns "Not Found" without logging in, so the repo looks private. The decision is still mine.*
+- ~~**Where to deploy** is still open~~ *Resolved in chat 6: Vercel, https://novapay-lake.vercel.app.*
 - **At 375px the 390px phone frame is wider than the screen,** so the page scrolls sideways. That was true before chat 6 (the frame-scaling question above).
+- *Added at the end of chat 6:*
+  - **If the repo is private, reviewers can't read the README or the docs** unless I add them or share the files another way. The live site is public either way.
+  - **The site has no password.** Anyone with the link can open it (my call for now; the free middleware option is in Decisions).
+  - **The browser tab says "NovaKit Lite" until the app sets its title,** and link previews show it. It comes from the starter's `index.html`. Changing it is mine to approve.
+  - **The README's write-up link is still a placeholder,** to fill once the write-up exists.
+  - **This chat's transcript contains three short fragments of the brief.** They come from the AI's checks for brief text in the repo, which printed the lines they searched for. It's exported to `docs/ai-log/raw/reviewer-controls-and-deployment/` but not committed; mine to decide whether to cut them first.
 
 ## Write-up inbox
 
@@ -650,6 +690,7 @@ The full list is in `docs/00-my-read.md` → Assumptions. The ones that most nee
   - The July spending and the payday rows by cause are sample data.
   - In the reviewer scenarios, a payroll delay is reported on 2 Aug, and only when the salary didn't arrive.
   - Reminders go by push and SMS, to the borrower only (added with the reminder table).
+- *Chat 6: none new.* No product policy was added. The reviewer notes and the README describe what's already built.
 
 ### What I'd want to know
 
@@ -673,6 +714,7 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - Can someone report a payroll delay after the notice before default, and what date does the report carry? The prototype only models a report on 2 Aug.
   - What is the real late-reminder cadence? It's a placeholder, so the screens don't name the next reminder's date.
   - After default, can the amount owed change (fees, compounding)? The screens only say what's true today ("no fee was added"), never what happens after.
+- *Chat 6: none new about the product.* This chat was the reviewer controls, the README and the deploy.
 
 ### System flags
 
@@ -726,6 +768,16 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **Shell one-liners mangle backticks and `${}`.** A `node -e` edit left `label={}` in a file. Edits with template strings now go through the editor.
   - **`role="alert"` on content that's already there when a screen opens re-announces it on every visit.** That's audit 6.10's rule applied to S11. A `role="status"` region has to exist before its text appears to be announced (S12's confirmation).
   - **The permission ends *on* the default date** (`today < default_date`), so copy must say "before 27 Aug", not "by 27 Aug".
+- *Added in chat 6, found while building the reviewer controls and deploying:*
+  - **A tall sibling stretches a flex row.** With `items-stretch`, the panel's 1,159px index made the row 1,274px instead of the phone's 844px. Taking the panel out of flow (absolute, inside an aside the row stretches) lets the phone alone set the height.
+  - **Chromium didn't repaint a `::-webkit-scrollbar-thumb` that changes on hover.** Even a forced-transparent thumb still showed. The standard `scrollbar-color` repaints, but `scrollbar-width: thin` is as small as it goes (10px in Chromium on Windows).
+  - **`?state=toString` would have matched a built-in object property.** The lookup uses `Object.hasOwn`, so only real states count.
+  - **A scripted `.click()` doesn't move focus,** so "focus stays on the entry" had to be tested with real clicks.
+  - **The Browser pane's screenshots crop at narrow widths,** and its accessibility tree missed the drawer button. Measurements and the DOM were the evidence, as in chats 4 and 5.
+  - **Vercel blocks a deploy when the newest commit's email isn't on a GitHub account.** The fix is the email on the commit it deploys; older commits don't matter.
+  - **Vercel's Password Protection isn't on Hobby** ($20 a month per project on Pro, Sep 2026). Routing Middleware works on every plan.
+  - **The starter's `index.html` title ("NovaKit Lite") shows until the app sets its own,** including in link previews.
+  - **Long shell heredocs broke again** while writing this file. The edit went through a script file instead, as chat 5 learned.
 
 ### AI process
 
@@ -793,6 +845,17 @@ The full list is in `docs/00-my-read.md` → What I'd want to know. The ones tha
   - **A tone check changed accurate copy.** "…as long as that's before 27 Aug" was true but read as a deadline. Option A put the reassurance first and the end date as a plain fact.
   - **The AI put its own reasoning into my read, then took it out.** Updating my Scope, it added "because it isn't the user's fault…", a reason I never gave, and removed it before committing.
   - **Correct isn't the same as kind (S13).** Every check passed and I still rejected it. The table that replaced it keeps the 20 Aug notice to two sentences.
+- *Added in chat 6:*
+  - **The AI checked before planning, and found two things I'd missed:** the brief's text in a transcript already on GitHub, and "Nothing is pushed" in this file being out of date. Nothing was pushed until I asked.
+  - **Decisions as lettered options again.** The panel's A–E were settled in one reply.
+  - **The AI's height estimate failed again when measured:** about 1,000px estimated, 1,258px built. I asked for a fixed height with an inner scroll rather than shorter notes.
+  - **My scrollbar request needed a second try.** The AI's first CSS (a 6px `-webkit-` thumb) looked right in the rules but didn't hide in Chromium. It proved this with a forced-transparent test, then switched to the standard properties and said "thin" can't go below 10px.
+  - **The AI committed once before reading the console.** The error turned out to be from an old hot reload, and a clean run of every link confirmed it. Checking after committing is the wrong order, and the AI said so.
+  - **Measuring at six widths found a layout bug before commit:** the panel made the row 1,274px tall from 768px up.
+  - **The README went in without a draft first.** I said "Add", which replaced the earlier "draft shown to me first" plan. The AI caught one of its own claims there: S11's "next step" pointed at a stub.
+  - **The AI didn't guess the live URL.** My message lost it; the AI tried GitHub's API, got "Not Found", and asked.
+  - **The deploy fix stayed inside the project.** The AI set the email in this repo's config, not my global one, and added a commit rather than rewriting pushed history.
+  - **The AI checked Vercel's docs before answering about passwords,** rather than answering from memory. Plan availability and price had changed.
 
 ### Reminder table (chat 5)
 
@@ -832,22 +895,28 @@ Critique points I rejected, with my reasons.
 
 ## Next step
 
-Built and committed (nothing pushed):
+Built, committed and pushed (`feature/salary-advance`), and live at https://novapay-lake.vercel.app:
 - the accept moment (S3–S9),
 - the late path up to S12 (S10, S11, S12),
 - persona B's home (S2),
 - Home's later dates,
-- the reviewer panel.
+- the reviewer controls (an index of states, with links),
+- the README's "How to review".
 
 S13 was built and rejected. The lock-screen previews are deferred, with their copy in the Write-up inbox.
 
-1. **Chat 6, continued:** the README's "How to review" (draft shown to me first), then deploy, once I've decided the two push questions in Open questions → Added in chat 6. The reviewer controls are done.
-2. **My read, mine to update:**
+1. **Mine to decide** (Open questions → Added in chat 6):
+   - the brief's text in the pushed chat 3 transcript, and the brief fragments in this chat's transcript before it's committed;
+   - reviewer access to the repo, if it stays private;
+   - a password on the site (public for now);
+   - the "NovaKit Lite" tab title.
+2. **Chat 7: the Figma sheet,** with v0 next to v1 (the before/after; `DESIGN_SYSTEM.md` is the written record).
+3. **My read, mine to update:**
    - Scope and Assumptions still end the late path at "notice before default", which has no screen now.
    - The critique table (line 213) says "new money" where my Assumption says salary.
-3. **Small items noted in Open questions:**
+4. **Small items noted in Open questions:**
    - renaming `PayYourselfPlaceholder.jsx` (needs my OK),
    - `role="alert"` re-announcing on S11.
-4. **Before the write-up:** a review agent re-checks every built screen against every doc, as after each chat 4 screen.
+5. **Before the write-up:** a review agent re-checks every built screen against every doc, as after each chat 4 screen. Then the write-up link goes into the README.
 
 One state per request, each with a plan I approve first. Every number and date comes from the module, and every money string from `formatAmount`. Check new screens at 360×640 as well as in the frame.
