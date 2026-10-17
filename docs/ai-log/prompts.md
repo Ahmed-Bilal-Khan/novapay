@@ -1318,3 +1318,41 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 <!-- prompt:65cf15fd-79fb-43e3-b4b8-323b7672d54a -->
 
 > Can you push this feature so I can deploy on vercel
+
+### Prompt 10
+
+<!-- prompt:b0f3cefc-a4fd-49a7-9127-fb0c21257695 -->
+
+> The deployment was blocked because the commit email ahmed.bilal@devsatmelior.com could not be matched to a GitHub account. Ensure your git email matches your GitHub account. this is the error it shows me when i go to deploy on the salary advance one. make sure the email is abk9232@gmail.com
+
+### Prompt 11
+
+<!-- prompt:7c3e2bbe-8c6a-4072-8541-9cd2fe9f46ef -->
+
+> now it is live. Can I add a password to this?
+
+### Prompt 12
+
+<!-- prompt:046cdbd9-686d-48b5-b499-8fe7664853ba -->
+
+> Leave it public for now; just update the README with the live URL:
+
+### Prompt 13
+
+<!-- prompt:0e6a1e6d-a964-4ba3-895f-1819c6293747 -->
+
+> https://novapay-lake.vercel.app/?state=S1
+
+### Prompt 14
+
+<!-- prompt:882db0f7-32f3-4be8-9f15-77a2b164e560 -->
+
+> Push it.
+
+### Prompt 15
+
+<!-- prompt:391e520e-9da6-4f17-bd03-7ae5deedfd23 -->
+
+> Update docs/progress.md: what's done, decisions made and why, open questions, next step. Append anything new from this chat to the Write-up inbox (Assumptions / What I'd want to know / System flags). Don't rewrite earlier entries. Then commit with a message that gives the reason, not just the change.
+>
+> export the transcript to docs/ai-log/raw/reviewer-controls-and-deployment
