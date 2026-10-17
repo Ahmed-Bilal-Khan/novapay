@@ -1241,3 +1241,68 @@ Every prompt sent to Claude Code in this project, grouped by session. Interrupte
 > Update docs/progress.md: what's done, decisions made and why, open questions, next step. Append anything new from this chat to the Write-up inbox (Assumptions / What I'd want to know / System flags). Don't rewrite earlier entries. Then commit with a message that gives the reason, not just the change.
 >
 > export the transcript to docs/ai-log/raw/bad-news
+
+### Prompt 33
+
+<!-- prompt:76332ee0-a6a2-458e-9fe8-6f1bf184cba1 -->
+
+> Commit docs/ai-log/raw/bad-news and docs/ai-log/prompts.md as "AI log: chat 5 transcript (bad-news screens) and prompt log".
+
+## Session 8
+
+<!-- session:6fc70d0c-ba75-4f0e-b538-febff5a6686d -->
+
+### Prompt 1
+
+<!-- prompt:73f8d829-0460-478c-b5d9-ad7519de47b2 -->
+
+> Read CLAUDE.md and docs/progress.md. Today's phase is Chat 6: reviewer controls, README, deploy. My intent: turn the existing reviewer controls into one panel a reviewer can use without me, then the README's "How to review", then deploy. The NovaKit changes page is dropped; the Figma sheet in Chat 7 carries the before/after. No code yet.
+
+### Prompt 2
+
+<!-- prompt:4cc8e3d3-3e96-4454-86bb-14d507fde434 -->
+
+> Consolidate the reviewer controls in src/review/ into one panel beside the phone frame, labelled "Reviewer controls". Don't add new state controls. Plan first.
+>
+> What already exists: the "after Accept" control (works / network failure / lower amount) and Start again from Chat 4, and the basic scenario control from Chat 5 (date presets, payroll delay, persona A/B). There's one not-collected cause only (S11), no days-late slider, and S13 is dropped.
+>
+> 1. One panel, not two: the "after Accept" control, the date presets, payroll delay, persona A/B and Start again, grouped under clear headings.
+> 2. A short index of the states a reviewer should see, in order, each with a one-line note, "what this shows / which principle": S1, S2, S3, S4, S5–S7 (via "after Accept"), S8, S9, S10, S11, S12 and S12 with payroll delay reported. Each entry jumps straight to that state, setting the date, persona and outcome it needs.
+> 3. Each state gets a URL (?state=S11) that opens it directly, so the README and write-up can link to it. Reloading keeps the state.
+> 4. Graded moments are marked, so a reviewer knows where to spend time: terms (S4), accept (S4–S8), bad news (S11–S12).
+> 5. On narrow screens the panel becomes a drawer that never covers the phone's actions. Keyboard order: the phone first, then the panel.
+> 6. Only data from scenario() and the module; the panel never computes money or dates. Remove anything left over from Chat 5 that the index makes redundant.
+>
+> Also add to progress.md → Decisions: "NovaKit changes page dropped; the Figma sheet shows v0 next to v1; DESIGN_SYSTEM.md is the written record."
+>
+> Show me the plan: the panel's sections, the index notes for every state, and the URL scheme. No code until I approve.
+
+### Prompt 3
+
+<!-- prompt:ecf8eb84-552c-4fbe-bba5-17f5fbf5dee8 -->
+
+> A: index replaces them. B: segments inside S5–S7. C: keep Start again. D: top push-down drawer. E: yes, delete both. Start with commit 1.
+
+### Prompt 4
+
+<!-- prompt:e59a75f9-1c3a-4245-a2db-65597d794c2e -->
+
+> The reviewers control should have a fixed height and an internal scroll so that the reviewer doesn't have to scroll away from the mobile screen to reach something
+
+### Prompt 5
+
+<!-- prompt:e5e189a3-df82-42b3-a1d6-a6cc2844806d -->
+
+> make the scroll smaller and only visible on hover. then commit it
+
+### Prompt 6
+
+<!-- prompt:d9bf30ab-2705-491f-95bf-dedda92c95e5 -->
+
+> Start commit 2: the ?state= URL, as planned.
+
+### Prompt 7
+
+<!-- prompt:6d19f331-7426-4989-9ac2-ab15c31db634 -->
+
+> Start commit 3: the push-down drawer below 768px, as planned.
