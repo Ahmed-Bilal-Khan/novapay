@@ -6,7 +6,9 @@ A small slice of **NovaPay's coded design system** — the starter for the AI-Fi
 
 ## How to review
 
-**Live link:** *Placeholder: not deployed yet.* To run it locally, see [Run it](#run-it); the links below then work as they are.
+**Live link:** [novapay-lake.vercel.app](https://novapay-lake.vercel.app/?state=S1)
+
+To run it locally instead, see [Run it](#run-it). Every link below also works on `http://localhost:5173`, with the same `?state=` part.
 
 The phone is the prototype. **Reviewer controls** sit to its right (below 768px wide, a "Reviewer controls" button above the phone opens them). They're not part of the app. They list every state in order, each with a one-line note on what it shows, and open it directly. "Start again" goes back to the beginning.
 
@@ -14,26 +16,26 @@ Every state has a link: `?state=` plus its code. A reload keeps the state you're
 
 ### The graded moments
 
-**Terms: S4** · [`?state=S4`](http://localhost:5173/?state=S4)
+**Terms: S4** · [`?state=S4`](https://novapay-lake.vercel.app/?state=S4)
 Opens "Review and accept" for Rs 10,000. Check that the amount received, the fee in rupees, the total and the due date are visible without scrolling. Also check that the collection permission is its own unticked box with an end date, and that "What happens if it's late" opens the late details. Tapping Accept without the box ticked says why nothing happened.
 
 **Accept: S4 → S8**
-- **It works:** from [`?state=S4`](http://localhost:5173/?state=S4), tick the box and tap Accept. You see processing (S5), the receipt (S8), then Done and home after accepting ([`?state=S9`](http://localhost:5173/?state=S9)).
-- **Network failure:** [`?state=S6`](http://localhost:5173/?state=S6) opens S4 set to fail once. Tick and Accept to see S5, then the failure (S6); "Try again" works.
-- **A lower amount:** [`?state=S7`](http://localhost:5173/?state=S7) opens S4 set to offer less. Tick and Accept to see S5, then Rs 5,000 offered instead, with fresh, unticked consent (S7).
+- **It works:** from [`?state=S4`](https://novapay-lake.vercel.app/?state=S4), tick the box and tap Accept. You see processing (S5), the receipt (S8), then Done and home after accepting ([`?state=S9`](https://novapay-lake.vercel.app/?state=S9)).
+- **Network failure:** [`?state=S6`](https://novapay-lake.vercel.app/?state=S6) opens S4 set to fail once. Tick and Accept to see S5, then the failure (S6); "Try again" works.
+- **A lower amount:** [`?state=S7`](https://novapay-lake.vercel.app/?state=S7) opens S4 set to offer less. Tick and Accept to see S5, then Rs 5,000 offered instead, with fresh, unticked consent (S7).
 - In the reviewer controls, the S5–S7 entry's choices (Works, Fails once, Lower amount) do the same.
 
 **Bad news: S11 → S12** (the late path, for "salary didn't arrive")
-- **Not collected on payday, 28 Jul:** [`?state=S11`](http://localhost:5173/?state=S11). Red only on the failed collection; the amount owed hasn't changed and nothing is needed from the person. "See details" shows the status and what was agreed.
-- **Late, 2 Aug:** [`?state=S12`](http://localhost:5173/?state=S12). Days late in amber; in "See details", "My salary is late" is the optional report.
-- **Late, with the payroll delay reported:** [`?state=S12-delay`](http://localhost:5173/?state=S12-delay).
+- **Not collected on payday, 28 Jul:** [`?state=S11`](https://novapay-lake.vercel.app/?state=S11). Red only on the failed collection; the amount owed hasn't changed and nothing is needed from the person. "See details" shows the status and what was agreed.
+- **Late, 2 Aug:** [`?state=S12`](https://novapay-lake.vercel.app/?state=S12). Days late in amber; in "See details", "My salary is late" is the optional report.
+- **Late, with the payroll delay reported:** [`?state=S12-delay`](https://novapay-lake.vercel.app/?state=S12-delay).
 
 **The other states:**
-- S1 offer: [`?state=S1`](http://localhost:5173/?state=S1)
-- S2 needs verification (persona B): [`?state=S2`](http://localhost:5173/?state=S2)
-- S3 choose an amount: [`?state=S3`](http://localhost:5173/?state=S3)
-- S8 receipt: [`?state=S8`](http://localhost:5173/?state=S8)
-- S10 reminder, 25 Jul: [`?state=S10`](http://localhost:5173/?state=S10)
+- S1 offer: [`?state=S1`](https://novapay-lake.vercel.app/?state=S1)
+- S2 needs verification (persona B): [`?state=S2`](https://novapay-lake.vercel.app/?state=S2)
+- S3 choose an amount: [`?state=S3`](https://novapay-lake.vercel.app/?state=S3)
+- S8 receipt: [`?state=S8`](https://novapay-lake.vercel.app/?state=S8)
+- S10 reminder, 25 Jul: [`?state=S10`](https://novapay-lake.vercel.app/?state=S10)
 
 Each note in the reviewer controls ends with the principle it tests, from [my read](docs/00-my-read.md):
 - **P1** The number you tap is the number you owe.
