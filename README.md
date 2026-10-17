@@ -58,6 +58,7 @@ Each note in the reviewer controls ends with the principle it tests, from [my re
 - **The write-up:** *Placeholder: link to be added.* It's a separate document, not in this repo.
 - **My read** (the problem, principles, scope, Assumptions and open questions): [`docs/00-my-read.md`](docs/00-my-read.md).
 - **Design-system notes:**
+  - the Figma file, "Component Set": [figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set](https://www.figma.com/design/nhGhfzroYtPCBZ4Y5WLCob/Component-Set?node-id=0-1)
   - every token and component change, with the reason and before/after contrast: [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)
   - the audit of NovaKit Lite against this scope: [`docs/01-system-audit.md`](docs/01-system-audit.md)
   - the tokens: [`tailwind.config.js`](tailwind.config.js)
